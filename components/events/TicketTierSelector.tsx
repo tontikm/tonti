@@ -1,22 +1,26 @@
 "use client";
 
-import { useState } from "react";
-import type { TicketTier } from "@/lib/types";
-import {
-  formatPrice,
-  getTicketsRemaining,
-} from "@/lib/utils";
-import { Button } from "@/components/ui/Button";
+import { useMemo, useState } from "react";
+import Link from "next/link";
 import { Minus, Plus, Ticket } from "lucide-react";
+import type { TicketTier } from "@/lib/types";
+import { buildCheckoutUrl } from "@/lib/checkout";
+import { OrganizerFanAuthNotice } from "@/components/auth/OrganizerFanAuthNotice";
+import { Button } from "@/components/ui/Button";
+import { formatPrice, getTicketsRemaining } from "@/lib/utils";
 
 type TicketTierSelectorProps = {
-  tiers: TicketTier[];
+  eventSlug: string;
   eventTitle: string;
+  tiers: TicketTier[];
+  organizerEmail?: string | null;
 };
 
 export function TicketTierSelector({
-  tiers,
+  eventSlug,
   eventTitle,
+  tiers,
+  organizerEmail,
 }: TicketTierSelectorProps) {
   const [quantities, setQuantities] = useState<Record<string, number>>({});
 
@@ -33,6 +37,12 @@ export function TicketTierSelector({
     const qty = quantities[tier.id] ?? 0;
     return sum + tier.price * qty;
   }, 0);
+  const checkoutUrl = useMemo(
+    () => buildCheckoutUrl(eventSlug, quantities),
+    [eventSlug, quantities],
+  );
+  const allSoldOut = tiers.every((tier) => getTicketsRemaining(tier) === 0);
+  const purchaseDisabled = Boolean(organizerEmail);
 
   return (
     <div className="rounded-2xl border border-border bg-surface p-6">
@@ -40,6 +50,14 @@ export function TicketTierSelector({
         <Ticket className="h-5 w-5 text-accent" />
         <h2 className="text-lg font-semibold">Get tickets</h2>
       </div>
+
+      {organizerEmail && (
+        <OrganizerFanAuthNotice
+          organizerEmail={organizerEmail}
+          fanLoginHref={`/login?next=${encodeURIComponent(buildCheckoutUrl(eventSlug, {}))}`}
+          className="mt-4"
+        />
+      )}
 
       <div className="mt-6 space-y-4">
         {tiers.map((tier) => {
@@ -72,16 +90,21 @@ export function TicketTierSelector({
                         {remaining} left
                       </span>
                     )}
+                    {tier.price === 0 && !soldOut && (
+                      <span className="text-xs font-medium text-emerald-400">
+                        Free
+                      </span>
+                    )}
                   </div>
                   {tier.description && (
                     <p className="mt-1 text-sm text-muted">{tier.description}</p>
                   )}
                   <p className="mt-2 text-lg font-semibold">
-                    {formatPrice(tier.price)}
+                    {tier.price === 0 ? "Free" : formatPrice(tier.price)}
                   </p>
                 </div>
 
-                {!soldOut && (
+                {!soldOut && !purchaseDisabled && (
                   <div className="flex items-center gap-2">
                     <button
                       type="button"
@@ -110,25 +133,30 @@ export function TicketTierSelector({
         })}
       </div>
 
-      {totalTickets > 0 && (
+      {allSoldOut && (
+        <p className="mt-6 text-sm text-muted">
+          All tiers are sold out for {eventTitle}.
+        </p>
+      )}
+
+      {totalTickets > 0 && !purchaseDisabled && (
         <div className="mt-6 border-t border-border pt-6">
           <div className="flex items-center justify-between text-sm">
             <span className="text-muted">
               {totalTickets} ticket{totalTickets !== 1 ? "s" : ""}
             </span>
             <span className="text-lg font-semibold">
-              {formatPrice(totalPrice)}
+              {totalPrice === 0 ? "Free" : formatPrice(totalPrice)}
             </span>
           </div>
-          <p className="mt-1 text-xs text-muted">
-            Fees calculated at checkout
+          <p className="mt-2 text-xs text-muted">
+            {totalPrice === 0
+              ? "Free RSVP — no payment required"
+              : "Pay at the door — online payment coming soon"}
           </p>
-          <Button className="mt-4 w-full" size="lg" disabled>
-            Checkout coming soon
+          <Button href={checkoutUrl} className="mt-4 w-full" size="lg">
+            Continue to checkout
           </Button>
-          <p className="mt-2 text-center text-xs text-muted">
-            Stripe checkout for {eventTitle} will be wired up next
-          </p>
         </div>
       )}
     </div>

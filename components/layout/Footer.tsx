@@ -1,23 +1,29 @@
 import Link from "next/link";
-import { GENRES } from "@/lib/data/genres";
-import { CITIES } from "@/lib/data/cities";
+import Image from "next/image";
+import { EVENT_CATEGORIES } from "@/lib/data/categories";
+import { LEGAL_HUB_LINK } from "@/lib/site";
+import { SocialLinks } from "@/components/layout/SocialLinks";
 
 export function Footer() {
   return (
-    <footer className="mt-auto border-t border-border bg-surface">
-      <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
-        <div className="grid gap-10 sm:grid-cols-2 lg:grid-cols-4">
-          <div>
-            <div className="flex items-center gap-2">
-              <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-accent text-sm font-bold text-white">
-                T
-              </span>
-              <span className="text-lg font-bold">Tonti</span>
-            </div>
-            <p className="mt-3 text-sm leading-relaxed text-muted">
-              The ticketing platform built for live music. Discover shows, buy
-              tickets, and never miss a beat.
+    <footer className="mt-auto border-t border-white/10 bg-black">
+      <div className="mx-auto max-w-[1440px] px-4 py-12 sm:px-6 lg:px-8">
+        <div className="grid gap-10 sm:grid-cols-2 lg:grid-cols-5">
+          <div className="sm:col-span-2 lg:col-span-2">
+            <Image
+              src="/tonti-logo.png"
+              alt="Tonti"
+              width={598}
+              height={215}
+              className="h-8 w-auto"
+            />
+            <p className="mt-4 max-w-sm text-sm leading-relaxed text-muted">
+              South Africa&apos;s home for live music. Discover gigs, festivals,
+              and club nights — every moment matters.
             </p>
+            <div className="mt-6">
+              <SocialLinks />
+            </div>
           </div>
 
           <div>
@@ -28,7 +34,7 @@ export function Footer() {
               <li>
                 <Link
                   href="/events"
-                  className="text-sm text-foreground/80 hover:text-accent"
+                  className="text-sm text-foreground/80 hover:text-foreground"
                 >
                   All events
                 </Link>
@@ -36,7 +42,7 @@ export function Footer() {
               <li>
                 <Link
                   href="/events?when=tonight"
-                  className="text-sm text-foreground/80 hover:text-accent"
+                  className="text-sm text-foreground/80 hover:text-foreground"
                 >
                   Tonight
                 </Link>
@@ -44,9 +50,25 @@ export function Footer() {
               <li>
                 <Link
                   href="/events?when=weekend"
-                  className="text-sm text-foreground/80 hover:text-accent"
+                  className="text-sm text-foreground/80 hover:text-foreground"
                 >
                   This weekend
+                </Link>
+              </li>
+              <li>
+                <Link
+                  href="/for-organizers"
+                  className="text-sm text-foreground/80 hover:text-foreground"
+                >
+                  For organizers
+                </Link>
+              </li>
+              <li>
+                <Link
+                  href="/help"
+                  className="text-sm text-foreground/80 hover:text-foreground"
+                >
+                  Help &amp; support
                 </Link>
               </li>
             </ul>
@@ -54,16 +76,16 @@ export function Footer() {
 
           <div>
             <h3 className="text-sm font-semibold uppercase tracking-wider text-muted">
-              Genres
+              Categories
             </h3>
             <ul className="mt-4 space-y-2">
-              {GENRES.slice(0, 6).map((genre) => (
-                <li key={genre.id}>
+              {EVENT_CATEGORIES.map((item) => (
+                <li key={item.id}>
                   <Link
-                    href={`/events?genre=${genre.id}`}
-                    className="text-sm text-foreground/80 hover:text-accent"
+                    href={`/events?category=${item.id}`}
+                    className="text-sm text-foreground/80 hover:text-foreground"
                   >
-                    {genre.label}
+                    {item.label}
                   </Link>
                 </li>
               ))}
@@ -72,38 +94,31 @@ export function Footer() {
 
           <div>
             <h3 className="text-sm font-semibold uppercase tracking-wider text-muted">
-              Cities
+              Legal
             </h3>
             <ul className="mt-4 space-y-2">
-              {CITIES.slice(0, 6).map((city) => (
-                <li key={city.slug}>
-                  <Link
-                    href={`/cities/${city.slug}`}
-                    className="text-sm text-foreground/80 hover:text-accent"
-                  >
-                    {city.name}
-                  </Link>
-                </li>
-              ))}
+              <li>
+                <Link
+                  href={LEGAL_HUB_LINK.href}
+                  className="text-sm text-foreground/80 hover:text-foreground"
+                >
+                  {LEGAL_HUB_LINK.label}
+                </Link>
+              </li>
             </ul>
           </div>
         </div>
 
-        <div className="mt-10 flex flex-col items-center justify-between gap-4 border-t border-border pt-8 sm:flex-row">
+        <div className="mt-10 flex flex-col items-center justify-between gap-4 border-t border-white/10 pt-8 sm:flex-row">
           <p className="text-xs text-muted">
             © {new Date().getFullYear()} Tonti. Music events only.
           </p>
-          <div className="flex gap-6 text-xs text-muted">
-            <Link href="#" className="hover:text-foreground">
-              Terms
-            </Link>
-            <Link href="#" className="hover:text-foreground">
-              Privacy
-            </Link>
-            <Link href="#" className="hover:text-foreground">
-              Help
-            </Link>
-          </div>
+          <Link
+            href={LEGAL_HUB_LINK.href}
+            className="text-xs text-muted hover:text-foreground"
+          >
+            {LEGAL_HUB_LINK.label}
+          </Link>
         </div>
       </div>
     </footer>

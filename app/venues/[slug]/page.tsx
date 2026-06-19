@@ -3,39 +3,41 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { MapPin, Users } from "lucide-react";
 import { EventCard } from "@/components/events/EventCard";
-import { VENUES, getVenueBySlug } from "@/lib/data/venues";
+import { getAllVenues, getVenueBySlug } from "@/lib/data/venues";
 import { getEventsByVenue } from "@/lib/data/events";
+import { getSafeVenueImageUrl } from "@/lib/images";
 
 type Props = {
   params: Promise<{ slug: string }>;
 };
 
 export async function generateStaticParams() {
-  return VENUES.map((venue) => ({ slug: venue.slug }));
+  const venues = await getAllVenues();
+  return venues.map((venue) => ({ slug: venue.slug }));
 }
 
 export async function generateMetadata({ params }: Props) {
   const { slug } = await params;
-  const venue = getVenueBySlug(slug);
+  const venue = await getVenueBySlug(slug);
   if (!venue) return { title: "Venue not found" };
   return {
     title: venue.name,
-    description: `Upcoming live music at ${venue.name} in ${venue.city}, ${venue.state}`,
+    description: `Upcoming live music at ${venue.name} in ${venue.city}, ${venue.province}`,
   };
 }
 
 export default async function VenuePage({ params }: Props) {
   const { slug } = await params;
-  const venue = getVenueBySlug(slug);
+  const venue = await getVenueBySlug(slug);
   if (!venue) notFound();
 
-  const events = getEventsByVenue(slug);
+  const events = await getEventsByVenue(slug);
 
   return (
     <>
       <div className="relative h-48 overflow-hidden sm:h-64">
         <Image
-          src={venue.image}
+          src={getSafeVenueImageUrl(venue.image)}
           alt={venue.name}
           fill
           className="object-cover"

@@ -3,9 +3,10 @@ import Link from "next/link";
 import { MapPin, Calendar } from "lucide-react";
 import type { Event } from "@/lib/types";
 import { Badge } from "@/components/ui/Badge";
-import { getGenreColor, getGenreLabel } from "@/lib/data/genres";
+import { getCategoryColor, getCategoryLabel } from "@/lib/data/categories";
+import { getSafeEventImageUrl } from "@/lib/images";
 import {
-  formatEventDate,
+  formatDateRange,
   formatEventTime,
   formatPrice,
   getLowestPrice,
@@ -37,7 +38,7 @@ export function EventCard({ event, featured = false }: EventCardProps) {
         className={`relative overflow-hidden ${featured ? "aspect-[4/3] sm:aspect-auto sm:min-h-[280px]" : "aspect-[4/3]"}`}
       >
         <Image
-          src={event.image}
+          src={getSafeEventImageUrl(event.image)}
           alt={event.title}
           fill
           className="object-cover transition-transform duration-500 group-hover:scale-105"
@@ -50,24 +51,38 @@ export function EventCard({ event, featured = false }: EventCardProps) {
         <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
 
         <div className="absolute left-3 top-3 flex flex-wrap gap-2">
-          <Badge color={getGenreColor(event.genre)}>
-            {getGenreLabel(event.genre)}
+          <Badge color={getCategoryColor(event.category)}>
+            {getCategoryLabel(event.category)}
           </Badge>
           {soldOut && (
-            <Badge className="border border-red-500/40 bg-red-500/20 text-red-400">
+            <Badge className="border border-white/30 bg-black/70 text-white">
               Sold out
             </Badge>
           )}
           {!soldOut && almostGone && (
-            <Badge className="border border-amber-500/40 bg-amber-500/20 text-amber-400">
+            <Badge className="border border-white/40 bg-white/15 text-white">
               Almost gone
+            </Badge>
+          )}
+          {event.ageLimit != null && event.ageLimit >= 18 && (
+            <Badge className="border border-white/30 bg-black/70 text-white">
+              {event.ageLimit}+
             </Badge>
           )}
         </div>
 
         {lowestPrice !== null && !soldOut && (
-          <div className="absolute bottom-3 right-3 rounded-lg bg-black/60 px-2.5 py-1 text-sm font-semibold backdrop-blur-sm">
-            From {formatPrice(lowestPrice)}
+          <div className="absolute bottom-3 right-3 rounded-md border border-white/15 bg-black/70 px-2.5 py-1 font-mono text-sm font-semibold backdrop-blur-sm">
+            {lowestPrice === 0 ? (
+              <span className="text-emerald-400">Free</span>
+            ) : (
+              <>
+                <span className="text-white/75">From </span>
+                <span className="text-emerald-400">
+                  {formatPrice(lowestPrice)}
+                </span>
+              </>
+            )}
           </div>
         )}
       </div>
@@ -86,7 +101,9 @@ export function EventCard({ event, featured = false }: EventCardProps) {
           <div className="flex items-center gap-2">
             <Calendar className="h-3.5 w-3.5 shrink-0" />
             <span>
-              {formatEventDate(event.date)} · {formatEventTime(event.showTime)}
+              {event.endDate
+                ? formatDateRange(event.date, event.endDate)
+                : `${formatDateRange(event.date)} · ${formatEventTime(event.showTime)}`}
             </span>
           </div>
           <div className="flex items-center gap-2">

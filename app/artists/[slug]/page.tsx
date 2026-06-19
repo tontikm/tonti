@@ -3,8 +3,9 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { EventCard } from "@/components/events/EventCard";
 import { Badge } from "@/components/ui/Badge";
-import { ARTISTS, getArtistBySlug } from "@/lib/data/artists";
+import { getAllArtists, getArtistBySlug } from "@/lib/data/artists";
 import { getEventsByArtist } from "@/lib/data/events";
+import { getSafeArtistImageUrl } from "@/lib/images";
 import { getGenreColor, getGenreLabel } from "@/lib/data/genres";
 
 type Props = {
@@ -12,12 +13,13 @@ type Props = {
 };
 
 export async function generateStaticParams() {
-  return ARTISTS.map((artist) => ({ slug: artist.slug }));
+  const artists = await getAllArtists();
+  return artists.map((artist) => ({ slug: artist.slug }));
 }
 
 export async function generateMetadata({ params }: Props) {
   const { slug } = await params;
-  const artist = getArtistBySlug(slug);
+  const artist = await getArtistBySlug(slug);
   if (!artist) return { title: "Artist not found" };
   return {
     title: artist.name,
@@ -27,17 +29,17 @@ export async function generateMetadata({ params }: Props) {
 
 export default async function ArtistPage({ params }: Props) {
   const { slug } = await params;
-  const artist = getArtistBySlug(slug);
+  const artist = await getArtistBySlug(slug);
   if (!artist) notFound();
 
-  const events = getEventsByArtist(slug);
+  const events = await getEventsByArtist(slug);
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:px-8">
       <div className="flex flex-col gap-8 sm:flex-row sm:items-start">
         <div className="relative h-48 w-48 shrink-0 overflow-hidden rounded-2xl border border-border">
           <Image
-            src={artist.image}
+            src={getSafeArtistImageUrl(artist.image)}
             alt={artist.name}
             fill
             className="object-cover"

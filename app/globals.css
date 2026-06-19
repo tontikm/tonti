@@ -1,15 +1,18 @@
 @import "tailwindcss";
 
+@source "../components";
+
 :root {
-  --background: #07070a;
-  --foreground: #f4f4f5;
-  --surface: #111116;
-  --surface-hover: #1a1a22;
-  --border: #27272f;
-  --muted: #a1a1aa;
-  --accent: #c026d3;
-  --accent-hover: #d946ef;
-  --accent-glow: rgba(192, 38, 211, 0.35);
+  --background: #000000;
+  --foreground: #ffffff;
+  --surface: #0c0c0c;
+  --surface-hover: #171717;
+  --border: #262626;
+  --muted: #a3a3a3;
+  /* In a black & white system "accent" is simply white. */
+  --accent: #ffffff;
+  --accent-hover: #e5e5e5;
+  --accent-foreground: #000000;
 }
 
 @theme inline {
@@ -21,38 +24,174 @@
   --color-muted: var(--muted);
   --color-accent: var(--accent);
   --color-accent-hover: var(--accent-hover);
+  --color-accent-foreground: var(--accent-foreground);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
+  --font-pixel: var(--font-press-start);
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: var(--font-sans), system-ui, sans-serif;
+@layer base {
+  body {
+    background: var(--background);
+    color: var(--foreground);
+    font-family: var(--font-sans), system-ui, sans-serif;
+  }
+
+  ::selection {
+    background: var(--accent);
+    color: var(--accent-foreground);
+  }
 }
 
-::selection {
-  background: var(--accent);
-  color: white;
-}
+@layer components {
+  /* Monochrome wordmark-style gradient: bright white fading to grey. */
+  .gradient-text {
+    background: linear-gradient(135deg, #ffffff 0%, #d4d4d4 55%, #737373 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
 
-.gradient-text {
-  background: linear-gradient(135deg, #f0abfc 0%, #c026d3 50%, #7c3aed 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-}
+  /* Subtle white glow instead of the old magenta haze. */
+  .hero-glow {
+    background:
+      radial-gradient(
+        ellipse 80% 50% at 50% -20%,
+        rgba(255, 255, 255, 0.12),
+        transparent
+      ),
+      radial-gradient(
+        ellipse 60% 40% at 80% 60%,
+        rgba(255, 255, 255, 0.05),
+        transparent
+      );
+  }
 
-.hero-glow {
-  background:
-    radial-gradient(ellipse 80% 50% at 50% -20%, var(--accent-glow), transparent),
-    radial-gradient(ellipse 60% 40% at 80% 60%, rgba(124, 58, 237, 0.15), transparent);
-}
+  /* Tixr-style hero: warm stage light grading + bottom bowl fade. */
+  .carousel-photo {
+    filter: contrast(1.12) saturate(1.18) brightness(0.88);
+  }
 
-.card-shine {
-  background: linear-gradient(
-    135deg,
-    rgba(255, 255, 255, 0.05) 0%,
-    transparent 50%
-  );
+  .carousel-grade {
+    background:
+      linear-gradient(
+        115deg,
+        rgba(0, 0, 0, 0.82) 0%,
+        rgba(0, 0, 0, 0.45) 42%,
+        rgba(120, 30, 20, 0.18) 100%
+      ),
+      linear-gradient(
+        to top,
+        rgba(0, 0, 0, 0.95) 0%,
+        rgba(0, 0, 0, 0.35) 38%,
+        transparent 72%
+      ),
+      radial-gradient(
+        ellipse 90% 70% at 78% 18%,
+        rgba(255, 120, 60, 0.22),
+        transparent 58%
+      ),
+      radial-gradient(
+        ellipse 120% 80% at 50% 100%,
+        rgba(0, 0, 0, 0.55),
+        transparent 62%
+      );
+  }
+
+  .carousel-bowl {
+    background: radial-gradient(
+      ellipse 95% 55% at 50% 115%,
+      rgba(0, 0, 0, 0.98) 0%,
+      rgba(0, 0, 0, 0.72) 42%,
+      transparent 72%
+    );
+  }
+
+  /* Pixel/retro brand accents — use sparingly for eyebrows and the wordmark. */
+  .font-pixel {
+    font-family: var(--font-pixel), var(--font-mono), monospace;
+  }
+
+  .eyebrow {
+    font-family: var(--font-pixel), var(--font-mono), monospace;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+  }
+
+  /* Dark monochrome treatment for embedded venue maps. */
+  .venue-map-embed {
+    filter: grayscale(100%) invert(92%) contrast(88%) brightness(0.95);
+  }
+
+  /* Dot grid for organizer marketing sections. */
+  .organizer-grid-bg {
+    background-image: radial-gradient(
+      circle at 1px 1px,
+      rgba(255, 255, 255, 0.08) 1px,
+      transparent 0
+    );
+    background-size: 24px 24px;
+  }
+
+  /* Organizer-only color theme (Howler-inspired). Scoped — fan site stays B&W. */
+  .organizer-theme {
+    --org-violet: #7c3aed;
+    --org-violet-soft: rgba(124, 58, 237, 0.15);
+    --org-orange: #f97316;
+    --org-orange-soft: rgba(249, 115, 22, 0.12);
+    --org-pink: #ec4899;
+    --org-cyan: #06b6d4;
+  }
+
+  .organizer-glow {
+    background:
+      radial-gradient(
+        ellipse 80% 55% at 15% 0%,
+        rgba(124, 58, 237, 0.38),
+        transparent
+      ),
+      radial-gradient(
+        ellipse 65% 50% at 90% 25%,
+        rgba(249, 115, 22, 0.28),
+        transparent
+      ),
+      radial-gradient(
+        ellipse 55% 45% at 50% 100%,
+        rgba(236, 72, 153, 0.14),
+        transparent
+      );
+  }
+
+  .organizer-gradient-text {
+    background: linear-gradient(
+      135deg,
+      #ffffff 0%,
+      #c4b5fd 40%,
+      #f97316 90%
+    );
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .organizer-accent-btn {
+    border-color: transparent !important;
+    background: var(--org-violet) !important;
+    color: #ffffff !important;
+    box-shadow: 0 4px 24px rgba(124, 58, 237, 0.45) !important;
+  }
+
+  .organizer-accent-btn:hover {
+    background: #6d28d9 !important;
+    color: #ffffff !important;
+  }
+
+  .organizer-grid-bg-violet {
+    background-image: radial-gradient(
+      circle at 1px 1px,
+      rgba(124, 58, 237, 0.18) 1px,
+      transparent 0
+    );
+    background-size: 24px 24px;
+  }
 }

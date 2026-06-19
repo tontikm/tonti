@@ -1,12 +1,14 @@
 import { Suspense } from "react";
 import { EventsPageContent } from "./EventsPageContent";
+import { getAllEvents } from "@/lib/data/events";
 
 export const metadata = {
   title: "Browse Events",
-  description: "Find live music events near you. Filter by genre, city, and date.",
+  description: "Find live music events near you. Filter by category, city, and date.",
 };
 
-export default function EventsPage() {
+export default async function EventsPage() {
+  const events = await getAllEvents();
   return (
     <Suspense
       fallback={
@@ -15,7 +17,7 @@ export default function EventsPage() {
         </div>
       }
     >
-      <EventsPageContent />
+      <EventsPageContent events={events} />
     </Suspense>
   );
 }

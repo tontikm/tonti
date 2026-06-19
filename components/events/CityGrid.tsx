@@ -1,13 +1,19 @@
 import Link from "next/link";
 import Image from "next/image";
-import { CITIES } from "@/lib/data/cities";
-import { getEventsByCity } from "@/lib/data/events";
+import { FEATURED_CITIES } from "@/lib/data/cities";
+import { getAllEvents, CITY_NAME_BY_SLUG } from "@/lib/data/events";
 
-export function CityGrid() {
+export async function CityGrid() {
+  const events = await getAllEvents();
+  const countByCity = (slug: string) => {
+    const name = CITY_NAME_BY_SLUG[slug];
+    return events.filter((e) => e.venue.city === name).length;
+  };
+
   return (
     <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-      {CITIES.map((city) => {
-        const eventCount = getEventsByCity(city.slug).length;
+      {FEATURED_CITIES.map((city) => {
+        const eventCount = countByCity(city.slug);
         return (
           <Link
             key={city.slug}

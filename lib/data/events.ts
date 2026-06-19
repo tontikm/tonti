@@ -1,6 +1,35 @@
-import type { Event, Genre } from "@/lib/types";
+import { cache } from "react";
+import type { Event, EventCategory, Genre, Artist, Venue, TicketTier } from "@/lib/types";
+import {
+  isEventCategory,
+  legacyGenreToCategory,
+} from "@/lib/data/categories";
 import { ARTISTS } from "@/lib/data/artists";
+import { ALL_CITIES } from "@/lib/data/cities";
 import { VENUES } from "@/lib/data/venues";
+import { getSupabaseServer } from "@/lib/supabase/server";
+import {
+  formatSupabaseError,
+  isConnectionError,
+  isMissingColumnError,
+} from "@/lib/supabase/errors";
+
+let loggedEventsSeedFallback = false;
+let loggedOrganizerMigrationHint = false;
+
+function logEventsSeedFallback(reason: string): void {
+  if (loggedEventsSeedFallback) return;
+  loggedEventsSeedFallback = true;
+  console.warn(`[Tonti] ${reason} Using local seed data from lib/data/events.ts.`);
+}
+
+function logOrganizerMigrationHint(): void {
+  if (loggedOrganizerMigrationHint) return;
+  loggedOrganizerMigrationHint = true;
+  console.warn(
+    "[Tonti] Organizer branding columns missing — run supabase/migrations/0004_event_organizer_branding.sql in the Supabase SQL editor.",
+  );
+}
 
 function daysFromNow(days: number, hour = 20, minute = 0): string {
   const d = new Date();
@@ -15,405 +44,624 @@ function doorsBeforeShow(showIso: string, minutes = 60): string {
   return d.toISOString();
 }
 
+const SEED_ORGANIZER_LOGO =
+  "https://images.unsplash.com/photo-1614680376573-df3480a0c6ff?w=400&q=80";
+
 export const EVENTS: Event[] = [
   {
-    slug: "neon-pulse-live-la",
-    title: "Neon Pulse Live",
-    subtitle: "North America Tour 2026",
+    slug: "amapiano-festival-jhb",
+    title: "Amapiano Festival",
+    subtitle: "Two days of log-drum heaven",
     description:
-      "Experience Neon Pulse's most ambitious live show yet — a two-hour journey through deep techno, ambient breakdowns, and peak-time bangers. Featuring a custom LED rig and live modular synthesis.",
+      "The biggest amapiano gathering in Gauteng returns to Constitution Hill for two days of the country's hottest piano acts, yanos all-stars, and surprise guests. Bring your dance moves.",
     image:
       "https://images.unsplash.com/photo-1571266028243-e68fdf784baf?w=1200&q=80",
-    date: daysFromNow(5),
-    doorsTime: doorsBeforeShow(daysFromNow(5)),
-    showTime: daysFromNow(5),
-    genre: "electronic",
+    date: daysFromNow(12, 14),
+    endDate: daysFromNow(13, 23),
+    doorsTime: doorsBeforeShow(daysFromNow(12, 14)),
+    showTime: daysFromNow(12, 14),
+    category: "festival",
     featured: true,
-    artists: [ARTISTS[0]],
-    venue: VENUES[0],
+    artists: [ARTISTS[0], ARTISTS[5]],
+    venue: VENUES[3],
     ageLimit: 18,
-    tags: ["live", "tour", "techno"],
+    tags: ["festival", "amapiano", "two-day"],
+    organizerName: "Piano Nation SA",
+    organizerLogo: SEED_ORGANIZER_LOGO,
+    tiers: [
+      {
+        id: "ga",
+        name: "Weekend GA",
+        price: 650,
+        capacity: 3000,
+        sold: 2140,
+        description: "Access to both days, general standing",
+      },
+      {
+        id: "vip",
+        name: "Weekend VIP",
+        price: 1500,
+        capacity: 500,
+        sold: 312,
+        description: "Raised viewing deck, fast-track entry, cash bar",
+      },
+    ],
+  },
+  {
+    slug: "tonti-sessions-free-fridays",
+    title: "Tonti Sessions: Free Fridays",
+    subtitle: "Free entry, all welcome",
+    description:
+      "Our weekly free showcase of rising SA talent at Constitution Hill. No ticket price — just RSVP and pull through for an evening of live music.",
+    image:
+      "https://images.unsplash.com/photo-1429962714451-bb934ecdc4ca?w=1200&q=80",
+    date: daysFromNow(4, 18),
+    doorsTime: doorsBeforeShow(daysFromNow(4, 18)),
+    showTime: daysFromNow(4, 18, 30),
+    category: "nightlife",
+    featured: false,
+    artists: [ARTISTS[2]],
+    venue: VENUES[3],
+    tags: ["free", "showcase", "weekly"],
+    organizerName: "Tonti Sessions",
+    organizerLogo: SEED_ORGANIZER_LOGO,
+    tiers: [
+      {
+        id: "rsvp",
+        name: "Free RSVP",
+        price: 0,
+        capacity: 800,
+        sold: 540,
+        description: "Free general admission — first come, first served",
+      },
+    ],
+  },
+  {
+    slug: "nomvula-kirstenbosch",
+    title: "Nomvula Live at Kirstenbosch",
+    subtitle: "Sunset afro-house sessions",
+    description:
+      "Nomvula brings her spiritual afro-house show to the Kirstenbosch lawns for a magical sunset set surrounded by the gardens and Table Mountain.",
+    image:
+      "https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=1200&q=80",
+    date: daysFromNow(6, 17, 30),
+    doorsTime: doorsBeforeShow(daysFromNow(6, 17, 30), 90),
+    showTime: daysFromNow(6, 17, 30),
+    category: "music",
+    featured: true,
+    artists: [ARTISTS[1]],
+    venue: VENUES[0],
+    tags: ["outdoor", "afro-house", "sunset"],
+    organizerName: "Kirstenbosch Live",
+    organizerLogo: SEED_ORGANIZER_LOGO,
     tiers: [
       {
         id: "ga",
         name: "General Admission",
-        price: 45,
-        capacity: 2000,
-        sold: 1420,
-        description: "Standing room on the main floor",
+        price: 350,
+        capacity: 5000,
+        sold: 3120,
+      },
+      {
+        id: "picnic",
+        name: "Picnic Spot",
+        price: 850,
+        capacity: 200,
+        sold: 176,
+        description: "Reserved lawn spot for up to 4 with picnic blanket",
+      },
+    ],
+  },
+  {
+    slug: "deep-sankomota-grandwest",
+    title: "Deep Sankomota — All Night House",
+    description:
+      "A marathon soulful house set from Deep Sankomota at the Grand Arena. Expect deep grooves from doors to last song.",
+    image:
+      "https://images.unsplash.com/photo-1506157782851-9777a7f546ce?w=1200&q=80",
+    date: daysFromNow(20, 21),
+    doorsTime: doorsBeforeShow(daysFromNow(20, 21)),
+    showTime: daysFromNow(20, 22),
+    category: "nightlife",
+    featured: false,
+    artists: [ARTISTS[2]],
+    venue: VENUES[2],
+    ageLimit: 18,
+    tags: ["house", "all-night"],
+    organizerName: "GrandWest Nights",
+    organizerLogo: SEED_ORGANIZER_LOGO,
+    tiers: [
+      {
+        id: "ga",
+        name: "General Admission",
+        price: 250,
+        capacity: 3500,
+        sold: 1430,
       },
       {
         id: "vip",
         name: "VIP",
-        price: 95,
+        price: 600,
         capacity: 300,
-        sold: 187,
-        description: "Front section + exclusive merch pack",
+        sold: 122,
+        description: "VIP balcony with private bar",
       },
     ],
   },
   {
-    slug: "maya-rivers-intimate-nyc",
-    title: "Maya Rivers — Intimate Sessions",
+    slug: "durban-bass-union-icc",
+    title: "Durban Bass Union",
+    subtitle: "Gqom takeover",
     description:
-      "An stripped-down evening with Maya Rivers performing songs from her latest album plus unreleased material. Limited capacity for an up-close soul experience.",
+      "The sound of eThekwini takes over the Durban ICC Arena. Raw, hypnotic gqom built to move thousands.",
     image:
-      "https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=1200&q=80",
-    date: daysFromNow(8),
-    doorsTime: doorsBeforeShow(daysFromNow(8, 19)),
-    showTime: daysFromNow(8, 19, 30),
-    genre: "r-and-b",
+      "https://images.unsplash.com/photo-1571330735066-03aaa9429da7?w=1200&q=80",
+    date: daysFromNow(3, 21),
+    doorsTime: doorsBeforeShow(daysFromNow(3, 21)),
+    showTime: daysFromNow(3, 22),
+    category: "nightlife",
     featured: true,
-    artists: [ARTISTS[1]],
-    venue: VENUES[1],
-    ageLimit: 21,
-    tags: ["intimate", "soul", "live-band"],
-    tiers: [
-      {
-        id: "ga",
-        name: "General Admission",
-        price: 55,
-        capacity: 800,
-        sold: 612,
-      },
-      {
-        id: "meet",
-        name: "Meet & Greet",
-        price: 150,
-        capacity: 50,
-        sold: 48,
-        description: "Post-show photo + signed poster",
-      },
-    ],
-  },
-  {
-    slug: "midnight-collective-austin",
-    title: "The Midnight Collective",
-    subtitle: "With special guest Luna Echo",
-    description:
-      "Dream-pop night at The Mohawk with full light show. The Midnight Collective brings their signature wall of sound to Austin for one night only.",
-    image:
-      "https://images.unsplash.com/photo-1459745456775-9afc3a8049bc?w=1200&q=80",
-    date: daysFromNow(12),
-    doorsTime: doorsBeforeShow(daysFromNow(12, 20)),
-    showTime: daysFromNow(12, 20),
-    genre: "indie",
-    featured: true,
-    artists: [ARTISTS[2]],
-    venue: VENUES[3],
+    artists: [ARTISTS[3]],
+    venue: VENUES[4],
     ageLimit: 18,
-    tags: ["indie", "dream-pop"],
+    tags: ["gqom", "durban", "late-night"],
+    organizerName: "Durban Bass Union",
+    organizerLogo: SEED_ORGANIZER_LOGO,
     tiers: [
-      {
-        id: "early",
-        name: "Early Bird",
-        price: 28,
-        capacity: 200,
-        sold: 200,
-        description: "Sold out tier — join waitlist",
-      },
       {
         id: "ga",
         name: "General Admission",
-        price: 35,
-        capacity: 1000,
-        sold: 743,
+        price: 200,
+        capacity: 6000,
+        sold: 5870,
+      },
+      {
+        id: "golden",
+        name: "Golden Circle",
+        price: 450,
+        capacity: 800,
+        sold: 640,
+        description: "Front standing area closest to the stage",
       },
     ],
   },
   {
-    slug: "kairo-hip-hop-night-miami",
-    title: "Kairo Presents: Hip-Hop Night",
+    slug: "k1ng-verse-sun-arena",
+    title: "K1NG Verse — Coronation Tour",
     description:
-      "DJ Kairo curates a night of underground hip-hop with live MCs, beat battles, and surprise guest performances. Miami's hottest hip-hop party returns.",
+      "Joburg's sharpest lyricist headlines the Sun Arena with a full live band, special guests, and the whole catalogue.",
     image:
       "https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=1200&q=80",
-    date: daysFromNow(3),
-    doorsTime: doorsBeforeShow(daysFromNow(3, 22)),
-    showTime: daysFromNow(3, 23),
-    genre: "hip-hop",
+    date: daysFromNow(15, 20),
+    doorsTime: doorsBeforeShow(daysFromNow(15, 20)),
+    showTime: daysFromNow(15, 20, 30),
+    category: "music",
     featured: false,
-    artists: [ARTISTS[3]],
-    venue: VENUES[2],
-    ageLimit: 21,
-    tags: ["hip-hop", "club", "late-night"],
+    artists: [ARTISTS[4]],
+    venue: VENUES[1],
+    ageLimit: 13,
+    tags: ["hip-hop", "tour", "live-band"],
+    organizerName: "Sun Arena Live",
+    organizerLogo: SEED_ORGANIZER_LOGO,
     tiers: [
       {
         id: "ga",
         name: "General Admission",
-        price: 30,
-        capacity: 600,
-        sold: 421,
+        price: 300,
+        capacity: 6000,
+        sold: 2210,
       },
       {
         id: "vip",
-        name: "VIP Table",
-        price: 200,
-        capacity: 20,
-        sold: 14,
-        description: "Reserved table for 4 + bottle service credit",
+        name: "VIP Standing",
+        price: 750,
+        capacity: 500,
+        sold: 198,
       },
     ],
   },
   {
-    slug: "solar-flare-chicago",
-    title: "Solar Flare — Rock the Metro",
+    slug: "township-funk-con-hill",
+    title: "Township Funk — Kwaito Classics",
     description:
-      "Solar Flare brings their explosive live show to Metro Hall. Expect crowd surfing, extended jams, and a setlist packed with hits and deep cuts.",
+      "A nostalgic night of golden-era kwaito at Constitution Hill. Sing along to every anthem with the originators of the bounce.",
     image:
-      "https://images.unsplash.com/photo-1506157782851-9777a7f546ce?w=1200&q=80",
-    date: daysFromNow(18),
-    doorsTime: doorsBeforeShow(daysFromNow(18, 19)),
-    showTime: daysFromNow(18, 19, 30),
-    genre: "rock",
+      "https://images.unsplash.com/photo-1459745456775-9afc3a8049bc?w=1200&q=80",
+    date: daysFromNow(9, 19),
+    doorsTime: doorsBeforeShow(daysFromNow(9, 19)),
+    showTime: daysFromNow(9, 20),
+    category: "nightlife",
     featured: false,
-    artists: [ARTISTS[4]],
-    venue: VENUES[4],
+    artists: [ARTISTS[5]],
+    venue: VENUES[3],
     ageLimit: 18,
-    tags: ["rock", "live-band"],
+    tags: ["kwaito", "classics"],
+    organizerName: "Con Hill Events",
+    organizerLogo: SEED_ORGANIZER_LOGO,
     tiers: [
       {
         id: "ga",
         name: "General Admission",
-        price: 40,
+        price: 220,
+        capacity: 3500,
+        sold: 980,
+      },
+    ],
+  },
+  {
+    slug: "lerato-sky-durban",
+    title: "Lerato Sky Live",
+    subtitle: "The Homecoming Show",
+    description:
+      "Afro-pop superstar Lerato Sky returns home to Durban for a sold-out-bound homecoming with her full live band and string section.",
+    image:
+      "https://images.unsplash.com/photo-1488376739361-ed24f5fef1d7?w=1200&q=80",
+    date: daysFromNow(2, 19, 30),
+    doorsTime: doorsBeforeShow(daysFromNow(2, 19, 30)),
+    showTime: daysFromNow(2, 20),
+    category: "music",
+    featured: true,
+    artists: [ARTISTS[6]],
+    venue: VENUES[4],
+    tags: ["afro-pop", "live-band", "homecoming"],
+    organizerName: "Skyline Promotions",
+    organizerLogo: SEED_ORGANIZER_LOGO,
+    tiers: [
+      {
+        id: "ga",
+        name: "General Admission",
+        price: 400,
+        capacity: 7000,
+        sold: 6850,
+      },
+      {
+        id: "vip",
+        name: "VIP + Soundcheck",
+        price: 1200,
+        capacity: 150,
+        sold: 150,
+        description: "Soundcheck experience, VIP seating, merch pack",
+      },
+    ],
+  },
+  {
+    slug: "cape-town-quartet-stellenbosch",
+    title: "Cape Town Quartet",
+    subtitle: "An evening of Cape jazz",
+    description:
+      "An intimate seated jazz evening at the Oude Libertas Amphitheatre under the Stellenbosch sky.",
+    image:
+      "https://images.unsplash.com/photo-1415201364774-f6f0ff5a0287?w=1200&q=80",
+    date: daysFromNow(24, 19),
+    doorsTime: doorsBeforeShow(daysFromNow(24, 19)),
+    showTime: daysFromNow(24, 19, 30),
+    category: "music",
+    featured: false,
+    artists: [ARTISTS[7]],
+    venue: VENUES[6],
+    tags: ["jazz", "seated", "outdoor"],
+    organizerName: "Oude Libertas Arts",
+    organizerLogo: SEED_ORGANIZER_LOGO,
+    tiers: [
+      {
+        id: "ga",
+        name: "Reserved Seating",
+        price: 320,
+        capacity: 430,
+        sold: 210,
+      },
+    ],
+  },
+  {
+    slug: "veld-riders-gqeberha",
+    title: "Veld Riders — Loud at The Boardwalk",
+    description:
+      "High-octane SA rock hits the coast. Veld Riders bring the riffs to The Boardwalk in Gqeberha.",
+    image:
+      "https://images.unsplash.com/photo-1498038432885-c6f3f1b912ee?w=1200&q=80",
+    date: daysFromNow(28, 20),
+    doorsTime: doorsBeforeShow(daysFromNow(28, 20)),
+    showTime: daysFromNow(28, 20, 30),
+    category: "music",
+    featured: false,
+    artists: [ARTISTS[8]],
+    venue: VENUES[5],
+    ageLimit: 16,
+    tags: ["rock", "live-band"],
+    organizerName: "Boardwalk Live",
+    organizerLogo: SEED_ORGANIZER_LOGO,
+    tiers: [
+      {
+        id: "ga",
+        name: "General Admission",
+        price: 280,
         capacity: 2200,
-        sold: 890,
+        sold: 540,
       },
       {
         id: "pit",
-        name: "Pit Access",
-        price: 65,
-        capacity: 400,
-        sold: 312,
-        description: "Front-of-stage standing area",
+        name: "Front Pit",
+        price: 480,
+        capacity: 300,
+        sold: 96,
+        description: "Front-of-stage standing pit",
       },
     ],
   },
   {
-    slug: "carla-mendez-miami-beach",
-    title: "Carla Mendez — Caliente Tour",
-    subtitle: "Outdoor beach stage",
+    slug: "naledi-pop-sun-arena",
+    title: "Naledi — Starlight Tour",
     description:
-      "Carla Mendez takes over Pulse Club's outdoor stage for a night of reggaeton, Latin pop, and high-energy choreography under the Miami stars.",
+      "Pop sensation Naledi lights up the Sun Arena with stadium-sized choruses, dancers, and a full production show.",
     image:
-      "https://images.unsplash.com/photo-1516450360452-9312f5e86fc7?w=1200&q=80",
-    date: daysFromNow(1),
-    doorsTime: doorsBeforeShow(daysFromNow(1, 21)),
-    showTime: daysFromNow(1, 22),
-    genre: "latin",
+      "https://images.unsplash.com/photo-1501386761578-eac5c94b800a?w=1200&q=80",
+    date: daysFromNow(1, 19),
+    doorsTime: doorsBeforeShow(daysFromNow(1, 19)),
+    showTime: daysFromNow(1, 20),
+    category: "lifestyle",
     featured: true,
-    artists: [ARTISTS[5]],
-    venue: VENUES[2],
-    ageLimit: 21,
-    tags: ["latin", "reggaeton", "outdoor"],
+    artists: [ARTISTS[9]],
+    venue: VENUES[1],
+    tags: ["pop", "tour", "production"],
+    organizerName: "Arena Pop Co.",
+    organizerLogo: SEED_ORGANIZER_LOGO,
     tiers: [
       {
         id: "ga",
         name: "General Admission",
-        price: 50,
-        capacity: 500,
-        sold: 467,
+        price: 450,
+        capacity: 8000,
+        sold: 4120,
       },
       {
         id: "vip",
-        name: "VIP Lounge",
-        price: 120,
-        capacity: 100,
-        sold: 89,
-      },
-    ],
-  },
-  {
-    slug: "blue-hour-jazz-chicago",
-    title: "Blue Hour Quartet — Jazz Night",
-    description:
-      "An evening of contemporary jazz at Metro Hall. The Blue Hour Quartet performs material from their acclaimed album plus improvisational suites.",
-    image:
-      "https://images.unsplash.com/photo-1415201364774-f6f0ff5a0287?w=1200&q=80",
-    date: daysFromNow(25),
-    doorsTime: doorsBeforeShow(daysFromNow(25, 19)),
-    showTime: daysFromNow(25, 19, 30),
-    genre: "jazz",
-    featured: false,
-    artists: [ARTISTS[6]],
-    venue: VENUES[4],
-    tags: ["jazz", "seated"],
-    tiers: [
-      {
-        id: "ga",
-        name: "General Admission",
-        price: 38,
-        capacity: 1500,
-        sold: 234,
-      },
-      {
-        id: "reserved",
-        name: "Reserved Seating",
-        price: 55,
-        capacity: 400,
-        sold: 89,
-      },
-    ],
-  },
-  {
-    slug: "dusty-trails-nashville",
-    title: "Dusty Trails — Honky Tonk Heart",
-    description:
-      "Nashville's favorite outlaw country band returns to Ryman Stage for a night of storytelling, twang, and sing-alongs.",
-    image:
-      "https://images.unsplash.com/photo-1510915361894-db8b60106cb1?w=1200&q=80",
-    date: daysFromNow(30),
-    doorsTime: doorsBeforeShow(daysFromNow(30, 19)),
-    showTime: daysFromNow(30, 19, 30),
-    genre: "country",
-    featured: false,
-    artists: [ARTISTS[7]],
-    venue: VENUES[5],
-    ageLimit: 18,
-    tags: ["country", "nashville"],
-    tiers: [
-      {
-        id: "ga",
-        name: "General Admission",
-        price: 42,
-        capacity: 1800,
-        sold: 456,
-      },
-      {
-        id: "premium",
-        name: "Premium",
-        price: 75,
-        capacity: 400,
-        sold: 123,
-        description: "Elevated seating with better sightlines",
-      },
-    ],
-  },
-  {
-    slug: "warehouse-rave-nyc",
-    title: "Warehouse Rave: All Night",
-    subtitle: "Neon Pulse + guest DJs",
-    description:
-      "Underground electronic marathon at Warehouse 9. Three rooms, six DJs, sunrise set. The definitive NYC warehouse experience.",
-    image:
-      "https://images.unsplash.com/photo-1571330735066-03aaa9429da7?w=1200&q=80",
-    date: daysFromNow(14),
-    doorsTime: doorsBeforeShow(daysFromNow(14, 22)),
-    showTime: daysFromNow(14, 23),
-    genre: "electronic",
-    featured: false,
-    artists: [ARTISTS[0]],
-    venue: VENUES[1],
-    ageLimit: 21,
-    tags: ["rave", "warehouse", "all-night"],
-    tiers: [
-      {
-        id: "ga",
-        name: "General Admission",
-        price: 35,
-        capacity: 900,
-        sold: 678,
+        name: "Golden Circle",
+        price: 950,
+        capacity: 600,
+        sold: 410,
       },
     ],
   },
 ];
 
-export function getAllEvents(): Event[] {
-  return [...EVENTS].sort(
+export const CITY_NAME_BY_SLUG: Record<string, string> = Object.fromEntries(
+  ALL_CITIES.map((city) => [city.slug, city.name]),
+);
+
+function mapVenueRow(row: Record<string, unknown>): Venue {
+  return {
+    slug: row.slug as string,
+    name: row.name as string,
+    city: row.city as string,
+    province: row.province as string,
+    address: row.address as string,
+    capacity: Number(row.capacity ?? 0),
+    image: row.image as string,
+  };
+}
+
+function mapArtistRow(row: Record<string, unknown>): Artist {
+  return {
+    slug: row.slug as string,
+    name: row.name as string,
+    genre: row.genre as Genre,
+    image: row.image as string,
+    bio: (row.bio as string) ?? undefined,
+  };
+}
+
+function mapTierRow(row: Record<string, unknown>): TicketTier {
+  return {
+    id: row.id as string,
+    name: row.name as string,
+    price: Number(row.price ?? 0),
+    description: (row.description as string) ?? undefined,
+    capacity: Number(row.capacity ?? 0),
+    sold: Number(row.sold ?? 0),
+  };
+}
+
+type EventRow = Record<string, unknown> & {
+  venue?: Record<string, unknown> | null;
+  tiers?: Record<string, unknown>[] | null;
+  event_artists?: { position?: number; artist: Record<string, unknown> }[] | null;
+};
+
+function mapEventCategory(row: EventRow): EventCategory {
+  const raw = String(row.category ?? row.genre ?? "music");
+  if (isEventCategory(raw)) return raw;
+  return legacyGenreToCategory(raw);
+}
+
+function mapEventRow(row: EventRow): Event {
+  const tiers = (row.tiers ?? [])
+    .slice()
+    .sort((a, b) => Number(a.position ?? 0) - Number(b.position ?? 0))
+    .map(mapTierRow);
+
+  const artists = (row.event_artists ?? [])
+    .slice()
+    .sort((a, b) => Number(a.position ?? 0) - Number(b.position ?? 0))
+    .map((ea) => mapArtistRow(ea.artist));
+
+  return {
+    slug: row.slug as string,
+    title: row.title as string,
+    subtitle: (row.subtitle as string) ?? undefined,
+    description: row.description as string,
+    image: row.image as string,
+    date: row.date as string,
+    endDate: (row.end_date as string) ?? undefined,
+    doorsTime: row.doors_time as string,
+    showTime: row.show_time as string,
+    category: mapEventCategory(row),
+    featured: Boolean(row.featured),
+    artists,
+    venue: row.venue ? mapVenueRow(row.venue) : VENUES[0],
+    tiers,
+    ageLimit: row.age_limit != null ? Number(row.age_limit) : undefined,
+    tags: (row.tags as string[]) ?? [],
+    organizerId: (row.organizer_id as string) ?? undefined,
+    organizerName: (row.organizer_name as string) ?? undefined,
+    organizerLogo: (row.organizer_logo as string) ?? undefined,
+    prohibitedItems: (row.prohibited_items as string[]) ?? [],
+    contactEmail: (row.contact_email as string) ?? undefined,
+    refundPolicy: (row.refund_policy as string) ?? undefined,
+  };
+}
+
+// Deduped per request: fetch from Supabase when configured, otherwise seed data.
+const EVENTS_RELATIONS = `
+  venue:venues(*),
+  tiers:ticket_tiers(*),
+  event_artists(position, artist:artists(*))`;
+
+const EVENTS_SELECT_BASE = `
+  slug, title, subtitle, description, image, date, end_date, doors_time,
+  show_time, genre, featured, age_limit, tags,
+  ${EVENTS_RELATIONS}`;
+
+const EVENTS_SELECT_WITH_ORGANIZER = `
+  slug, title, subtitle, description, image, date, end_date, doors_time,
+  show_time, genre, featured, age_limit, tags, organizer_name, organizer_logo,
+  organizer_id, prohibited_items, contact_email, refund_policy,
+  ${EVENTS_RELATIONS}`;
+
+const EVENTS_SELECT_FULL = `
+  slug, title, subtitle, description, image, date, end_date, doors_time,
+  show_time, genre, featured, age_limit, tags, organizer_name, organizer_logo,
+  organizer_id, prohibited_items, contact_email, refund_policy,
+  ${EVENTS_RELATIONS}`;
+
+const loadEvents = cache(async (): Promise<Event[]> => {
+  const supabase = getSupabaseServer();
+  if (!supabase) return EVENTS;
+
+  const primary = await supabase.from("events").select(EVENTS_SELECT_FULL);
+  let rows: EventRow[] | null = (primary.data as unknown as EventRow[] | null) ?? null;
+  let error = primary.error;
+
+  if (error && isMissingColumnError(error)) {
+    const withOrganizer = await supabase.from("events").select(EVENTS_SELECT_WITH_ORGANIZER);
+    if (!withOrganizer.error) {
+      rows = (withOrganizer.data as unknown as EventRow[] | null) ?? null;
+      error = null;
+    }
+  }
+
+  if (error) {
+    const fallback = await supabase.from("events").select(EVENTS_SELECT_BASE);
+    if (!fallback.error) {
+      if (isMissingColumnError(error)) {
+        logOrganizerMigrationHint();
+      }
+      rows = (fallback.data as unknown as EventRow[] | null) ?? null;
+      error = null;
+    }
+  }
+
+  if (error) {
+    const reason = formatSupabaseError(error);
+    if (isConnectionError(error)) {
+      logEventsSeedFallback(
+        `Cannot reach Supabase (${reason}). Check NEXT_PUBLIC_SUPABASE_URL in .env.local or remove Supabase env vars.`,
+      );
+    } else {
+      logEventsSeedFallback(`Supabase events query failed (${reason}).`);
+    }
+    return EVENTS;
+  }
+
+  if (!rows) {
+    logEventsSeedFallback("Supabase events query returned no data.");
+    return EVENTS;
+  }
+
+  return rows.map(mapEventRow);
+});
+
+export async function getAllEvents(): Promise<Event[]> {
+  const events = await loadEvents();
+  return [...events].sort(
     (a, b) => new Date(a.date).getTime() - new Date(b.date).getTime(),
   );
 }
 
-export function getEventBySlug(slug: string): Event | undefined {
-  return EVENTS.find((e) => e.slug === slug);
+export async function getEventBySlug(slug: string): Promise<Event | undefined> {
+  const events = await loadEvents();
+  return events.find((e) => e.slug === slug);
 }
 
-export function getFeaturedEvents(): Event[] {
-  return getAllEvents().filter((e) => e.featured);
+export async function getFeaturedEvents(): Promise<Event[]> {
+  return (await getAllEvents()).filter((e) => e.featured);
 }
 
-export function getEventsByGenre(genre: Genre): Event[] {
-  return getAllEvents().filter((e) => e.genre === genre);
+export async function getEventsByCategory(
+  category: EventCategory,
+): Promise<Event[]> {
+  return (await getAllEvents()).filter((e) => e.category === category);
 }
 
-export function getEventsByCity(citySlug: string): Event[] {
-  const cityMap: Record<string, string[]> = {
-    "los-angeles": ["Los Angeles"],
-    "new-york": ["Brooklyn", "New York"],
-    miami: ["Miami", "Miami Beach"],
-    austin: ["Austin"],
-    chicago: ["Chicago"],
-    nashville: ["Nashville"],
-  };
-  const cities = cityMap[citySlug] ?? [];
-  return getAllEvents().filter((e) => cities.includes(e.venue.city));
+export async function getEventsByOrganizerId(
+  organizerId: string,
+): Promise<Event[]> {
+  const events = await getAllEvents();
+  return events.filter((e) => e.organizerId === organizerId);
 }
 
-export function getEventsByArtist(artistSlug: string): Event[] {
-  return getAllEvents().filter((e) =>
+export async function getEventsForOrganizer(
+  organizerId: string | undefined,
+  organizerName: string | undefined,
+): Promise<Event[]> {
+  const events = await getAllEvents();
+  if (organizerId) {
+    const byId = events.filter((e) => e.organizerId === organizerId);
+    if (byId.length > 0) return byId;
+  }
+  if (organizerName) {
+    return events.filter(
+      (e) =>
+        e.organizerName?.toLowerCase() === organizerName.toLowerCase(),
+    );
+  }
+  return events;
+}
+
+export async function getEventsByCity(citySlug: string): Promise<Event[]> {
+  const cityName = CITY_NAME_BY_SLUG[citySlug];
+  if (!cityName) return [];
+  return (await getAllEvents()).filter((e) => e.venue.city === cityName);
+}
+
+export async function getEventsByArtist(artistSlug: string): Promise<Event[]> {
+  return (await getAllEvents()).filter((e) =>
     e.artists.some((a) => a.slug === artistSlug),
   );
 }
 
-export function getEventsByVenue(venueSlug: string): Event[] {
-  return getAllEvents().filter((e) => e.venue.slug === venueSlug);
+export async function getEventsByVenue(venueSlug: string): Promise<Event[]> {
+  return (await getAllEvents()).filter((e) => e.venue.slug === venueSlug);
 }
 
-export function getUpcomingEvents(days = 7): Event[] {
+export async function getUpcomingEvents(days = 7): Promise<Event[]> {
   const now = new Date();
   const cutoff = new Date();
   cutoff.setDate(cutoff.getDate() + days);
-  return getAllEvents().filter((e) => {
+  return (await getAllEvents()).filter((e) => {
     const d = new Date(e.date);
     return d >= now && d <= cutoff;
   });
 }
 
-export function searchEvents(query: string): Event[] {
+export async function searchEvents(query: string): Promise<Event[]> {
   const q = query.toLowerCase().trim();
-  if (!q) return getAllEvents();
-  return getAllEvents().filter(
+  const events = await getAllEvents();
+  if (!q) return events;
+  return events.filter(
     (e) =>
       e.title.toLowerCase().includes(q) ||
       e.artists.some((a) => a.name.toLowerCase().includes(q)) ||
       e.venue.name.toLowerCase().includes(q) ||
       e.venue.city.toLowerCase().includes(q),
   );
-}
-
-export type EventFilters = {
-  genre?: Genre;
-  city?: string;
-  query?: string;
-};
-
-export function filterEvents(filters: EventFilters): Event[] {
-  let results = getAllEvents();
-
-  if (filters.genre) {
-    results = results.filter((e) => e.genre === filters.genre);
-  }
-
-  if (filters.city) {
-    results = getEventsByCity(filters.city).filter((e) =>
-      filters.genre ? e.genre === filters.genre : true,
-    );
-    if (filters.query) {
-      const q = filters.query.toLowerCase();
-      results = results.filter(
-        (e) =>
-          e.title.toLowerCase().includes(q) ||
-          e.artists.some((a) => a.name.toLowerCase().includes(q)),
-      );
-    }
-    return results;
-  }
-
-  if (filters.query) {
-    results = searchEvents(filters.query).filter((e) =>
-      filters.genre ? e.genre === filters.genre : true,
-    );
-  }
-
-  return results;
 }

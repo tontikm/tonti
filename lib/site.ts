@@ -1,0 +1,78 @@
+export type SocialPlatform = "instagram" | "whatsapp" | "tiktok" | "facebook";
+
+export type SocialLink = {
+  platform: SocialPlatform;
+  href: string;
+  label: string;
+};
+
+export const CONTACT_EMAIL =
+  process.env.NEXT_PUBLIC_CONTACT_EMAIL ?? "hello@tonti.co.za";
+
+export const SUPPORT_EMAIL =
+  process.env.NEXT_PUBLIC_SUPPORT_EMAIL ?? "support@tonti.co.za";
+
+export const LEGAL_EMAIL =
+  process.env.NEXT_PUBLIC_LEGAL_EMAIL ?? "legal@tonti.co.za";
+
+export const POPIA_EMAIL =
+  process.env.NEXT_PUBLIC_POPIA_EMAIL ?? "privacy@tonti.co.za";
+
+export const COMPANY_NAME = "Tonti (Pty) Ltd";
+
+export function getSiteOrigin(): string {
+  if (process.env.NEXT_PUBLIC_SITE_URL) {
+    return process.env.NEXT_PUBLIC_SITE_URL.replace(/\/$/, "");
+  }
+  if (process.env.VERCEL_URL) {
+    return `https://${process.env.VERCEL_URL}`;
+  }
+  return "http://localhost:3000";
+}
+
+export const SOCIAL_LINKS: SocialLink[] = [
+  {
+    platform: "instagram",
+    href:
+      process.env.NEXT_PUBLIC_INSTAGRAM_URL ??
+      "https://www.instagram.com/tonti.co.za",
+    label: "Instagram",
+  },
+  {
+    platform: "whatsapp",
+    href:
+      process.env.NEXT_PUBLIC_WHATSAPP_URL ??
+      "https://wa.me/27821234567",
+    label: "WhatsApp",
+  },
+  {
+    platform: "tiktok",
+    href:
+      process.env.NEXT_PUBLIC_TIKTOK_URL ??
+      "https://www.tiktok.com/@tonti.co.za",
+    label: "TikTok",
+  },
+  {
+    platform: "facebook",
+    href:
+      process.env.NEXT_PUBLIC_FACEBOOK_URL ??
+      "https://www.facebook.com/tonti.co.za",
+    label: "Facebook",
+  },
+].filter((link): link is SocialLink => link.href.length > 0);
+
+export const POLICY_LINKS = [
+  { href: "/legal/terms", label: "Terms of service", slug: "terms" },
+  { href: "/legal/privacy", label: "Privacy policy", slug: "privacy" },
+  { href: "/legal/popia", label: "POPIA", slug: "popia" },
+  { href: "/legal/cookies", label: "Cookie policy", slug: "cookies" },
+  { href: "/legal/refunds", label: "Refund policy", slug: "refunds" },
+] as const;
+
+export const LEGAL_HUB_LINK = { href: "/legal", label: "Legal" } as const;
+
+/** @deprecated Use POLICY_LINKS and LEGAL_HUB_LINK instead */
+export const LEGAL_LINKS = [
+  ...POLICY_LINKS,
+  { href: "/help", label: "Help & support" },
+] as const;

@@ -3,7 +3,7 @@ import { cn } from "@/lib/utils";
 
 type ButtonProps = {
   href?: string;
-  variant?: "primary" | "secondary" | "ghost";
+  variant?: "primary" | "secondary" | "ghost" | "emerald";
   size?: "sm" | "md" | "lg";
   className?: string;
   children: React.ReactNode;
@@ -14,10 +14,12 @@ type ButtonProps = {
 
 const variants = {
   primary:
-    "bg-accent text-white hover:bg-accent-hover shadow-lg shadow-accent/20",
+    "bg-accent text-accent-foreground hover:bg-accent-hover shadow-lg shadow-white/10",
   secondary:
-    "border border-border bg-surface text-foreground hover:border-accent/40 hover:bg-surface-hover",
+    "border border-border bg-surface text-foreground hover:border-foreground/40 hover:bg-surface-hover",
   ghost: "text-muted hover:text-foreground hover:bg-surface",
+  emerald:
+    "bg-emerald-500 text-black hover:bg-emerald-400 shadow-lg shadow-emerald-500/20",
 };
 
 const sizes = {

@@ -1,72 +1,123 @@
+import { cache } from "react";
 import type { Artist } from "@/lib/types";
+import { getSupabaseServer } from "@/lib/supabase/server";
+import { DEFAULT_ARTIST_IMAGE } from "@/lib/images";
 
 export const ARTISTS: Artist[] = [
   {
-    slug: "neon-pulse",
-    name: "Neon Pulse",
-    genre: "electronic",
+    slug: "piano-republic",
+    name: "Piano Republic",
+    genre: "amapiano",
     image:
       "https://images.unsplash.com/photo-1571330735066-03aaa9429da7?w=600&q=80",
-    bio: "Berlin-born producer blending hypnotic techno with live analog synths.",
+    bio: "Pretoria amapiano collective behind some of the biggest log-drum anthems in the country.",
   },
   {
-    slug: "maya-rivers",
-    name: "Maya Rivers",
-    genre: "r-and-b",
+    slug: "nomvula",
+    name: "Nomvula",
+    genre: "afro-house",
     image:
       "https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=600&q=80",
-    bio: "Grammy-nominated vocalist redefining modern soul with raw, intimate performances.",
+    bio: "Afro-house vocalist and producer fusing spiritual melodies with deep four-to-the-floor grooves.",
   },
   {
-    slug: "the-midnight-collective",
-    name: "The Midnight Collective",
-    genre: "indie",
+    slug: "deep-sankomota",
+    name: "Deep Sankomota",
+    genre: "house",
     image:
       "https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=600&q=80",
-    bio: "Dream-pop quartet from Portland with shimmering guitars and cinematic arrangements.",
+    bio: "Soulful house selector known for sunrise sets and a crate-digging ear.",
   },
   {
-    slug: "dj-kairo",
-    name: "DJ Kairo",
-    genre: "hip-hop",
+    slug: "durban-bass-union",
+    name: "Durban Bass Union",
+    genre: "gqom",
     image:
       "https://images.unsplash.com/photo-1574169208507-84376144848b?w=600&q=80",
-    bio: "Underground hip-hop curator and turntablist known for genre-bending live sets.",
+    bio: "The sound of eThekwini — raw, hypnotic gqom built for the dancefloor.",
   },
   {
-    slug: "solar-flare",
-    name: "Solar Flare",
-    genre: "rock",
+    slug: "k1ng-verse",
+    name: "K1NG Verse",
+    genre: "hip-hop",
     image:
       "https://images.unsplash.com/photo-1459745456775-9afc3a8049bc?w=600&q=80",
-    bio: "High-energy rock trio channeling 70s arena energy with modern production.",
+    bio: "Joburg lyricist blending boom-bap roots with new-school SA trap.",
   },
   {
-    slug: "carla-mendez",
-    name: "Carla Mendez",
-    genre: "latin",
+    slug: "township-funk",
+    name: "Township Funk",
+    genre: "kwaito",
     image:
       "https://images.unsplash.com/photo-1516450360452-9312f5e86fc7?w=600&q=80",
-    bio: "Reggaeton and Latin pop fusion artist bringing Miami heat to every stage.",
+    bio: "Kwaito revivalists keeping the golden-era bounce alive for a new generation.",
   },
   {
-    slug: "blue-hour-quartet",
-    name: "Blue Hour Quartet",
+    slug: "lerato-sky",
+    name: "Lerato Sky",
+    genre: "afro-pop",
+    image:
+      "https://images.unsplash.com/photo-1488376739361-ed24f5fef1d7?w=600&q=80",
+    bio: "Afro-pop songstress with chart-topping hooks and a powerhouse live band.",
+  },
+  {
+    slug: "cape-town-quartet",
+    name: "Cape Town Quartet",
     genre: "jazz",
     image:
       "https://images.unsplash.com/photo-1415201364774-f6f0ff5a0287?w=600&q=80",
-    bio: "Contemporary jazz ensemble inspired by Coltrane and Kamasi Washington.",
+    bio: "Contemporary Cape jazz ensemble carrying the legacy of the Mother City sound.",
   },
   {
-    slug: "dusty-trails",
-    name: "Dusty Trails",
-    genre: "country",
+    slug: "veld-riders",
+    name: "Veld Riders",
+    genre: "rock",
     image:
-      "https://images.unsplash.com/photo-1510915361894-db8b60106cb1?w=600&q=80",
-    bio: "Nashville outlaw country with honest songwriting and pedal steel.",
+      "https://images.unsplash.com/photo-1498038432885-c6f3f1b912ee?w=600&q=80",
+    bio: "High-octane SA rock band built for festival main stages.",
+  },
+  {
+    slug: "naledi",
+    name: "Naledi",
+    genre: "pop",
+    image:
+      "https://images.unsplash.com/photo-1501386761578-eac5c94b800a?w=600&q=80",
+    bio: "Pop sensation bringing stadium-sized choruses and slick production.",
   },
 ];
 
-export function getArtistBySlug(slug: string): Artist | undefined {
-  return ARTISTS.find((a) => a.slug === slug);
+function mapArtistRow(row: Record<string, unknown>): Artist {
+  return {
+    slug: row.slug as string,
+    name: row.name as string,
+    genre: row.genre as Artist["genre"],
+    image: (row.image as string) || DEFAULT_ARTIST_IMAGE,
+    bio: (row.bio as string) ?? undefined,
+  };
+}
+
+const loadArtists = cache(async (): Promise<Artist[]> => {
+  const supabase = getSupabaseServer();
+  if (!supabase) return ARTISTS;
+
+  const { data, error } = await supabase
+    .from("artists")
+    .select("*")
+    .order("name", { ascending: true });
+
+  if (error || !data?.length) {
+    if (error) console.error("Supabase artists fetch failed, using seed:", error);
+    return ARTISTS;
+  }
+
+  return data.map(mapArtistRow);
+});
+
+export async function getAllArtists(): Promise<Artist[]> {
+  return loadArtists();
+}
+
+export async function getArtistBySlug(slug: string): Promise<Artist | undefined> {
+  const artists = await loadArtists();
+  return artists.find((artist) => artist.slug === slug);
 }

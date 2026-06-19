@@ -1,70 +1,117 @@
+import { cache } from "react";
 import type { Venue } from "@/lib/types";
+import { getSupabaseServer } from "@/lib/supabase/server";
+import { DEFAULT_VENUE_IMAGE } from "@/lib/images";
 
 export const VENUES: Venue[] = [
   {
-    slug: "echo-pavilion",
-    name: "Echo Pavilion",
-    city: "Los Angeles",
-    state: "CA",
-    address: "1822 Sunset Blvd, Los Angeles, CA 90026",
-    capacity: 3500,
+    slug: "kirstenbosch",
+    name: "Kirstenbosch Botanical Gardens",
+    city: "Cape Town",
+    province: "Western Cape",
+    address: "Rhodes Dr, Newlands, Cape Town, 7700",
+    capacity: 7000,
     image:
       "https://images.unsplash.com/photo-1470229722913-7c0e2dbbafd3?w=800&q=80",
   },
   {
-    slug: "warehouse-9",
-    name: "Warehouse 9",
-    city: "Brooklyn",
-    state: "NY",
-    address: "9 Wyckoff Ave, Brooklyn, NY 11237",
-    capacity: 1200,
+    slug: "sun-arena",
+    name: "Sun Arena, Time Square",
+    city: "Pretoria",
+    province: "Gauteng",
+    address: "209 Aramist Ave, Menlyn, Pretoria, 0181",
+    capacity: 8500,
     image:
-      "https://images.unsplash.com/photo-1506157782851-9777a7f546ce?w=800&q=80",
+      "https://images.unsplash.com/photo-1540039155733-5bb30b53aa14?w=800&q=80",
   },
   {
-    slug: "pulse-club",
-    name: "Pulse Club",
-    city: "Miami",
-    state: "FL",
-    address: "234 Ocean Dr, Miami Beach, FL 33139",
-    capacity: 800,
+    slug: "grandwest-arena",
+    name: "GrandWest Grand Arena",
+    city: "Cape Town",
+    province: "Western Cape",
+    address: "1 Vanguard Dr, Goodwood, Cape Town, 7460",
+    capacity: 5000,
     image:
       "https://images.unsplash.com/photo-1566737235753-fb6843f37964?w=800&q=80",
   },
   {
-    slug: "the-mohawk",
-    name: "The Mohawk",
-    city: "Austin",
-    state: "TX",
-    address: "912 Red River St, Austin, TX 78701",
-    capacity: 1500,
-    image:
-      "https://images.unsplash.com/photo-1429962714451-bb934ecdc4ca?w=800&q=80",
-  },
-  {
-    slug: "metro-hall",
-    name: "Metro Hall",
-    city: "Chicago",
-    state: "IL",
-    address: "3730 N Clark St, Chicago, IL 60613",
-    capacity: 2800,
+    slug: "constitution-hill",
+    name: "Constitution Hill",
+    city: "Johannesburg",
+    province: "Gauteng",
+    address: "11 Kotze St, Braamfontein, Johannesburg, 2017",
+    capacity: 4000,
     image:
       "https://images.unsplash.com/photo-1501281668745-f7f57925c3b4?w=800&q=80",
   },
   {
-    slug: "ryman-stage",
-    name: "Ryman Stage",
-    city: "Nashville",
-    state: "TN",
-    address: "116 5th Ave N, Nashville, TN 37219",
-    capacity: 2362,
+    slug: "durban-icc-arena",
+    name: "Durban ICC Arena",
+    city: "Durban",
+    province: "KwaZulu-Natal",
+    address: "45 Bram Fischer Rd, Durban, 4001",
+    capacity: 10000,
     image:
       "https://images.unsplash.com/photo-1506157782851-9777a7f546ce?w=800&q=80",
   },
+  {
+    slug: "the-boardwalk",
+    name: "The Boardwalk",
+    city: "Gqeberha",
+    province: "Eastern Cape",
+    address: "Marine Dr, Summerstrand, Gqeberha, 6001",
+    capacity: 2500,
+    image:
+      "https://images.unsplash.com/photo-1429962714451-bb934ecdc4ca?w=800&q=80",
+  },
+  {
+    slug: "oude-libertas",
+    name: "Oude Libertas Amphitheatre",
+    city: "Stellenbosch",
+    province: "Western Cape",
+    address: "Oude Libertas St, Stellenbosch, 7600",
+    capacity: 430,
+    image:
+      "https://images.unsplash.com/photo-1533174072545-7a4b6ad7a6c3?w=800&q=80",
+  },
 ];
 
-export function getVenueBySlug(slug: string): Venue | undefined {
-  return VENUES.find((v) => v.slug === slug);
+function mapVenueRow(row: Record<string, unknown>): Venue {
+  return {
+    slug: row.slug as string,
+    name: row.name as string,
+    city: row.city as string,
+    province: row.province as string,
+    address: row.address as string,
+    capacity: Number(row.capacity ?? 0),
+    image: (row.image as string) || DEFAULT_VENUE_IMAGE,
+  };
+}
+
+const loadVenues = cache(async (): Promise<Venue[]> => {
+  const supabase = getSupabaseServer();
+  if (!supabase) return VENUES;
+
+  const { data, error } = await supabase
+    .from("venues")
+    .select("*")
+    .order("name", { ascending: true });
+
+  if (error || !data?.length) {
+    if (error) console.error("Supabase venues fetch failed, using seed:", error);
+    return VENUES;
+  }
+
+  return data.map(mapVenueRow);
+});
+
+export async function getAllVenues(): Promise<Venue[]> {
+  return loadVenues();
+}
+
+export async function getVenueBySlug(slug: string): Promise<Venue | undefined> {
+  const venues = await loadVenues();
+  return venues.find((venue) => venue.slug === slug);
 }
 
 export function cityToSlug(city: string): string {

@@ -2,7 +2,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { EventCard } from "@/components/events/EventCard";
-import { CITIES, getCityBySlug } from "@/lib/data/cities";
+import { ALL_CITIES, getCityBySlug } from "@/lib/data/cities";
 import { getEventsByCity } from "@/lib/data/events";
 
 type Props = {
@@ -10,7 +10,7 @@ type Props = {
 };
 
 export async function generateStaticParams() {
-  return CITIES.map((city) => ({ slug: city.slug }));
+  return ALL_CITIES.map((city) => ({ slug: city.slug }));
 }
 
 export async function generateMetadata({ params }: Props) {
@@ -19,7 +19,7 @@ export async function generateMetadata({ params }: Props) {
   if (!city) return { title: "City not found" };
   return {
     title: `${city.name} Live Music`,
-    description: `Discover live music events in ${city.name}, ${city.state}`,
+    description: `Discover live music events in ${city.name}, ${city.province}`,
   };
 }
 
@@ -28,7 +28,7 @@ export default async function CityPage({ params }: Props) {
   const city = getCityBySlug(slug);
   if (!city) notFound();
 
-  const events = getEventsByCity(slug);
+  const events = await getEventsByCity(slug);
 
   return (
     <>
@@ -47,7 +47,7 @@ export default async function CityPage({ params }: Props) {
           </h1>
           <p className="mt-2 text-muted">
             {events.length} upcoming show{events.length !== 1 ? "s" : ""} in{" "}
-            {city.state}
+            {city.province}
           </p>
         </div>
       </div>
