@@ -48,6 +48,42 @@ Register ITN notify URL in Payfast:
 
 Test sandbox end-to-end before `PAYFAST_SANDBOX=false`.
 
+### Payfast sandbox setup (recommended first)
+
+Use this to test paid checkout before going live with real money.
+
+1. **Register a sandbox merchant** at [sandbox.payfast.co.za](https://sandbox.payfast.co.za/) (separate from a future live account).
+2. In the sandbox dashboard, copy **Merchant ID**, **Merchant Key**, and set a **Passphrase** under Security / Integration (must match env).
+3. Under **Integration**, set the **ITN URL** to your deployed site (Payfast cannot POST to `localhost`):
+
+   `https://<your-vercel-domain>/api/payments/payfast/notify`
+
+4. In **Vercel → Settings → Environment Variables**, add:
+
+   | Variable | Value |
+   |----------|--------|
+   | `PAYFAST_MERCHANT_ID` | Sandbox merchant ID |
+   | `PAYFAST_MERCHANT_KEY` | Sandbox merchant key |
+   | `PAYFAST_PASSPHRASE` | Sandbox passphrase |
+   | `PAYFAST_SANDBOX` | `true` |
+   | `NEXT_PUBLIC_SITE_URL` | `https://<your-vercel-domain>` (no trailing slash) |
+
+5. **Redeploy** after saving env vars.
+6. Create a **paid tier** event at `/organizer/events/new` for testing.
+
+**Sandbox E2E checklist** (run on the deployed URL):
+
+- [ ] Paid checkout button reads **Continue to Payfast** (not pay at door)
+- [ ] Redirect to Payfast sandbox and complete test payment
+- [ ] Land on `/payments/payfast/complete` → redirects to `/tickets/{orderId}` with QR passes
+- [ ] Supabase `orders`: `status = confirmed`, `payment_provider = payfast`, `payment_reference` set
+- [ ] Organizer door scanner accepts the ticket
+- [ ] Cancel on Payfast returns to checkout with a **Payment cancelled** notice
+
+**If tickets don't appear:** check Vercel logs for `/api/payments/payfast/notify` — common causes are wrong passphrase, ITN URL not registered, or amount mismatch.
+
+**Going live:** swap env vars for production merchant credentials, set `PAYFAST_SANDBOX=false`, register the ITN URL in the **live** Payfast dashboard, and re-run the checklist with a small real payment.
+
 ## 3. Supabase Auth
 
 Supabase → **Authentication → Providers:** enable Email (and Google if desired).

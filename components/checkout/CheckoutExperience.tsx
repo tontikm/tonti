@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { ArrowLeft, Check } from "lucide-react";
+import { ArrowLeft, Check, X } from "lucide-react";
 import type { CheckoutCart } from "@/lib/checkout";
 import type { FanUser } from "@/lib/auth/session";
 import type { Event } from "@/lib/types";
@@ -19,6 +19,7 @@ type CheckoutExperienceProps = {
   organizerEmail: string | null;
   authConfigured: boolean;
   payfastEnabled: boolean;
+  paymentCancelled?: boolean;
   returnTo: string;
 };
 
@@ -29,9 +30,11 @@ export function CheckoutExperience({
   organizerEmail,
   authConfigured,
   payfastEnabled,
+  paymentCancelled = false,
   returnTo,
 }: CheckoutExperienceProps) {
   const [promo, setPromo] = useState<PromoPreview | null>(null);
+  const [showCancelledNotice, setShowCancelledNotice] = useState(paymentCancelled);
   const selectionsJson = JSON.stringify(
     Object.fromEntries(cart.lines.map((line) => [line.tierId, line.quantity])),
   );
@@ -51,6 +54,23 @@ export function CheckoutExperience({
       </Link>
 
       <h1 className="mt-6 text-2xl font-bold sm:text-3xl">Checkout</h1>
+
+      {showCancelledNotice && (
+        <div
+          role="status"
+          className="mt-4 flex items-start justify-between gap-3 rounded-xl border border-amber-500/30 bg-amber-500/10 px-4 py-3 text-sm text-amber-100"
+        >
+          <p>Payment was cancelled. Your tickets were not charged — try again when ready.</p>
+          <button
+            type="button"
+            onClick={() => setShowCancelledNotice(false)}
+            className="shrink-0 rounded-lg p-1 text-amber-200/80 transition-colors hover:bg-amber-500/20 hover:text-amber-50"
+            aria-label="Dismiss"
+          >
+            <X className="h-4 w-4" />
+          </button>
+        </div>
+      )}
 
       <CheckoutSteps current={user ? 2 : 1} />
 
@@ -95,7 +115,12 @@ export function CheckoutExperience({
         <div
           className={`order-1 lg:order-2 lg:sticky lg:top-24 lg:self-start ${!user ? "hidden lg:block" : ""}`}
         >
-          <CheckoutSummary event={event} cart={cart} promo={promo} />
+          <CheckoutSummary
+            event={event}
+            cart={cart}
+            promo={promo}
+            payfastEnabled={payfastActive}
+          />
         </div>
       </div>
     </>

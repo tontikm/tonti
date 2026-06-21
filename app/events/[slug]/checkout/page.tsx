@@ -35,6 +35,7 @@ export default async function EventCheckoutPage({ params, searchParams }: Props)
   const organizerSession = await getOrganizerSession();
   const authConfigured = isFanAuthConfigured();
   const payfastEnabled = isPayfastConfigured() && !cart.isFree;
+  const paymentCancelled = query.payment === "cancelled";
   const returnTo = `/events/${slug}/checkout?${new URLSearchParams(
     Object.entries(query).flatMap(([key, value]) =>
       typeof value === "string"
@@ -56,6 +57,7 @@ export default async function EventCheckoutPage({ params, searchParams }: Props)
         }
         authConfigured={authConfigured}
         payfastEnabled={payfastEnabled}
+        paymentCancelled={paymentCancelled}
         returnTo={returnTo}
       />
     </div>

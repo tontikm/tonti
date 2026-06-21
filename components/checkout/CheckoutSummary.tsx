@@ -11,9 +11,15 @@ type CheckoutSummaryProps = {
   event: Event;
   cart: CheckoutCart;
   promo?: PromoPreview | null;
+  payfastEnabled?: boolean;
 };
 
-export function CheckoutSummary({ event, cart, promo }: CheckoutSummaryProps) {
+export function CheckoutSummary({
+  event,
+  cart,
+  promo,
+  payfastEnabled = false,
+}: CheckoutSummaryProps) {
   const subtotal = promo?.subtotalAmount ?? cart.totalAmount;
   const total = promo?.totalAmount ?? cart.totalAmount;
   const isFree = total === 0;
@@ -91,10 +97,11 @@ export function CheckoutSummary({ event, cart, promo }: CheckoutSummaryProps) {
           </span>
         </div>
 
-        {!isFree && subtotal > 0 && !promo && (
+        {!isFree && subtotal > 0 && (
           <p className="mt-3 text-xs text-muted">
-            No online payment on this checkout — settle at the venue unless the
-            organizer states otherwise.
+            {payfastEnabled
+              ? "You'll pay securely via Payfast. QR tickets are issued after payment confirms."
+              : "No online payment on this checkout — settle at the venue unless the organizer states otherwise."}
           </p>
         )}
       </div>
