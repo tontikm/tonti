@@ -15,12 +15,13 @@ export async function POST(request: Request) {
   }
 
   const formData = await request.formData();
-  const payload: Record<string, string> = {};
+  const fields: Array<[string, string]> = [];
   formData.forEach((value, key) => {
-    payload[key] = String(value);
+    fields.push([key, String(value)]);
   });
+  const payload = Object.fromEntries(fields);
 
-  if (!verifyPayfastItn(payload)) {
+  if (!verifyPayfastItn(fields)) {
     return new Response("Invalid signature", { status: 400 });
   }
 

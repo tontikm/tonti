@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
+import { PayfastCompletePoller } from "@/components/payments/PayfastCompletePoller";
 import { getSupabaseAdmin } from "@/lib/supabase/admin";
 import { Button } from "@/components/ui/Button";
 
@@ -28,6 +29,7 @@ export default async function PayfastCompletePage({ searchParams }: Props) {
 
   return (
     <div className="mx-auto max-w-lg px-4 py-24 text-center">
+      <PayfastCompletePoller orderId={orderId} />
       <h1 className="text-2xl font-bold">Payment processing</h1>
       <p className="mt-3 text-sm text-muted">
         Payfast is confirming your payment. This usually takes a few seconds.

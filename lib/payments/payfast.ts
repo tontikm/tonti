@@ -11,11 +11,17 @@ export type PayfastCheckoutInput = {
 };
 
 export type PayfastFormFields = Record<string, string>;
+export type PayfastItnField = [key: string, value: string];
 
-function encodeValue(value: string): string {
+function encodeCheckoutValue(value: string): string {
   return encodeURIComponent(value.trim())
     .replace(/%20/g, "+")
     .replace(/%[0-9a-f]{2}/gi, (match) => match.toUpperCase());
+}
+
+/** PHP urlencode-compatible — used for ITN verification (no trim / uppercase). */
+function encodeItnValue(value: string): string {
+  return encodeURIComponent(value).replace(/%20/g, "+");
 }
 
 /** Document order for custom integration checkout — not alphabetical (API-only). */
@@ -35,9 +41,14 @@ const CHECKOUT_SIGNATURE_ORDER = [
   "item_description",
 ] as const;
 
-function appendPassphrase(query: string, passphrase?: string): string {
+function appendCheckoutPassphrase(query: string, passphrase?: string): string {
   if (!passphrase) return query;
-  return `${query}&passphrase=${encodeValue(passphrase)}`;
+  return `${query}&passphrase=${encodeCheckoutValue(passphrase)}`;
+}
+
+function appendItnPassphrase(query: string, passphrase?: string): string {
+  if (!passphrase) return query;
+  return `${query}&passphrase=${encodeItnValue(passphrase)}`;
 }
 
 function hashParamString(query: string): string {
@@ -52,25 +63,22 @@ function buildCheckoutSignature(
   for (const key of CHECKOUT_SIGNATURE_ORDER) {
     const value = data[key];
     if (value !== undefined && value !== "") {
-      pairs.push(`${key}=${encodeValue(value)}`);
+      pairs.push(`${key}=${encodeCheckoutValue(value)}`);
     }
   }
-  return hashParamString(appendPassphrase(pairs.join("&"), passphrase));
+  return hashParamString(appendCheckoutPassphrase(pairs.join("&"), passphrase));
 }
 
 function buildItnSignature(
-  payload: Record<string, string>,
+  fields: PayfastItnField[],
   passphrase?: string,
 ): string {
   const pairs: string[] = [];
-  for (const key of Object.keys(payload)) {
+  for (const [key, value] of fields) {
     if (key === "signature") break;
-    const value = payload[key];
-    if (value !== "") {
-      pairs.push(`${key}=${encodeValue(value)}`);
-    }
+    pairs.push(`${key}=${encodeItnValue(value)}`);
   }
-  return hashParamString(appendPassphrase(pairs.join("&"), passphrase));
+  return hashParamString(appendItnPassphrase(pairs.join("&"), passphrase));
 }
 
 export function buildPayfastCheckout(
@@ -105,12 +113,11 @@ export function buildPayfastCheckout(
   };
 }
 
-export function verifyPayfastItn(
-  payload: Record<string, string>,
-): boolean {
-  const signature = payload.signature;
+export function verifyPayfastItn(fields: PayfastItnField[]): boolean {
+  const signature = fields.find(([key]) => key === "signature")?.[1];
   if (!signature) return false;
 
-  const expected = buildItnSignature(payload, process.env.PAYFAST_PASSPHRASE);
+  const passphrase = process.env.PAYFAST_PASSPHRASE?.trim();
+  const expected = buildItnSignature(fields, passphrase);
   return expected === signature;
 }
