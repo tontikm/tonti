@@ -101,6 +101,7 @@ Run migrations **in order** in the Supabase SQL editor:
 | [`0015_backfill_event_organizer_id.sql`](supabase/migrations/0015_backfill_event_organizer_id.sql) | Backfill `organizer_id` from `contact_email` |
 | [`0016_remove_demo_events.sql`](supabase/migrations/0016_remove_demo_events.sql) | Remove deprecated seed demo events |
 | [`0017_orders_tickets_rls.sql`](supabase/migrations/0017_orders_tickets_rls.sql) | Restrict orders/tickets reads to owning fan |
+| [`0018_remove_all_seed_events.sql`](supabase/migrations/0018_remove_all_seed_events.sql) | Remove remaining fictional seed events |
 
 Then:
 
@@ -180,7 +181,7 @@ Each `git push` to `main` triggers a new production deploy. Local `npm run dev` 
 
 See **[`docs/LAUNCH.md`](docs/LAUNCH.md)** for the full step-by-step launch guide.
 
-1. Run all migrations on production Supabase (through `0017_orders_tickets_rls.sql`).
+1. Run all migrations on production Supabase (through `0018_remove_all_seed_events.sql`).
 2. Set env vars on Vercel — see `.env.example`.
 3. Add production URL + `/auth/callback` to Supabase Auth redirect URLs.
 4. Add Payfast notify URL (if using online payments): `https://your-domain.co.za/api/payments/payfast/notify`

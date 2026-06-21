@@ -6,7 +6,7 @@ Use this after code is deployed to Vercel. Complete each section in order.
 
 Run every file in [`supabase/migrations/`](../supabase/migrations/) **in numeric order** in the Supabase SQL editor:
 
-`0001` through `0017` (includes demo event cleanup `0016` and orders/tickets RLS `0017`).
+`0001` through `0018` (includes demo event cleanup `0016`–`0018` and orders/tickets RLS `0017`).
 
 Then create real events at `/organizer/events/new` **or** seed:
 

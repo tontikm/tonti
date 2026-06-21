@@ -10,6 +10,10 @@ import { createClient } from "@supabase/supabase-js";
 import { EVENTS } from "../lib/data/events";
 import { ARTISTS } from "../lib/data/artists";
 import { VENUES } from "../lib/data/venues";
+import {
+  REMOVED_DEMO_ARTIST_SLUGS,
+  REMOVED_DEMO_EVENT_SLUGS,
+} from "../lib/data/seed-demo";
 
 const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
@@ -24,25 +28,17 @@ if (!url || !key) {
 
 const supabase = createClient(url, key, { auth: { persistSession: false } });
 
-const REMOVED_EVENT_SLUGS = [
-  "deep-sankomota-grandwest",
-  "durban-bass-union-icc",
-  "township-funk-con-hill",
-  "lerato-sky-durban",
-] as const;
-
-const REMOVED_ARTIST_SLUGS = [
-  "deep-sankomota",
-  "durban-bass-union",
-  "township-funk",
-  "lerato-sky",
-] as const;
-
 async function pruneRemovedSeedData() {
   console.log("Removing deprecated demo events and artists…");
-  let res = await supabase.from("events").delete().in("slug", [...REMOVED_EVENT_SLUGS]);
+  let res = await supabase
+    .from("events")
+    .delete()
+    .in("slug", [...REMOVED_DEMO_EVENT_SLUGS]);
   if (res.error) throw res.error;
-  res = await supabase.from("artists").delete().in("slug", [...REMOVED_ARTIST_SLUGS]);
+  res = await supabase
+    .from("artists")
+    .delete()
+    .in("slug", [...REMOVED_DEMO_ARTIST_SLUGS]);
   if (res.error) throw res.error;
 }
 
