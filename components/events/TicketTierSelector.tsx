@@ -4,7 +4,11 @@ import { useMemo, useState } from "react";
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import { Minus, Plus, Ticket } from "lucide-react";
 import type { TicketTier } from "@/lib/types";
-import { buildCheckoutUrl } from "@/lib/checkout";
+import {
+  buildCheckoutUrl,
+  MAX_CHECKOUT_TICKETS,
+  MAX_CHECKOUT_TICKETS_PER_TIER,
+} from "@/lib/checkout";
 import { OrganizerFanAuthNotice } from "@/components/auth/OrganizerFanAuthNotice";
 import { Button } from "@/components/ui/Button";
 import { StickyPurchaseBar } from "@/components/tickets/StickyPurchaseBar";
@@ -44,10 +48,19 @@ export function TicketTierSelector({
   const reduceMotion = useReducedMotion();
   const [quantities, setQuantities] = useState<Record<string, number>>({});
 
-  const updateQty = (tierId: string, delta: number, max: number) => {
+  const updateQty = (tierId: string, delta: number, tierRemaining: number) => {
     setQuantities((prev) => {
       const current = prev[tierId] ?? 0;
-      const next = Math.max(0, Math.min(max, current + delta));
+      const otherTotal = Object.entries(prev).reduce(
+        (sum, [id, qty]) => (id === tierId ? sum : sum + qty),
+        0,
+      );
+      const maxQty = Math.min(
+        MAX_CHECKOUT_TICKETS_PER_TIER,
+        tierRemaining,
+        Math.max(0, MAX_CHECKOUT_TICKETS - otherTotal),
+      );
+      const next = Math.max(0, Math.min(maxQty, current + delta));
       return { ...prev, [tierId]: next };
     });
   };
@@ -94,6 +107,12 @@ export function TicketTierSelector({
             const availability = getTierAvailability(tier);
             const soldOut = availability === "sold-out";
             const qty = quantities[tier.id] ?? 0;
+            const otherTierTickets = totalTickets - qty;
+            const maxQty = Math.min(
+              MAX_CHECKOUT_TICKETS_PER_TIER,
+              remaining,
+              Math.max(0, MAX_CHECKOUT_TICKETS - otherTierTickets),
+            );
 
             return (
               <div
@@ -159,7 +178,7 @@ export function TicketTierSelector({
                         type="button"
                         whileTap={reduceMotion ? undefined : { scale: 0.85 }}
                         onClick={() => updateQty(tier.id, 1, remaining)}
-                        disabled={qty >= Math.min(8, remaining)}
+                        disabled={qty >= maxQty}
                         className="focus-ring flex h-8 w-8 items-center justify-center rounded-full border border-border text-muted transition-colors hover:border-brand hover:text-foreground disabled:opacity-30"
                         aria-label="Increase quantity"
                       >
@@ -172,6 +191,12 @@ export function TicketTierSelector({
             );
           })}
         </div>
+
+        {totalTickets >= MAX_CHECKOUT_TICKETS && !purchaseDisabled && (
+          <p className="mt-4 text-sm text-muted">
+            Maximum {MAX_CHECKOUT_TICKETS} tickets per order.
+          </p>
+        )}
 
         {allSoldOut && (
           <p className="mt-6 text-sm text-muted">

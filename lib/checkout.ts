@@ -1,6 +1,9 @@
 import type { Event, TicketTier } from "@/lib/types";
 import { getTicketsRemaining } from "@/lib/utils";
 
+export const MAX_CHECKOUT_TICKETS = 10;
+export const MAX_CHECKOUT_TICKETS_PER_TIER = 8;
+
 export type CartLine = {
   tierId: string;
   tierName: string;
@@ -32,7 +35,11 @@ export function parseCartFromSearchParams(
     if (!Number.isFinite(qty) || qty <= 0) continue;
 
     const remaining = getTicketsRemaining(tier);
-    const quantity = Math.min(Math.floor(qty), 8, remaining);
+    const quantity = Math.min(
+      Math.floor(qty),
+      MAX_CHECKOUT_TICKETS_PER_TIER,
+      remaining,
+    );
     if (quantity <= 0) continue;
 
     lines.push({
@@ -49,7 +56,7 @@ export function parseCartFromSearchParams(
   const totalTickets = lines.reduce((sum, line) => sum + line.quantity, 0);
   const totalAmount = lines.reduce((sum, line) => sum + line.lineTotal, 0);
 
-  if (totalTickets > 10) return null;
+  if (totalTickets > MAX_CHECKOUT_TICKETS) return null;
 
   return {
     lines,
