@@ -102,6 +102,15 @@ export function DoorScanner({ eventSlug, eventTitle }: DoorScannerProps) {
     runCheckIn(manualCode);
   }
 
+  function clearFeedback() {
+    setFeedback(null);
+    setManualCode("");
+    processingRef.current = false;
+  }
+
+  const feedbackActionClassName =
+    "mt-4 w-full rounded-full border border-border py-2.5 text-sm text-muted transition-colors hover:text-foreground";
+
   return (
     <div className="space-y-6">
       <div className="flex gap-2 rounded-full border border-border bg-surface p-1">
@@ -208,14 +217,20 @@ export function DoorScanner({ eventSlug, eventTitle }: DoorScannerProps) {
           {feedback.ok && (
             <button
               type="button"
-              onClick={() => {
-                setFeedback(null);
-                setManualCode("");
-                processingRef.current = false;
-              }}
-              className="mt-4 w-full rounded-full border border-border py-2.5 text-sm text-muted transition-colors hover:text-foreground"
+              onClick={clearFeedback}
+              className={feedbackActionClassName}
             >
               Scan next ticket
+            </button>
+          )}
+
+          {!feedback.ok && feedback.ticket && (
+            <button
+              type="button"
+              onClick={clearFeedback}
+              className={feedbackActionClassName}
+            >
+              Dismiss
             </button>
           )}
         </div>
