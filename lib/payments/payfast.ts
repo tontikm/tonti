@@ -13,24 +13,64 @@ export type PayfastCheckoutInput = {
 export type PayfastFormFields = Record<string, string>;
 
 function encodeValue(value: string): string {
-  return encodeURIComponent(value.trim()).replace(/%20/g, "+");
+  return encodeURIComponent(value.trim())
+    .replace(/%20/g, "+")
+    .replace(/%[0-9a-f]{2}/gi, (match) => match.toUpperCase());
 }
 
-function buildSignature(
+/** Document order for custom integration checkout — not alphabetical (API-only). */
+const CHECKOUT_SIGNATURE_ORDER = [
+  "merchant_id",
+  "merchant_key",
+  "return_url",
+  "cancel_url",
+  "notify_url",
+  "name_first",
+  "name_last",
+  "email_address",
+  "cell_number",
+  "m_payment_id",
+  "amount",
+  "item_name",
+  "item_description",
+] as const;
+
+function appendPassphrase(query: string, passphrase?: string): string {
+  if (!passphrase) return query;
+  return `${query}&passphrase=${encodeValue(passphrase)}`;
+}
+
+function hashParamString(query: string): string {
+  return createHash("md5").update(query).digest("hex");
+}
+
+function buildCheckoutSignature(
   data: PayfastFormFields,
   passphrase?: string,
 ): string {
-  const pairs = Object.entries(data)
-    .filter(([key, value]) => key !== "signature" && value !== "")
-    .sort(([a], [b]) => a.localeCompare(b))
-    .map(([key, value]) => `${key}=${encodeValue(value)}`);
-
-  let query = pairs.join("&");
-  if (passphrase) {
-    query += `&passphrase=${encodeValue(passphrase)}`;
+  const pairs: string[] = [];
+  for (const key of CHECKOUT_SIGNATURE_ORDER) {
+    const value = data[key];
+    if (value !== undefined && value !== "") {
+      pairs.push(`${key}=${encodeValue(value)}`);
+    }
   }
+  return hashParamString(appendPassphrase(pairs.join("&"), passphrase));
+}
 
-  return createHash("md5").update(query).digest("hex");
+function buildItnSignature(
+  payload: Record<string, string>,
+  passphrase?: string,
+): string {
+  const pairs: string[] = [];
+  for (const key of Object.keys(payload)) {
+    if (key === "signature") break;
+    const value = payload[key];
+    if (value !== "") {
+      pairs.push(`${key}=${encodeValue(value)}`);
+    }
+  }
+  return hashParamString(appendPassphrase(pairs.join("&"), passphrase));
 }
 
 export function buildPayfastCheckout(
@@ -54,7 +94,10 @@ export function buildPayfastCheckout(
     item_name: input.itemName.slice(0, 100),
   };
 
-  fields.signature = buildSignature(fields, process.env.PAYFAST_PASSPHRASE);
+  fields.signature = buildCheckoutSignature(
+    fields,
+    process.env.PAYFAST_PASSPHRASE,
+  );
 
   return {
     action: getPayfastProcessUrl(),
@@ -68,6 +111,6 @@ export function verifyPayfastItn(
   const signature = payload.signature;
   if (!signature) return false;
 
-  const expected = buildSignature(payload, process.env.PAYFAST_PASSPHRASE);
+  const expected = buildItnSignature(payload, process.env.PAYFAST_PASSPHRASE);
   return expected === signature;
 }

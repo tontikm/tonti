@@ -17,8 +17,9 @@ export function getPayfastMerchantId(): string | undefined {
 }
 
 export function getSiteUrl(): string {
-  return (
-    process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, "") ??
-    "http://localhost:3000"
-  );
+  const raw =
+    process.env.NEXT_PUBLIC_SITE_URL?.trim().replace(/\/$/, "") ??
+    "http://localhost:3000";
+  if (/^https?:\/\//i.test(raw)) return raw;
+  return `https://${raw}`;
 }
