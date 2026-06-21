@@ -21,44 +21,12 @@ export const ARTISTS: Artist[] = [
     bio: "Afro-house vocalist and producer fusing spiritual melodies with deep four-to-the-floor grooves.",
   },
   {
-    slug: "deep-sankomota",
-    name: "Deep Sankomota",
-    genre: "house",
-    image:
-      "https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=600&q=80",
-    bio: "Soulful house selector known for sunrise sets and a crate-digging ear.",
-  },
-  {
-    slug: "durban-bass-union",
-    name: "Durban Bass Union",
-    genre: "gqom",
-    image:
-      "https://images.unsplash.com/photo-1574169208507-84376144848b?w=600&q=80",
-    bio: "The sound of eThekwini — raw, hypnotic gqom built for the dancefloor.",
-  },
-  {
     slug: "k1ng-verse",
     name: "K1NG Verse",
     genre: "hip-hop",
     image:
       "https://images.unsplash.com/photo-1459745456775-9afc3a8049bc?w=600&q=80",
     bio: "Joburg lyricist blending boom-bap roots with new-school SA trap.",
-  },
-  {
-    slug: "township-funk",
-    name: "Township Funk",
-    genre: "kwaito",
-    image:
-      "https://images.unsplash.com/photo-1516450360452-9312f5e86fc7?w=600&q=80",
-    bio: "Kwaito revivalists keeping the golden-era bounce alive for a new generation.",
-  },
-  {
-    slug: "lerato-sky",
-    name: "Lerato Sky",
-    genre: "afro-pop",
-    image:
-      "https://images.unsplash.com/photo-1488376739361-ed24f5fef1d7?w=600&q=80",
-    bio: "Afro-pop songstress with chart-topping hooks and a powerhouse live band.",
   },
   {
     slug: "cape-town-quartet",
