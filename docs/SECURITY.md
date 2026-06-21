@@ -20,9 +20,9 @@ First security audit for Tonti (Phase 1). This document summarizes findings and 
 | Critical | Forgable organizer session cookie | Fixed (Phase 1) |
 | Critical | Unauthenticated organizer server actions | Fixed (Phase 1) |
 | Critical | Public ticket check-in by code | Fixed (Phase 1) |
-| High | Public RLS read on orders/tickets (buyer PII) | Phase 2 |
+| High | Public RLS read on orders/tickets (buyer PII) | Fixed (Phase 2 — migration `0017`) |
 | High | Payfast amount not verified | Fixed (Phase 1) |
-| High | Organizer dashboard pages lack ownership checks | Phase 2 |
+| High | Organizer dashboard pages lack ownership checks | Fixed (Phase 2 — `requireOwnEvent` on event pages) |
 | Medium | Open redirect via `//evil.com` | Fixed (Phase 1) |
 | Medium | Dev empty-password organizer login | Fixed (Phase 1) |
 | Medium | Non-transactional ticket fulfillment / oversell risk | Phase 2 |
@@ -42,8 +42,8 @@ Existing unsigned organizer cookies are invalidated after Phase 1 deploy — org
 
 ## Phase 2 backlog
 
-- Tighten Supabase RLS: remove public read on `orders` and `tickets`; add `user_id`-scoped policies
-- Ownership checks on organizer dashboard pages (edit, tickets, scan)
+- ~~Tighten Supabase RLS: remove public read on `orders` and `tickets`; add `user_id`-scoped policies~~ (migration `0017`)
+- ~~Ownership checks on organizer dashboard pages (edit, tickets, scan, promos)~~ (implemented)
 - Transactional ticket fulfillment to prevent overselling
 - Stronger ticket code entropy
 - Login rate limiting (middleware or Supabase Auth settings)

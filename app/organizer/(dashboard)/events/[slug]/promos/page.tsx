@@ -1,7 +1,8 @@
-import { notFound } from "next/navigation";
+import { redirect } from "next/navigation";
 import { OrganizerPageHeader } from "@/components/organizer/OrganizerShell";
 import { PromoCodeManager } from "@/components/organizer/PromoCodeManager";
 import { getEventBySlug } from "@/lib/data/events";
+import { requireOwnEvent } from "@/lib/organizer/require-auth";
 import { getEventPromoCodes } from "@/lib/promo/codes";
 import { getSupabaseAdmin } from "@/lib/supabase/admin";
 import { formatEventDate } from "@/lib/utils";
@@ -20,8 +21,11 @@ export async function generateMetadata({ params }: Props) {
 
 export default async function OrganizerEventPromosPage({ params }: Props) {
   const { slug } = await params;
-  const event = await getEventBySlug(slug);
-  if (!event) notFound();
+  const result = await requireOwnEvent(slug);
+  if ("error" in result) {
+    redirect("/organizer/events");
+  }
+  const { event } = result;
 
   const supabase = getSupabaseAdmin();
   const promos = supabase ? await getEventPromoCodes(supabase, slug) : [];

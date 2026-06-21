@@ -99,6 +99,8 @@ Run migrations **in order** in the Supabase SQL editor:
 | [`0013_event_show_organizer_profile.sql`](supabase/migrations/0013_event_show_organizer_profile.sql) | Opt-in organizer profile on event pages |
 | [`0014_event_age_range.sql`](supabase/migrations/0014_event_age_range.sql) | Optional maximum age for events |
 | [`0015_backfill_event_organizer_id.sql`](supabase/migrations/0015_backfill_event_organizer_id.sql) | Backfill `organizer_id` from `contact_email` |
+| [`0016_remove_demo_events.sql`](supabase/migrations/0016_remove_demo_events.sql) | Remove deprecated seed demo events |
+| [`0017_orders_tickets_rls.sql`](supabase/migrations/0017_orders_tickets_rls.sql) | Restrict orders/tickets reads to owning fan |
 
 Then:
 
@@ -176,11 +178,14 @@ Each `git push` to `main` triggers a new production deploy. Local `npm run dev` 
 
 ## Deploy checklist
 
-1. Run all migrations on production Supabase (through `0011_event_follows.sql`).
+See **[`docs/LAUNCH.md`](docs/LAUNCH.md)** for the full step-by-step launch guide.
+
+1. Run all migrations on production Supabase (through `0017_orders_tickets_rls.sql`).
 2. Set env vars on Vercel — see `.env.example`.
 3. Add production URL + `/auth/callback` to Supabase Auth redirect URLs.
-4. Add Payfast notify URL: `https://your-domain.co.za/api/payments/payfast/notify`
-5. Seed or create events via the organizer dashboard.
+4. Add Payfast notify URL (if using online payments): `https://your-domain.co.za/api/payments/payfast/notify`
+5. Create real events via the organizer dashboard (or seed once for staging).
+6. Run the smoke test checklist in `docs/LAUNCH.md`.
 
 ## What's next
 

@@ -1,9 +1,10 @@
-import { notFound } from "next/navigation";
+import { redirect } from "next/navigation";
 import { OrganizerPageHeader } from "@/components/organizer/OrganizerShell";
 import { EventForm, type EventFormInitial } from "@/components/organizer/EventForm";
 import { getAllArtists } from "@/lib/data/artists";
 import { getEventBySlug } from "@/lib/data/events";
 import { getAllVenues } from "@/lib/data/venues";
+import { requireOwnEvent } from "@/lib/organizer/require-auth";
 import { isSupabaseAdminConfigured } from "@/lib/supabase/admin";
 import { isoToSastDateAndTime } from "@/lib/utils";
 import { ORGANIZER_BRANDING_MIGRATION_HINT } from "@/lib/supabase/errors";
@@ -29,8 +30,11 @@ export default async function EditOrganizerEventPage({
   const { slug } = await params;
   const query = await searchParams;
   const showOrganizerMigrationHint = query.organizerMigration === "1";
-  const event = await getEventBySlug(slug);
-  if (!event) notFound();
+  const result = await requireOwnEvent(slug);
+  if ("error" in result) {
+    redirect("/organizer/events");
+  }
+  const { event } = result;
 
   const supabaseReady = isSupabaseAdminConfigured();
   const [venues, artists] = await Promise.all([

@@ -1,6 +1,6 @@
 import { Suspense } from "react";
 import Link from "next/link";
-import { notFound } from "next/navigation";
+import { redirect } from "next/navigation";
 import { ScanLine, Users, Tag } from "lucide-react";
 import { OrganizerPageHeader } from "@/components/organizer/OrganizerShell";
 import { PlatformFeeNotice } from "@/components/organizer/PlatformFeeNotice";
@@ -9,6 +9,7 @@ import { CompTicketForm } from "@/components/organizer/CompTicketForm";
 import { ExportGuestListButton } from "@/components/organizer/ExportGuestListButton";
 import { Button } from "@/components/ui/Button";
 import { getEventBySlug } from "@/lib/data/events";
+import { requireOwnEvent } from "@/lib/organizer/require-auth";
 import { getEventTicketSummary, getEventTickets } from "@/lib/tickets";
 import { isSupabaseAdminConfigured } from "@/lib/supabase/admin";
 import { formatEventDate } from "@/lib/utils";
@@ -41,8 +42,11 @@ export default async function OrganizerEventTicketsPage({
   const { slug } = await params;
   const query = await searchParams;
   const statusFilter = parseStatusFilter(query.status);
-  const event = await getEventBySlug(slug);
-  if (!event) notFound();
+  const result = await requireOwnEvent(slug);
+  if ("error" in result) {
+    redirect("/organizer/events");
+  }
+  const { event } = result;
 
   const supabaseReady = isSupabaseAdminConfigured();
   const hasPaidTiers = event.tiers.some((tier) => tier.price > 0);

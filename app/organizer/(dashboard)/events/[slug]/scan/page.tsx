@@ -1,8 +1,9 @@
 import { Suspense } from "react";
-import { notFound } from "next/navigation";
+import { redirect } from "next/navigation";
 import { OrganizerPageHeader } from "@/components/organizer/OrganizerShell";
 import { DoorScanner } from "@/components/organizer/DoorScanner";
 import { getEventBySlug } from "@/lib/data/events";
+import { requireOwnEvent } from "@/lib/organizer/require-auth";
 
 type Props = {
   params: Promise<{ slug: string }>;
@@ -18,8 +19,11 @@ export async function generateMetadata({ params }: Props) {
 
 export default async function OrganizerEventScanPage({ params }: Props) {
   const { slug } = await params;
-  const event = await getEventBySlug(slug);
-  if (!event) notFound();
+  const result = await requireOwnEvent(slug);
+  if ("error" in result) {
+    redirect("/organizer/events");
+  }
+  const { event } = result;
 
   return (
     <>
