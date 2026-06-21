@@ -10,6 +10,7 @@ import type { PromoPreview } from "@/lib/promo/codes";
 import { CheckoutAuthGate } from "@/components/auth/CheckoutAuthGate";
 import { CheckoutForm } from "@/components/checkout/CheckoutForm";
 import { CheckoutSummary } from "@/components/checkout/CheckoutSummary";
+import { CheckoutSummaryCompact } from "@/components/checkout/CheckoutSummaryCompact";
 
 type CheckoutExperienceProps = {
   event: Event;
@@ -64,8 +65,14 @@ export function CheckoutExperience({
       </p>
 
       <div className="mt-10 flex flex-col gap-10 lg:grid lg:grid-cols-[1fr_380px]">
-        {user ? (
-          <div className="order-2 lg:order-1">
+        {!user && (
+          <div className="order-1 lg:hidden">
+            <CheckoutSummaryCompact event={event} cart={cart} promo={promo} />
+          </div>
+        )}
+
+        <div className="order-2 lg:order-1">
+          {user ? (
             <CheckoutForm
               eventSlug={event.slug}
               cart={cart}
@@ -76,17 +83,18 @@ export function CheckoutExperience({
               onPromoChange={setPromo}
               displayTotal={displayTotal}
             />
-          </div>
-        ) : (
-          <div className="order-2 lg:order-1">
+          ) : (
             <CheckoutAuthGate
               returnTo={returnTo}
               authConfigured={authConfigured}
               organizerEmail={organizerEmail}
             />
-          </div>
-        )}
-        <div className="order-1 lg:order-2 lg:sticky lg:top-24 lg:self-start">
+          )}
+        </div>
+
+        <div
+          className={`order-1 lg:order-2 lg:sticky lg:top-24 lg:self-start ${!user ? "hidden lg:block" : ""}`}
+        >
           <CheckoutSummary event={event} cart={cart} promo={promo} />
         </div>
       </div>
