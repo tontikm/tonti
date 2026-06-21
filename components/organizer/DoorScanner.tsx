@@ -7,6 +7,7 @@ import {
   checkInEventTicket,
   type CheckInResult,
 } from "@/app/organizer/actions";
+import { OrganizerTicketDetailCard } from "@/components/organizer/OrganizerTicketDetailCard";
 import { parseTicketCodeFromScan } from "@/lib/tickets";
 
 type DoorScannerProps = {
@@ -188,17 +189,18 @@ export function DoorScanner({ eventSlug, eventTitle }: DoorScannerProps) {
             ) : (
               <XCircle className="h-6 w-6 shrink-0 text-amber-400" />
             )}
-            <div>
+            <div className="min-w-0 flex-1">
               <p className="font-semibold">
                 {feedback.ok ? "Checked in" : feedback.error ?? "Check-in failed"}
               </p>
-              <p className="mt-1 font-mono text-sm text-muted">{feedback.scannedCode}</p>
+              {!feedback.ticket && (
+                <p className="mt-1 font-mono text-sm text-muted">{feedback.scannedCode}</p>
+              )}
               {feedback.ticket && (
-                <div className="mt-3 space-y-1 text-sm text-muted">
-                  <p>{feedback.ticket.holderName}</p>
-                  <p>{feedback.ticket.tierName}</p>
-                  <p>{feedback.ticket.buyerEmail}</p>
-                </div>
+                <OrganizerTicketDetailCard
+                  ticket={feedback.ticket}
+                  className="mt-4"
+                />
               )}
             </div>
           </div>

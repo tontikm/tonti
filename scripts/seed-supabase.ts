@@ -24,7 +24,30 @@ if (!url || !key) {
 
 const supabase = createClient(url, key, { auth: { persistSession: false } });
 
+const REMOVED_EVENT_SLUGS = [
+  "deep-sankomota-grandwest",
+  "durban-bass-union-icc",
+  "township-funk-con-hill",
+  "lerato-sky-durban",
+] as const;
+
+const REMOVED_ARTIST_SLUGS = [
+  "deep-sankomota",
+  "durban-bass-union",
+  "township-funk",
+  "lerato-sky",
+] as const;
+
+async function pruneRemovedSeedData() {
+  console.log("Removing deprecated demo events and artists…");
+  let res = await supabase.from("events").delete().in("slug", [...REMOVED_EVENT_SLUGS]);
+  if (res.error) throw res.error;
+  res = await supabase.from("artists").delete().in("slug", [...REMOVED_ARTIST_SLUGS]);
+  if (res.error) throw res.error;
+}
+
 async function seed() {
+  await pruneRemovedSeedData();
   console.log(`Seeding ${ARTISTS.length} artists…`);
   const artistRows = ARTISTS.map((a) => ({
     slug: a.slug,

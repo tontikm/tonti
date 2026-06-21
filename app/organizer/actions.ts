@@ -1101,10 +1101,29 @@ export type CheckInResult = {
     code: string;
     holderName: string;
     tierName: string;
+    buyerName?: string;
     buyerEmail: string;
     status: string;
+    checkedInAt?: string;
   };
 };
+
+function mapCheckInTicket(
+  ticket: Record<string, unknown>,
+  buyerName: string,
+  buyerEmail: string,
+  checkedInAt?: string,
+): NonNullable<CheckInResult["ticket"]> {
+  return {
+    code: ticket.code as string,
+    holderName: ticket.holder_name as string,
+    tierName: ticket.tier_name as string,
+    buyerName,
+    buyerEmail,
+    status: ticket.status as string,
+    checkedInAt,
+  };
+}
 
 export async function checkInEventTicket(
   code: string,
@@ -1133,10 +1152,11 @@ export async function checkInEventTicket(
 
   const { data: order } = await supabase
     .from("orders")
-    .select("buyer_email")
+    .select("buyer_name, buyer_email")
     .eq("id", ticket.order_id)
     .maybeSingle();
 
+  const buyerName = (order?.buyer_name as string) ?? "";
   const buyerEmail = (order?.buyer_email as string) ?? "";
 
   if (ticket.event_slug !== eventSlug) {
@@ -1147,13 +1167,12 @@ export async function checkInEventTicket(
     return {
       ok: false,
       error: "Already checked in.",
-      ticket: {
-        code: ticket.code as string,
-        holderName: ticket.holder_name as string,
-        tierName: ticket.tier_name as string,
+      ticket: mapCheckInTicket(
+        ticket,
+        buyerName,
         buyerEmail,
-        status: "used",
-      },
+        (ticket.checked_in_at as string) ?? undefined,
+      ),
     };
   }
 
@@ -1161,11 +1180,12 @@ export async function checkInEventTicket(
     return { ok: false, error: "Ticket is not valid." };
   }
 
+  const checkedInAt = new Date().toISOString();
   const { error } = await supabase
     .from("tickets")
     .update({
       status: "used",
-      checked_in_at: new Date().toISOString(),
+      checked_in_at: checkedInAt,
     })
     .eq("code", normalized);
 
@@ -1179,13 +1199,7 @@ export async function checkInEventTicket(
 
   return {
     ok: true,
-    ticket: {
-      code: ticket.code as string,
-      holderName: ticket.holder_name as string,
-      tierName: ticket.tier_name as string,
-      buyerEmail,
-      status: "used",
-    },
+    ticket: mapCheckInTicket(ticket, buyerName, buyerEmail, checkedInAt),
   };
 }
 

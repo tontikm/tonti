@@ -1,3 +1,5 @@
+import { Suspense } from "react";
+import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ScanLine, Users, Tag } from "lucide-react";
 import { OrganizerPageHeader } from "@/components/organizer/OrganizerShell";
@@ -13,7 +15,16 @@ import { formatEventDate } from "@/lib/utils";
 
 type Props = {
   params: Promise<{ slug: string }>;
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
 };
+
+function parseStatusFilter(
+  value: string | string[] | undefined,
+): "all" | "checked-in" | "pending" {
+  const raw = Array.isArray(value) ? value[0] : value;
+  if (raw === "checked-in" || raw === "pending") return raw;
+  return "all";
+}
 
 export async function generateMetadata({ params }: Props) {
   const { slug } = await params;
@@ -23,8 +34,13 @@ export async function generateMetadata({ params }: Props) {
   };
 }
 
-export default async function OrganizerEventTicketsPage({ params }: Props) {
+export default async function OrganizerEventTicketsPage({
+  params,
+  searchParams,
+}: Props) {
   const { slug } = await params;
+  const query = await searchParams;
+  const statusFilter = parseStatusFilter(query.status);
   const event = await getEventBySlug(slug);
   if (!event) notFound();
 
@@ -64,7 +80,15 @@ export default async function OrganizerEventTicketsPage({ params }: Props) {
 
       <div className="grid gap-4 sm:grid-cols-3">
         <StatCard label="Total tickets" value={summary.totalTickets} />
-        <StatCard label="Checked in" value={summary.checkedIn} />
+        <StatCard
+          label="Checked in"
+          value={summary.checkedIn}
+          href={
+            summary.checkedIn > 0
+              ? `/organizer/events/${slug}/tickets?status=checked-in`
+              : undefined
+          }
+        />
         <StatCard label="Pending" value={summary.valid} />
       </div>
 
@@ -104,7 +128,13 @@ export default async function OrganizerEventTicketsPage({ params }: Props) {
           <ExportGuestListButton eventTitle={event.title} tickets={tickets} />
         </div>
         <div className="mt-4 max-w-3xl">
-          <TicketGuestList eventSlug={slug} tickets={tickets} />
+          <Suspense fallback={<GuestListFallback />}>
+            <TicketGuestList
+              eventSlug={slug}
+              tickets={tickets}
+              initialStatusFilter={statusFilter}
+            />
+          </Suspense>
         </div>
       </div>
 
@@ -115,13 +145,45 @@ export default async function OrganizerEventTicketsPage({ params }: Props) {
   );
 }
 
-function StatCard({ label, value }: { label: string; value: number }) {
+function GuestListFallback() {
   return (
-    <div className="rounded-2xl border border-white/10 bg-white/[0.02] p-5">
+    <div className="rounded-2xl border border-border bg-surface/50 px-4 py-10 text-center text-sm text-muted">
+      Loading guest list…
+    </div>
+  );
+}
+
+function StatCard({
+  label,
+  value,
+  href,
+}: {
+  label: string;
+  value: number;
+  href?: string;
+}) {
+  const content = (
+    <>
       <p className="text-xs font-medium uppercase tracking-wider text-muted">
         {label}
       </p>
       <p className="mt-2 text-3xl font-bold">{value}</p>
-    </div>
+    </>
   );
+
+  const className = `rounded-2xl border border-white/10 bg-white/[0.02] p-5${
+    href
+      ? " block transition-colors hover:border-emerald-500/30 hover:bg-emerald-500/5"
+      : ""
+  }`;
+
+  if (href) {
+    return (
+      <Link href={href} className={className}>
+        {content}
+      </Link>
+    );
+  }
+
+  return <div className={className}>{content}</div>;
 }

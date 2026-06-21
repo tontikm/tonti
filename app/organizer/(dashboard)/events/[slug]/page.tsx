@@ -125,6 +125,11 @@ export default async function OrganizerEventHubPage({ params }: Props) {
           value={`${report.checkedIn}/${report.totalTickets || 0}`}
           sub={`${checkInPct}% check-in rate`}
           icon={ScanLine}
+          href={
+            report.checkedIn > 0
+              ? `/organizer/events/${slug}/tickets?status=checked-in`
+              : undefined
+          }
         />
         <StatCard
           label="Orders"
@@ -216,14 +221,16 @@ function StatCard({
   value,
   sub,
   icon: Icon,
+  href,
 }: {
   label: string;
   value: string;
   sub?: string;
   icon: React.ComponentType<{ className?: string }>;
+  href?: string;
 }) {
-  return (
-    <div className="rounded-2xl border border-white/10 bg-white/[0.02] p-5">
+  const content = (
+    <>
       <div className="flex items-start justify-between gap-3">
         <p className="text-xs font-medium uppercase tracking-wider text-muted">
           {label}
@@ -232,8 +239,24 @@ function StatCard({
       </div>
       <p className="mt-3 text-3xl font-bold">{value}</p>
       {sub && <p className="mt-1 text-xs text-muted">{sub}</p>}
-    </div>
+    </>
   );
+
+  const className = `rounded-2xl border border-white/10 bg-white/[0.02] p-5${
+    href
+      ? " transition-colors hover:border-emerald-500/30 hover:bg-emerald-500/5"
+      : ""
+  }`;
+
+  if (href) {
+    return (
+      <Link href={href} className={`block ${className}`}>
+        {content}
+      </Link>
+    );
+  }
+
+  return <div className={className}>{content}</div>;
 }
 
 function ManageLink({

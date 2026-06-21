@@ -106,6 +106,8 @@ export default async function TicketConfirmationPage({ params }: Props) {
               ticket={ticket}
               index={index}
               total={tickets.length}
+              eventImage={event.image}
+              eventTitle={event.title}
               category={event.category}
               showDivider={index < tickets.length - 1}
             />

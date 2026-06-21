@@ -1,5 +1,7 @@
+import Image from "next/image";
 import type { EventCategory, EventTicket } from "@/lib/types";
 import { TicketQr } from "@/components/tickets/TicketQr";
+import { getSafeEventImageUrl } from "@/lib/images";
 
 const ACCENT_COLORS: Record<EventCategory, string> = {
   nightlife: "#a78bfa",
@@ -12,6 +14,8 @@ type TicketPassCardProps = {
   ticket: EventTicket;
   index: number;
   total: number;
+  eventImage: string;
+  eventTitle?: string;
   category?: EventCategory;
   showDivider?: boolean;
 };
@@ -26,6 +30,8 @@ export function TicketPassCard({
   ticket,
   index,
   total,
+  eventImage,
+  eventTitle,
   category = "nightlife",
   showDivider = false,
 }: TicketPassCardProps) {
@@ -44,32 +50,54 @@ export function TicketPassCard({
         aria-hidden
       />
 
+      <div className="flex justify-center border-b border-white/10 px-6 py-3 pl-8">
+        <Image
+          src="/tonti-logo.png"
+          alt="Tonti"
+          width={120}
+          height={32}
+          className="h-7 w-auto object-contain"
+        />
+      </div>
+
       <div className="flex flex-col gap-6 p-6 pl-8 sm:flex-row sm:items-center sm:justify-between">
-        <div className="min-w-0 flex-1">
-          <div className="flex flex-wrap items-center gap-2">
-            <span
-              className="rounded-full px-3 py-1 text-xs font-semibold uppercase tracking-wider"
-              style={{
-                backgroundColor: `${accent}22`,
-                color: accent,
-              }}
-            >
-              {ticket.tierName}
-            </span>
-            {status ? (
-              <span className="rounded-full bg-white/10 px-3 py-1 text-xs font-medium text-muted">
-                {status}
-              </span>
-            ) : null}
+        <div className="flex min-w-0 flex-1 items-center gap-4">
+          <div className="relative h-20 w-20 shrink-0 overflow-hidden rounded-xl border border-white/10">
+            <Image
+              src={getSafeEventImageUrl(eventImage)}
+              alt={eventTitle ?? ""}
+              fill
+              className="object-cover"
+              sizes="80px"
+            />
           </div>
 
-          <p className="mt-3 font-mono text-lg font-semibold tracking-wide">
-            {ticket.code}
-          </p>
-          <p className="mt-1 text-sm text-muted">{ticket.holderName}</p>
-          <p className="mt-3 text-xs font-medium uppercase tracking-wider text-muted">
-            Ticket {index + 1} of {total}
-          </p>
+          <div className="min-w-0 flex-1">
+            <div className="flex flex-wrap items-center gap-2">
+              <span
+                className="rounded-full px-3 py-1 text-xs font-semibold uppercase tracking-wider"
+                style={{
+                  backgroundColor: `${accent}22`,
+                  color: accent,
+                }}
+              >
+                {ticket.tierName}
+              </span>
+              {status ? (
+                <span className="rounded-full bg-white/10 px-3 py-1 text-xs font-medium text-muted">
+                  {status}
+                </span>
+              ) : null}
+            </div>
+
+            <p className="mt-3 font-mono text-lg font-semibold tracking-wide">
+              {ticket.code}
+            </p>
+            <p className="mt-1 text-sm text-muted">{ticket.holderName}</p>
+            <p className="mt-3 text-xs font-medium uppercase tracking-wider text-muted">
+              Ticket {index + 1} of {total}
+            </p>
+          </div>
         </div>
 
         <div className="shrink-0 self-center sm:self-auto">
