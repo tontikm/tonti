@@ -8,7 +8,9 @@ import {
   OrderCard,
   ProfileSection,
 } from "@/components/account/OrderCard";
+import { FollowedEventCard } from "@/components/account/FollowedEventCard";
 import { getFanUser } from "@/lib/auth/session";
+import { getFanFollowedEvents } from "@/lib/fan/follows";
 import {
   getFanOrders,
   isOrderAttended,
@@ -65,6 +67,7 @@ export default async function AccountPage() {
   }
 
   const records = await getFanOrders(user);
+  const followed = await getFanFollowedEvents(user);
   const upcoming = sortUpcomingByShowTime(
     records.filter((record) => isOrderUpcoming(record)),
   );
@@ -97,6 +100,27 @@ export default async function AccountPage() {
           />
         </div>
       ) : null}
+
+      <div className="mt-8 space-y-6">
+        <ProfileSection title="Following" count={followed.all.length}>
+          {followed.all.length === 0 ? (
+            <EmptySection message="Events you follow will show up here. Tap Follow on any event page." />
+          ) : (
+            <div className="space-y-3">
+              {followed.upcoming.map((event) => (
+                <FollowedEventCard
+                  key={event.slug}
+                  event={event}
+                  badge="Upcoming"
+                />
+              ))}
+              {followed.past.map((event) => (
+                <FollowedEventCard key={event.slug} event={event} badge="Past" />
+              ))}
+            </div>
+          )}
+        </ProfileSection>
+      </div>
 
       <div className="mt-8 space-y-6">
         <ProfileSection title="Upcoming" count={upcoming.length}>

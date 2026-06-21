@@ -2,6 +2,7 @@
 
 import { useActionState, useEffect, useMemo, useState } from "react";
 import Image from "next/image";
+import Link from "next/link";
 import type { Artist, EventCategory, Venue } from "@/lib/types";
 import { EVENT_CATEGORIES } from "@/lib/data/categories";
 import { getSafeEventImageUrl, getSafeOrganizerLogoUrl } from "@/lib/images";
@@ -42,11 +43,11 @@ export type EventFormInitial = {
   artistNames: string[];
   artistSlugs: string[];
   ageLimit?: number;
+  ageMax?: number;
   tags: string[];
   featured: boolean;
+  showOrganizerProfile?: boolean;
   prohibitedItems?: string[];
-  contactEmail?: string;
-  refundPolicy?: string;
   tiers: {
     id: string;
     name: string;
@@ -108,13 +109,17 @@ export function EventForm({
   const [ageLimit, setAgeLimit] = useState(
     initial?.ageLimit != null ? String(initial.ageLimit) : "",
   );
+  const [ageMax, setAgeMax] = useState(
+    initial?.ageMax != null ? String(initial.ageMax) : "",
+  );
   const [tags, setTags] = useState(initial?.tags.join(", ") ?? "");
   const [prohibitedItems, setProhibitedItems] = useState<string[]>(
     initial?.prohibitedItems ?? [],
   );
-  const [contactEmail, setContactEmail] = useState(initial?.contactEmail ?? "");
-  const [refundPolicy, setRefundPolicy] = useState(initial?.refundPolicy ?? "");
   const [featured, setFeatured] = useState(initial?.featured ?? false);
+  const [showOrganizerProfile, setShowOrganizerProfile] = useState(
+    initial?.showOrganizerProfile ?? false,
+  );
   const [tiers, setTiers] = useState<TierRow[]>(() =>
     initial?.tiers.length
       ? initial.tiers.map((tier, index) => ({
@@ -495,7 +500,7 @@ export function EventForm({
         <div className="grid gap-4 sm:grid-cols-2">
           <div>
             <label htmlFor="ageLimit" className={labelClass}>
-              Age limit (e.g. 18 for adult events)
+              Minimum age
             </label>
             <input
               id="ageLimit"
@@ -509,19 +514,38 @@ export function EventForm({
             />
           </div>
           <div>
-            <label htmlFor="tags" className={labelClass}>
-              Tags
+            <label htmlFor="ageMax" className={labelClass}>
+              Maximum age
             </label>
             <input
-              id="tags"
-              name="tags"
-              value={tags}
-              onChange={(e) => setTags(e.target.value)}
+              id="ageMax"
+              name="ageMax"
+              type="number"
+              min={0}
+              value={ageMax}
+              onChange={(e) => setAgeMax(e.target.value)}
               className={inputClass}
-              placeholder="festival, outdoor, amapiano"
+              placeholder="21"
             />
-            <p className="mt-1 text-xs text-muted">Comma-separated</p>
+            <p className="mt-1 text-xs text-muted">
+              Leave blank for all ages, or set a range (e.g. 16–21).
+            </p>
           </div>
+        </div>
+
+        <div>
+          <label htmlFor="tags" className={labelClass}>
+            Tags
+          </label>
+          <input
+            id="tags"
+            name="tags"
+            value={tags}
+            onChange={(e) => setTags(e.target.value)}
+            className={inputClass}
+            placeholder="festival, outdoor, amapiano"
+          />
+          <p className="mt-1 text-xs text-muted">Comma-separated</p>
         </div>
 
         <ProhibitedItemsInput
@@ -530,35 +554,16 @@ export function EventForm({
           includeHiddenFields
         />
 
-        <div className="grid gap-4 sm:grid-cols-2">
-          <div>
-            <label htmlFor="contactEmail" className={labelClass}>
-              Day-of contact email
-            </label>
-            <input
-              id="contactEmail"
-              name="contactEmail"
-              type="email"
-              value={contactEmail}
-              onChange={(e) => setContactEmail(e.target.value)}
-              className={inputClass}
-              placeholder="promoter@example.com"
-            />
-          </div>
-          <div>
-            <label htmlFor="refundPolicy" className={labelClass}>
-              Refund policy
-            </label>
-            <textarea
-              id="refundPolicy"
-              name="refundPolicy"
-              rows={3}
-              value={refundPolicy}
-              onChange={(e) => setRefundPolicy(e.target.value)}
-              className={inputClass}
-              placeholder="All sales are final unless the event is cancelled…"
-            />
-          </div>
+        <div className="rounded-xl border border-border bg-surface/50 px-4 py-3 text-sm text-muted">
+          Refund rules for your event follow{" "}
+          <Link
+            href="/legal/refunds"
+            target="_blank"
+            className="font-medium text-foreground underline-offset-4 hover:underline"
+          >
+            Tonti&apos;s refund policy
+          </Link>
+          .
         </div>
 
         <label className="flex items-center gap-3 text-sm">
@@ -570,6 +575,22 @@ export function EventForm({
             className="h-4 w-4 rounded border-border"
           />
           Feature on homepage carousel
+        </label>
+
+        <label className="flex items-start gap-3 text-sm">
+          <input
+            type="checkbox"
+            name="showOrganizerProfile"
+            checked={showOrganizerProfile}
+            onChange={(e) => setShowOrganizerProfile(e.target.checked)}
+            className="mt-0.5 h-4 w-4 shrink-0 rounded border-border"
+          />
+          <span>
+            <span className="font-medium">Show my organizer profile on this event</span>
+            <span className="mt-1 block text-muted">
+              Displays your logo, bio, and social links from your organizer profile.
+            </span>
+          </span>
         </label>
       </section>
 

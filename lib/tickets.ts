@@ -1,9 +1,11 @@
 import { randomBytes } from "crypto";
 import type {
+  EventSalesReport,
   EventTicket,
   EventTicketSummary,
   EventTicketWithBuyer,
   TicketOrder,
+  TicketTier,
 } from "@/lib/types";
 import { getSupabaseServer } from "@/lib/supabase/server";
 
@@ -24,12 +26,16 @@ export function getTicketVerifyUrl(code: string): string {
 }
 
 function mapOrderRow(row: Record<string, unknown>): TicketOrder {
+  const totalAmount = Number(row.total_amount ?? 0);
+  const subtotalAmount = Number(row.subtotal_amount ?? totalAmount);
   return {
     id: row.id as string,
     eventSlug: row.event_slug as string,
     buyerName: row.buyer_name as string,
     buyerEmail: row.buyer_email as string,
-    totalAmount: Number(row.total_amount ?? 0),
+    subtotalAmount,
+    serviceFee: Number(row.service_fee ?? 0),
+    totalAmount,
     ticketCount: Number(row.ticket_count ?? 0),
     status: row.status as string,
     createdAt: row.created_at as string,
@@ -179,6 +185,147 @@ export async function getEventTicketSummary(
     valid: tickets.filter((ticket) => ticket.status === "valid").length,
     orderCount: orderIds.size,
     byTier: Array.from(tierMap.values()),
+  };
+}
+
+export type OrganizerEventStat = {
+  ticketsIssued: number;
+  revenue: number;
+};
+
+/**
+ * Batched ticket counts + gross revenue for many events at once, keyed by
+ * event slug. Used by the organizer events list. Returns an empty map when
+ * Supabase is not configured.
+ */
+export async function getOrganizerEventStats(
+  slugs: string[],
+): Promise<Map<string, OrganizerEventStat>> {
+  const stats = new Map<string, OrganizerEventStat>();
+  for (const slug of slugs) {
+    stats.set(slug, { ticketsIssued: 0, revenue: 0 });
+  }
+
+  const supabase = getSupabaseServer();
+  if (!supabase || slugs.length === 0) return stats;
+
+  const [{ data: ticketRows }, { data: orderRows }] = await Promise.all([
+    supabase.from("tickets").select("event_slug").in("event_slug", slugs),
+    supabase
+      .from("orders")
+      .select("event_slug, subtotal_amount, total_amount, status")
+      .in("event_slug", slugs)
+      .eq("status", "confirmed"),
+  ]);
+
+  for (const row of ticketRows ?? []) {
+    const slug = row.event_slug as string;
+    const stat = stats.get(slug);
+    if (stat) stat.ticketsIssued += 1;
+  }
+
+  for (const row of orderRows ?? []) {
+    const slug = row.event_slug as string;
+    const stat = stats.get(slug);
+    if (!stat) continue;
+    const amount = Number(row.subtotal_amount ?? row.total_amount ?? 0);
+    stat.revenue += amount;
+  }
+
+  for (const stat of stats.values()) {
+    stat.revenue = Math.round(stat.revenue * 100) / 100;
+  }
+
+  return stats;
+}
+
+/**
+ * Builds a full sales/attendance report for an event. Revenue is summed from
+ * confirmed orders; per-tier revenue is derived from tier price * sold.
+ */
+export async function getEventSalesReport(
+  eventSlug: string,
+  tiers: TicketTier[],
+): Promise<EventSalesReport> {
+  const supabase = getSupabaseServer();
+
+  const tickets = await getEventTickets(eventSlug);
+
+  let grossRevenue = 0;
+  let serviceFee = 0;
+  let orderCount = 0;
+  const zeroTotalOrderIds = new Set<string>();
+
+  if (supabase) {
+    const { data: orderRows } = await supabase
+      .from("orders")
+      .select("id, status, subtotal_amount, service_fee, total_amount")
+      .eq("event_slug", eventSlug)
+      .eq("status", "confirmed");
+
+    for (const row of orderRows ?? []) {
+      orderCount += 1;
+      const subtotal = Number(row.subtotal_amount ?? row.total_amount ?? 0);
+      const fee = Number(row.service_fee ?? 0);
+      grossRevenue += subtotal;
+      serviceFee += fee;
+      if (Number(row.total_amount ?? subtotal) <= 0) {
+        zeroTotalOrderIds.add(row.id as string);
+      }
+    }
+  }
+
+  grossRevenue = Math.round(grossRevenue * 100) / 100;
+  serviceFee = Math.round(serviceFee * 100) / 100;
+  const organizerNet = Math.round((grossRevenue - serviceFee) * 100) / 100;
+
+  const tierStats = new Map<
+    string,
+    { sold: number; checkedIn: number; comp: number }
+  >();
+  for (const ticket of tickets) {
+    const stat = tierStats.get(ticket.tierId) ?? {
+      sold: 0,
+      checkedIn: 0,
+      comp: 0,
+    };
+    stat.sold += 1;
+    if (ticket.status === "used") stat.checkedIn += 1;
+    if (zeroTotalOrderIds.has(ticket.orderId)) stat.comp += 1;
+    tierStats.set(ticket.tierId, stat);
+  }
+
+  const byTier = tiers.map((tier) => {
+    const stat = tierStats.get(tier.id) ?? { sold: 0, checkedIn: 0, comp: 0 };
+    const paidSold = Math.max(0, stat.sold - stat.comp);
+    return {
+      tierId: tier.id,
+      tierName: tier.name,
+      price: tier.price,
+      capacity: tier.capacity,
+      sold: stat.sold,
+      checkedIn: stat.checkedIn,
+      comp: stat.comp,
+      revenue: Math.round(tier.price * paidSold * 100) / 100,
+    };
+  });
+
+  const totalTickets = tickets.length;
+  const checkedIn = tickets.filter((t) => t.status === "used").length;
+  const compTickets = tickets.filter((t) =>
+    zeroTotalOrderIds.has(t.orderId),
+  ).length;
+
+  return {
+    grossRevenue,
+    serviceFee,
+    organizerNet,
+    orderCount,
+    totalTickets,
+    checkedIn,
+    checkInRate: totalTickets > 0 ? checkedIn / totalTickets : 0,
+    compTickets,
+    byTier,
   };
 }
 

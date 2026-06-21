@@ -37,7 +37,10 @@ export default async function TicketVerifyPage({ params }: Props) {
   const canCheckIn = isOwnOrganizerEvent(
     event,
     organizerSession,
-    organizerProfile?.name,
+    {
+      id: organizerProfile?.id,
+      name: organizerProfile?.name,
+    },
   );
 
   const isValid = ticket.status === "valid";

@@ -65,11 +65,11 @@ export default async function EditOrganizerEventPage({
     artistNames: event.artists.map((artist) => artist.name),
     artistSlugs: event.artists.map((artist) => artist.slug),
     ageLimit: event.ageLimit,
+    ageMax: event.ageMax,
     tags: event.tags,
     prohibitedItems: event.prohibitedItems,
-    contactEmail: event.contactEmail,
-    refundPolicy: event.refundPolicy,
     featured: event.featured,
+    showOrganizerProfile: event.showOrganizerProfile ?? false,
     organizerName: event.organizerName,
     organizerLogo: event.organizerLogo,
     tiers: event.tiers.map((tier) => ({

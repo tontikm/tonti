@@ -1,13 +1,16 @@
-import Link from "next/link";
-import { Pencil, Plus, Users } from "lucide-react";
+import { Plus } from "lucide-react";
 import { OrganizerPageHeader } from "@/components/organizer/OrganizerShell";
-import { OrganizerEventActions } from "@/components/organizer/OrganizerEventActions";
+import {
+  OrganizerEventsList,
+  type OrganizerEventListItem,
+} from "@/components/organizer/OrganizerEventsList";
 import { Button } from "@/components/ui/Button";
 import { getEventsForOrganizer } from "@/lib/data/events";
 import { getOrganizerByEmail } from "@/lib/organizer/profile";
 import { getOrganizerSession } from "@/lib/organizer/session";
+import { getOrganizerEventStats } from "@/lib/tickets";
 import { isSupabaseAdminConfigured } from "@/lib/supabase/admin";
-import { formatEventDate, formatPrice, getLowestPrice } from "@/lib/utils";
+import { getEventStatus, getLowestPrice } from "@/lib/utils";
 
 export const metadata = {
   title: "Your events",
@@ -24,8 +27,30 @@ export default async function OrganizerEventsPage({ searchParams }: Props) {
   const events = await getEventsForOrganizer(
     profile?.id ?? session?.id,
     profile?.name ?? session?.name,
+    profile?.email ?? session?.email,
   );
   const supabaseReady = isSupabaseAdminConfigured();
+  const stats = await getOrganizerEventStats(events.map((event) => event.slug));
+
+  const items: OrganizerEventListItem[] = events.map((event) => {
+    const stat = stats.get(event.slug);
+    return {
+      slug: event.slug,
+      title: event.title,
+      image: event.image,
+      hasImage: Boolean(event.image?.trim()),
+      date: event.date,
+      endDate: event.endDate,
+      showTime: event.showTime,
+      venueCity: event.venue.city,
+      featured: event.featured,
+      status: getEventStatus(event),
+      ticketsIssued: stat?.ticketsIssued ?? 0,
+      capacity: event.tiers.reduce((sum, tier) => sum + tier.capacity, 0),
+      revenue: stat?.revenue ?? 0,
+      lowestPrice: getLowestPrice(event.tiers),
+    };
+  });
 
   return (
     <>
@@ -64,60 +89,7 @@ export default async function OrganizerEventsPage({ searchParams }: Props) {
           </Button>
         </div>
       ) : (
-      <ul className="divide-y divide-white/10 rounded-2xl border border-white/10">
-        {events.map((event) => {
-          const price = getLowestPrice(event.tiers);
-          return (
-            <li key={event.slug} className="px-4 py-4 sm:px-5">
-              <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-                <div className="min-w-0 flex-1">
-                  <div className="flex flex-wrap items-center gap-2">
-                    <Link
-                      href={`/events/${event.slug}`}
-                      className="font-medium hover:underline"
-                    >
-                      {event.title}
-                    </Link>
-                    {event.featured && (
-                      <span className="rounded-full border border-white/15 px-2 py-0.5 text-[10px] font-medium uppercase tracking-wide text-muted">
-                        Homepage
-                      </span>
-                    )}
-                  </div>
-                  <p className="mt-1 text-sm text-muted">
-                    {formatEventDate(event.date)} · {event.venue.city}
-                  </p>
-                  <p className="mt-1 text-sm font-mono text-muted">
-                    {price !== null ? `From ${formatPrice(price)}` : "—"}
-                  </p>
-                </div>
-
-                <div className="flex flex-col items-start gap-2 sm:items-end">
-                  <Link
-                    href={`/organizer/events/${event.slug}/tickets`}
-                    className="inline-flex items-center gap-1.5 text-sm font-medium text-foreground hover:underline"
-                  >
-                    <Users className="h-3.5 w-3.5" />
-                    Tickets
-                  </Link>
-                  <OrganizerEventActions
-                    slug={event.slug}
-                    featured={event.featured}
-                    supabaseReady={supabaseReady}
-                  />
-                  <Link
-                    href={`/organizer/events/${event.slug}/edit`}
-                    className="inline-flex items-center gap-1.5 text-sm text-muted hover:text-foreground"
-                  >
-                    <Pencil className="h-3.5 w-3.5" />
-                    Edit
-                  </Link>
-                </div>
-              </div>
-            </li>
-          );
-        })}
-      </ul>
+        <OrganizerEventsList items={items} supabaseReady={supabaseReady} />
       )}
     </>
   );

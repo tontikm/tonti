@@ -1,10 +1,15 @@
 "use client";
 
 import { useState } from "react";
-import { Search, X } from "lucide-react";
-import { SearchBar } from "./SearchBar";
+import { Search } from "lucide-react";
+import type { SearchItem } from "@/lib/search";
+import { CommandPalette } from "@/components/search/CommandPalette";
 
-export function HeaderSearch() {
+type HeaderSearchProps = {
+  searchItems: SearchItem[];
+};
+
+export function HeaderSearch({ searchItems }: HeaderSearchProps) {
   const [open, setOpen] = useState(false);
 
   return (
@@ -12,39 +17,21 @@ export function HeaderSearch() {
       <button
         type="button"
         onClick={() => setOpen(true)}
-        className="inline-flex h-10 w-10 items-center justify-center rounded-full text-foreground transition-colors hover:bg-white/10"
+        className="focus-ring inline-flex h-10 items-center gap-2 rounded-full px-2.5 text-foreground transition-colors hover:bg-white/10 sm:border sm:border-border sm:bg-surface sm:px-3 sm:hover:border-foreground/40"
         aria-label="Search"
       >
-        <Search className="h-5 w-5" />
+        <Search className="h-5 w-5 sm:h-4 sm:w-4" />
+        <span className="hidden text-sm text-muted sm:inline">Search</span>
+        <kbd className="hidden rounded border border-border px-1.5 py-0.5 font-mono text-[10px] text-muted lg:inline">
+          ⌘K
+        </kbd>
       </button>
 
-      {open && (
-        <div className="fixed inset-0 z-[70] flex items-start justify-center bg-black/80 px-4 pt-24 backdrop-blur-sm">
-          <button
-            type="button"
-            aria-label="Close search"
-            onClick={() => setOpen(false)}
-            className="absolute inset-0"
-          />
-          <div className="relative z-10 w-full max-w-xl">
-            <div className="mb-3 flex justify-end">
-              <button
-                type="button"
-                onClick={() => setOpen(false)}
-                className="inline-flex h-10 w-10 items-center justify-center rounded-full text-muted transition-colors hover:bg-white/10 hover:text-foreground"
-                aria-label="Close search"
-              >
-                <X className="h-5 w-5" />
-              </button>
-            </div>
-            <SearchBar
-              autoFocus
-              className="border-white/20 bg-black"
-              onSubmitted={() => setOpen(false)}
-            />
-          </div>
-        </div>
-      )}
+      <CommandPalette
+        items={searchItems}
+        open={open}
+        onOpenChange={setOpen}
+      />
     </>
   );
 }

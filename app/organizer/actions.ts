@@ -31,6 +31,9 @@ import {
 import { DEFAULT_ARTIST_IMAGE, DEFAULT_VENUE_IMAGE } from "@/lib/images";
 import { ALL_CITIES } from "@/lib/data/cities";
 import { slugify, sastToIso } from "@/lib/utils";
+import { fulfillTicketOrder } from "@/lib/tickets/fulfill-order";
+import { normalizePromoCode } from "@/lib/promo/codes";
+import { sanitizeReturnTo } from "@/lib/auth/sanitize-return-to";
 import { GENRES } from "@/lib/data/genres";
 import {
   hashOrganizerPassword,
@@ -188,8 +191,12 @@ export async function registerOrganizer(
   redirect("/organizer");
 }
 
-export async function logoutOrganizer(): Promise<void> {
+export async function logoutOrganizer(formData: FormData): Promise<void> {
   await clearOrganizerSession();
+  const raw = formData.get("returnTo");
+  if (typeof raw === "string" && raw.trim()) {
+    redirect(sanitizeReturnTo(raw));
+  }
   redirect("/organizer/login");
 }
 
@@ -221,14 +228,16 @@ type ParsedEventForm = {
   venueCapacity: number;
   featured: boolean;
   ageLimit: number | null;
+  ageMax: number | null;
   tags: string[];
   artistNames: string[];
   artistSlugs: string[];
   tiers: ParsedTier[];
   prohibitedItems: string[];
-  contactEmail: string | null;
-  refundPolicy: string | null;
   organizerId: string | null;
+  showOrganizerProfile: boolean;
+  contactEmail?: string | null;
+  refundPolicy?: string | null;
 };
 
 function parseEventForm(
@@ -260,8 +269,11 @@ function parseEventForm(
   const venueAddress = String(formData.get("venueAddress") ?? "").trim();
   const venueCapacity = Number(formData.get("venueCapacity") ?? 500);
   const featured = formData.get("featured") === "on";
+  const showOrganizerProfile = formData.get("showOrganizerProfile") === "on";
   const ageLimitRaw = String(formData.get("ageLimit") ?? "").trim();
   const ageLimit = ageLimitRaw ? Number(ageLimitRaw) : null;
+  const ageMaxRaw = String(formData.get("ageMax") ?? "").trim();
+  const ageMax = ageMaxRaw ? Number(ageMaxRaw) : null;
   const tagsRaw = String(formData.get("tags") ?? "").trim();
   const tags = tagsRaw
     ? tagsRaw.split(",").map((t) => t.trim()).filter(Boolean)
@@ -282,10 +294,6 @@ function parseEventForm(
       : prohibitedRaw
         ? prohibitedRaw.split(",").map((t) => t.trim()).filter(Boolean)
         : [];
-  const contactEmail =
-    String(formData.get("contactEmail") ?? "").trim().toLowerCase() || null;
-  const refundPolicy =
-    String(formData.get("refundPolicy") ?? "").trim() || null;
   const organizerId =
     String(formData.get("organizerId") ?? "").trim() || null;
 
@@ -315,6 +323,15 @@ function parseEventForm(
   if (!showDateTime) return { error: "Show date and time are required." };
   if (!venueName) return { error: "Venue is required." };
   if (!isEventCategory(category)) return { error: "Select a category." };
+  if (
+    ageLimit != null &&
+    ageMax != null &&
+    (!Number.isInteger(ageMax) || ageMax < ageLimit)
+  ) {
+    return {
+      error: "Maximum age must be greater than or equal to minimum age.",
+    };
+  }
   if (tierNames.length === 0 || !tierNames[0]?.trim()) {
     return { error: "Add at least one ticket tier." };
   }
@@ -353,14 +370,14 @@ function parseEventForm(
     venueCapacity,
     featured,
     ageLimit,
+    ageMax,
     tags,
     artistNames,
     artistSlugs,
     tiers,
     prohibitedItems,
-    contactEmail,
-    refundPolicy,
     organizerId,
+    showOrganizerProfile,
   };
 }
 
@@ -538,11 +555,17 @@ function eventRowWithoutOrganizer(
     featured: parsed.featured,
     venue_slug: parsed.venueSlug,
     age_limit: parsed.ageLimit,
+    age_max: parsed.ageMax,
     tags: parsed.tags,
     organizer_id: parsed.organizerId,
+    show_organizer_profile: parsed.showOrganizerProfile,
     prohibited_items: parsed.prohibitedItems,
-    contact_email: parsed.contactEmail,
-    refund_policy: parsed.refundPolicy,
+    ...(parsed.contactEmail != null
+      ? { contact_email: parsed.contactEmail }
+      : {}),
+    ...(parsed.refundPolicy !== undefined
+      ? { refund_policy: parsed.refundPolicy }
+      : {}),
   };
 }
 
@@ -608,13 +631,19 @@ async function updateEventRow(
     featured: parsed.featured,
     venue_slug: parsed.venueSlug,
     age_limit: parsed.ageLimit,
+    age_max: parsed.ageMax,
     tags: parsed.tags,
     organizer_name: parsed.organizerName,
     organizer_logo: organizerLogo,
     organizer_id: parsed.organizerId,
+    show_organizer_profile: parsed.showOrganizerProfile,
     prohibited_items: parsed.prohibitedItems,
-    contact_email: parsed.contactEmail,
-    refund_policy: parsed.refundPolicy,
+    ...(parsed.contactEmail != null
+      ? { contact_email: parsed.contactEmail }
+      : {}),
+    ...(parsed.refundPolicy !== undefined
+      ? { refund_policy: parsed.refundPolicy }
+      : {}),
   };
 
   const { error } = await supabase.from("events").update(withOrganizer).eq("slug", slug);
@@ -637,11 +666,11 @@ async function updateEventRow(
         featured: parsed.featured,
         venue_slug: parsed.venueSlug,
         age_limit: parsed.ageLimit,
+        age_max: parsed.ageMax,
         tags: parsed.tags,
         organizer_id: parsed.organizerId,
         prohibited_items: parsed.prohibitedItems,
         contact_email: parsed.contactEmail,
-        refund_policy: parsed.refundPolicy,
       })
       .eq("slug", slug);
 
@@ -733,8 +762,7 @@ export async function createEvent(
       parsedRaw.organizerName ?? profile?.name ?? session.name ?? null,
     contactEmail:
       parsedRaw.contactEmail ?? profile?.email ?? session.email ?? null,
-    refundPolicy:
-      parsedRaw.refundPolicy ?? profile?.defaultRefundPolicy ?? null,
+    refundPolicy: null,
   };
 
   const parsed = await resolveEventEntities(supabase, parsedWithOrganizer);
@@ -1404,4 +1432,184 @@ export async function updateOrganizerProfile(
   if (profile.slug) revalidatePath(`/organizers/${profile.slug}`);
   revalidatePath(`/organizers/${slug}`);
   redirect("/organizer/profile?saved=1");
+}
+
+export async function issueCompTickets(
+  _prev: ActionState,
+  formData: FormData,
+): Promise<ActionState> {
+  const eventSlug = String(formData.get("eventSlug") ?? "").trim();
+  const holderName = String(formData.get("holderName") ?? "").trim();
+  const holderEmail = String(formData.get("holderEmail") ?? "")
+    .trim()
+    .toLowerCase();
+  const tierId = String(formData.get("tierId") ?? "").trim();
+  const qty = Number(formData.get("qty") ?? 1);
+
+  const ownEvent = await requireOwnEvent(eventSlug);
+  if ("error" in ownEvent) {
+    return { error: ownEvent.error };
+  }
+
+  if (!holderName) {
+    return { error: "Guest name is required." };
+  }
+  if (!holderEmail || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(holderEmail)) {
+    return { error: "A valid guest email is required." };
+  }
+  if (!Number.isInteger(qty) || qty < 1 || qty > 10) {
+    return { error: "Issue between 1 and 10 tickets at a time." };
+  }
+
+  const tier = ownEvent.event.tiers.find((t) => t.id === tierId);
+  if (!tier) {
+    return { error: "Select a valid ticket tier." };
+  }
+
+  const supabase = getSupabaseAdmin();
+  if (!supabase) {
+    return {
+      error:
+        "Comp tickets require Supabase. Add SUPABASE_SERVICE_ROLE_KEY to .env.local.",
+    };
+  }
+
+  const orderPayload: Record<string, unknown> = {
+    event_slug: eventSlug,
+    buyer_name: holderName,
+    buyer_email: holderEmail,
+    subtotal_amount: 0,
+    service_fee: 0,
+    total_amount: 0,
+    ticket_count: qty,
+    status: "confirmed",
+  };
+
+  const { data: order, error: orderError } = await supabase
+    .from("orders")
+    .insert(orderPayload)
+    .select("id")
+    .single();
+
+  if (orderError || !order) {
+    return { error: orderError?.message ?? "Could not create comp order." };
+  }
+
+  const fulfilled = await fulfillTicketOrder(
+    supabase,
+    order.id as string,
+    eventSlug,
+    holderName,
+    [
+      {
+        tierId: tier.id,
+        tierName: tier.name,
+        qty,
+        price: 0,
+      },
+    ],
+  );
+
+  if (!fulfilled.ok) {
+    await supabase.from("orders").delete().eq("id", order.id);
+    return { error: fulfilled.error };
+  }
+
+  revalidatePath(`/organizer/events/${eventSlug}/tickets`);
+  revalidatePath(`/events/${eventSlug}`);
+
+  return {
+    success: `Issued ${qty} comp ticket${qty === 1 ? "" : "s"} for ${holderName}.`,
+  };
+}
+
+export async function createPromoCode(
+  _prev: ActionState,
+  formData: FormData,
+): Promise<ActionState> {
+  const eventSlug = String(formData.get("eventSlug") ?? "").trim();
+  const code = normalizePromoCode(String(formData.get("code") ?? ""));
+  const discountType = String(formData.get("discountType") ?? "percent");
+  const discountValue = Number(formData.get("discountValue"));
+  const maxUsesRaw = String(formData.get("maxUses") ?? "").trim();
+  const expiresAtRaw = String(formData.get("expiresAt") ?? "").trim();
+
+  const ownEvent = await requireOwnEvent(eventSlug);
+  if ("error" in ownEvent) return { error: ownEvent.error };
+
+  if (!code || code.length < 3) {
+    return { error: "Promo code must be at least 3 characters." };
+  }
+  if (!/^[A-Z0-9_-]+$/.test(code)) {
+    return {
+      error: "Use letters, numbers, hyphens, or underscores only.",
+    };
+  }
+  if (discountType !== "percent" && discountType !== "fixed") {
+    return { error: "Invalid discount type." };
+  }
+  if (!Number.isFinite(discountValue) || discountValue <= 0) {
+    return { error: "Enter a valid discount value." };
+  }
+  if (discountType === "percent" && discountValue > 100) {
+    return { error: "Percentage discount cannot exceed 100%." };
+  }
+
+  const maxUses = maxUsesRaw ? Number(maxUsesRaw) : null;
+  if (maxUsesRaw && (!Number.isInteger(maxUses) || maxUses! < 1)) {
+    return { error: "Max uses must be a positive whole number." };
+  }
+
+  const expiresAt = expiresAtRaw ? sastToIso(expiresAtRaw) : null;
+
+  const supabase = getSupabaseAdmin();
+  if (!supabase) {
+    return { error: "Promo codes require Supabase." };
+  }
+
+  const { error } = await supabase.from("promo_codes").insert({
+    event_slug: eventSlug,
+    code,
+    discount_type: discountType,
+    discount_value: discountValue,
+    max_uses: maxUses,
+    expires_at: expiresAt,
+    active: true,
+  });
+
+  if (error) {
+    if (error.message.includes("promo_codes")) {
+      return {
+        error:
+          "Run supabase/migrations/0012_promo_codes.sql in the Supabase SQL editor.",
+      };
+    }
+    if (error.message.includes("duplicate")) {
+      return { error: "This code already exists for this event." };
+    }
+    return { error: error.message };
+  }
+
+  revalidatePath(`/organizer/events/${eventSlug}/promos`);
+  return { success: `Promo code ${code} created.` };
+}
+
+export async function togglePromoCodeActive(formData: FormData): Promise<void> {
+  const eventSlug = String(formData.get("eventSlug") ?? "").trim();
+  const promoId = String(formData.get("promoId") ?? "").trim();
+  const active = String(formData.get("active") ?? "") === "true";
+
+  const ownEvent = await requireOwnEvent(eventSlug);
+  if ("error" in ownEvent) return;
+
+  const supabase = getSupabaseAdmin();
+  if (!supabase) return;
+
+  await supabase
+    .from("promo_codes")
+    .update({ active })
+    .eq("id", promoId)
+    .eq("event_slug", eventSlug);
+
+  revalidatePath(`/organizer/events/${eventSlug}/promos`);
 }

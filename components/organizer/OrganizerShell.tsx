@@ -18,6 +18,7 @@ import {
 import { useState } from "react";
 import type { OrganizerSession } from "@/lib/organizer/session";
 import { logoutOrganizer } from "@/app/organizer/actions";
+import { getSafeOrganizerLogoUrl } from "@/lib/images";
 import { cn } from "@/lib/utils";
 
 type OrganizerShellProps = {
@@ -165,16 +166,47 @@ export function OrganizerPageHeader({
   title,
   description,
   action,
+  avatarUrl,
+  avatarFallback,
 }: {
   title: string;
   description?: string;
   action?: React.ReactNode;
+  avatarUrl?: string | null;
+  avatarFallback?: string;
 }) {
+  const showAvatar = Boolean(avatarUrl?.trim() || avatarFallback);
+  const initial =
+    avatarFallback?.trim().charAt(0).toUpperCase() ||
+    title.trim().charAt(0).toUpperCase() ||
+    "O";
+
   return (
     <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
-      <div>
-        <h1 className="text-2xl font-bold sm:text-3xl">{title}</h1>
-        {description && <p className="mt-2 text-sm text-muted">{description}</p>}
+      <div className="flex items-start gap-4">
+        {showAvatar && (
+          <div className="relative h-14 w-14 shrink-0 overflow-hidden rounded-xl border border-white/10 bg-surface">
+            {avatarUrl?.trim() ? (
+              <Image
+                src={getSafeOrganizerLogoUrl(avatarUrl)}
+                alt=""
+                fill
+                className="object-cover"
+                sizes="56px"
+              />
+            ) : (
+              <div className="flex h-full w-full items-center justify-center bg-violet-600/20 text-lg font-semibold text-violet-200">
+                {initial}
+              </div>
+            )}
+          </div>
+        )}
+        <div>
+          <h1 className="text-2xl font-bold sm:text-3xl">{title}</h1>
+          {description && (
+            <p className="mt-2 text-sm text-muted">{description}</p>
+          )}
+        </div>
       </div>
       {action}
     </div>

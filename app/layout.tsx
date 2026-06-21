@@ -1,9 +1,10 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono, Press_Start_2P } from "next/font/google";
 import { ConditionalSiteChrome } from "@/components/layout/ConditionalSiteChrome";
 import { Header } from "@/components/layout/Header";
 import { Footer } from "@/components/layout/Footer";
 import { EventBrandProvider } from "@/components/layout/EventBrandProvider";
+import { ServiceWorkerRegistrar } from "@/components/pwa/ServiceWorkerRegistrar";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -37,6 +38,15 @@ export const metadata: Metadata = {
     "festivals",
     "amapiano",
   ],
+  appleWebApp: {
+    capable: true,
+    title: "Tonti",
+    statusBarStyle: "black-translucent",
+  },
+};
+
+export const viewport: Viewport = {
+  themeColor: "#000000",
 };
 
 export default function RootLayout({
@@ -55,6 +65,7 @@ export default function RootLayout({
             {children}
           </ConditionalSiteChrome>
         </EventBrandProvider>
+        <ServiceWorkerRegistrar />
       </body>
     </html>
   );

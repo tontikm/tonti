@@ -33,10 +33,9 @@ export function useEventWizardState(defaults: OrganizerWizardDefaults) {
     venueCapacity: "500",
     lineup: [{ key: "lineup-0", name: "", slug: "" }],
     ageLimit: "",
+    ageMax: "",
     prohibitedItems: [],
     tags: "",
-    contactEmail: defaults.email,
-    refundPolicy: defaults.defaultRefundPolicy ?? "",
     tiers: [
       {
         key: "1",
@@ -48,6 +47,7 @@ export function useEventWizardState(defaults: OrganizerWizardDefaults) {
       },
     ],
     featured: false,
+    showOrganizerProfile: false,
     acceptedTerms: false,
   });
 

@@ -7,13 +7,21 @@ import type { CheckoutCart } from "@/lib/checkout";
 import { cartToSelections } from "@/lib/checkout";
 import { claimTickets, type ClaimState } from "@/app/events/actions";
 import type { FanUser } from "@/lib/auth/session";
+import type { PromoPreview } from "@/lib/promo/codes";
 import { Button } from "@/components/ui/Button";
+import { PromoCodeField } from "@/components/checkout/PromoCodeField";
+import { StickyPurchaseBar } from "@/components/tickets/StickyPurchaseBar";
+import { formatPrice } from "@/lib/utils";
 
 type CheckoutFormProps = {
   eventSlug: string;
   cart: CheckoutCart;
   user: FanUser;
   payfastEnabled: boolean;
+  selectionsJson: string;
+  promo: PromoPreview | null;
+  onPromoChange: (preview: PromoPreview | null) => void;
+  displayTotal: number;
 };
 
 const inputClass =
@@ -24,6 +32,10 @@ export function CheckoutForm({
   cart,
   user,
   payfastEnabled,
+  selectionsJson,
+  promo,
+  onPromoChange,
+  displayTotal,
 }: CheckoutFormProps) {
   const [whatsappOptIn, setWhatsappOptIn] = useState(false);
   const [state, formAction, pending] = useActionState<ClaimState, FormData>(
@@ -31,14 +43,31 @@ export function CheckoutForm({
     {},
   );
 
+  const isFree = displayTotal === 0;
+
+  const submitLabel = pending
+    ? "Confirming…"
+    : isFree
+      ? "Confirm free tickets"
+      : payfastEnabled
+        ? "Continue to Payfast"
+        : "Confirm order — pay at door";
+
+  const purchaseSubtitle = isFree
+    ? "R0 due now"
+    : payfastEnabled
+      ? "Secure Payfast checkout"
+      : "No charge online today";
+
   return (
-    <form action={formAction} className="space-y-6">
+    <form id="checkout-form" action={formAction} className="space-y-6">
       <input type="hidden" name="eventSlug" value={eventSlug} />
       <input
         type="hidden"
         name="selections"
         value={JSON.stringify(cartToSelections(cart))}
       />
+      {promo ? <input type="hidden" name="promoCode" value={promo.code} /> : null}
 
       {state.error && (
         <div className="rounded-xl border border-white/20 bg-white/5 px-4 py-3 text-sm text-foreground">
@@ -130,9 +159,19 @@ export function CheckoutForm({
         </div>
       </section>
 
+      {!cart.isFree && (
+        <PromoCodeField
+          eventSlug={eventSlug}
+          selectionsJson={selectionsJson}
+          applied={promo}
+          onApplied={onPromoChange}
+          disabled={pending}
+        />
+      )}
+
       <section className="rounded-2xl border border-white/10 bg-white/[0.02] p-6">
         <h2 className="text-lg font-semibold">Payment</h2>
-        {cart.isFree ? (
+        {isFree ? (
           <p className="mt-2 text-sm text-muted">
             This order is free. No payment step — confirm below to receive your
             QR tickets instantly.
@@ -176,24 +215,23 @@ export function CheckoutForm({
         </span>
       </label>
 
-      <Button type="submit" className="w-full" size="lg" disabled={pending}>
-        {pending
-          ? "Confirming…"
-          : cart.isFree
-            ? "Confirm free tickets"
-            : payfastEnabled
-              ? "Continue to Payfast"
-              : "Confirm order — pay at door"}
-      </Button>
-
-      <p className="text-center text-xs text-muted">
-        {cart.totalTickets} ticket{cart.totalTickets !== 1 ? "s" : ""} ·{" "}
-        {cart.isFree
-          ? "R0 due now"
-          : payfastEnabled
-            ? "Secure Payfast checkout"
-            : "No charge online today"}
-      </p>
+      <StickyPurchaseBar
+        visible
+        ticketCount={cart.totalTickets}
+        totalLabel={isFree ? "Free" : formatPrice(displayTotal)}
+        subtitle={purchaseSubtitle}
+        action={
+          <Button
+            type="submit"
+            form="checkout-form"
+            size="lg"
+            className="whitespace-nowrap"
+            disabled={pending}
+          >
+            {submitLabel}
+          </Button>
+        }
+      />
     </form>
   );
 }

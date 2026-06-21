@@ -10,12 +10,16 @@ export type FanOrderRecord = {
 };
 
 function mapOrderRow(row: Record<string, unknown>): TicketOrder {
+  const totalAmount = Number(row.total_amount ?? 0);
+  const subtotalAmount = Number(row.subtotal_amount ?? totalAmount);
   return {
     id: row.id as string,
     eventSlug: row.event_slug as string,
     buyerName: row.buyer_name as string,
     buyerEmail: row.buyer_email as string,
-    totalAmount: Number(row.total_amount ?? 0),
+    subtotalAmount,
+    serviceFee: Number(row.service_fee ?? 0),
+    totalAmount,
     ticketCount: Number(row.ticket_count ?? 0),
     status: row.status as string,
     createdAt: row.created_at as string,

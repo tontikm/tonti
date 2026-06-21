@@ -36,12 +36,11 @@ export function buildEventFormData(state: EventWizardState): FormData {
   }
 
   if (state.ageLimit) fd.set("ageLimit", state.ageLimit);
+  if (state.ageMax) fd.set("ageMax", state.ageMax);
   for (const item of state.prohibitedItems) {
     fd.append("prohibitedItems", item);
   }
   if (state.tags) fd.set("tags", state.tags);
-  if (state.contactEmail) fd.set("contactEmail", state.contactEmail);
-  if (state.refundPolicy) fd.set("refundPolicy", state.refundPolicy);
 
   for (const tier of state.tiers) {
     fd.append("tierId", tier.id);
@@ -52,6 +51,7 @@ export function buildEventFormData(state: EventWizardState): FormData {
   }
 
   if (state.featured) fd.set("featured", "on");
+  if (state.showOrganizerProfile) fd.set("showOrganizerProfile", "on");
   if (state.acceptedTerms) fd.set("acceptTerms", "on");
 
   return fd;

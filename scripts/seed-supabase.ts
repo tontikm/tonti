@@ -64,6 +64,7 @@ async function seed() {
     featured: e.featured,
     venue_slug: e.venue.slug,
     age_limit: e.ageLimit ?? null,
+    age_max: e.ageMax ?? null,
     tags: e.tags,
     organizer_name: e.organizerName ?? null,
     organizer_logo: e.organizerLogo ?? null,

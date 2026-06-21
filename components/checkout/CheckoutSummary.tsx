@@ -3,15 +3,20 @@ import Link from "next/link";
 import { Calendar, MapPin, ShieldAlert } from "lucide-react";
 import type { CheckoutCart } from "@/lib/checkout";
 import type { Event } from "@/lib/types";
+import type { PromoPreview } from "@/lib/promo/codes";
 import { getSafeEventImageUrl } from "@/lib/images";
-import { formatDateRange, formatEventTime, formatPrice } from "@/lib/utils";
+import { formatDateRange, formatEventTime, formatPrice, formatAgeRange, isAdultsOnlyAge } from "@/lib/utils";
 
 type CheckoutSummaryProps = {
   event: Event;
   cart: CheckoutCart;
+  promo?: PromoPreview | null;
 };
 
-export function CheckoutSummary({ event, cart }: CheckoutSummaryProps) {
+export function CheckoutSummary({ event, cart, promo }: CheckoutSummaryProps) {
+  const subtotal = promo?.subtotalAmount ?? cart.totalAmount;
+  const total = promo?.totalAmount ?? cart.totalAmount;
+  const isFree = total === 0;
   return (
     <div className="rounded-2xl border border-white/10 bg-white/[0.02] p-6">
       <div className="relative mb-4 aspect-[16/9] overflow-hidden rounded-xl border border-white/10">
@@ -37,12 +42,12 @@ export function CheckoutSummary({ event, cart }: CheckoutSummaryProps) {
           <MapPin className="h-4 w-4 shrink-0" />
           {event.venue.name}, {event.venue.city}
         </p>
-        {event.ageLimit != null && (
+        {formatAgeRange(event.ageLimit, event.ageMax) && (
           <p className="flex items-center gap-2 text-amber-200/90">
             <ShieldAlert className="h-4 w-4 shrink-0" />
-            {event.ageLimit >= 18
-              ? `${event.ageLimit}+ · Adults only — ID may be required`
-              : `${event.ageLimit}+ age limit`}
+            {isAdultsOnlyAge(event.ageLimit, event.ageMax)
+              ? `${formatAgeRange(event.ageLimit, event.ageMax)} · Adults only — ID may be required`
+              : `${formatAgeRange(event.ageLimit, event.ageMax)} age limit`}
           </p>
         )}
       </div>
@@ -70,14 +75,23 @@ export function CheckoutSummary({ event, cart }: CheckoutSummaryProps) {
           ))}
         </ul>
 
-        <div className="mt-4 flex items-center justify-between border-t border-white/10 pt-4">
+        {promo && promo.discountAmount > 0 && (
+          <div className="mt-4 flex items-center justify-between text-sm text-emerald-300">
+            <span>
+              Promo <span className="font-mono">{promo.code}</span>
+            </span>
+            <span>-{formatPrice(promo.discountAmount)}</span>
+          </div>
+        )}
+
+        <div className="mt-4 hidden items-center justify-between border-t border-white/10 pt-4 lg:flex">
           <span className="font-medium">Total</span>
           <span className="text-xl font-bold">
-            {cart.isFree ? "Free" : formatPrice(cart.totalAmount)}
+            {isFree ? "Free" : formatPrice(total)}
           </span>
         </div>
 
-        {!cart.isFree && (
+        {!isFree && subtotal > 0 && !promo && (
           <p className="mt-3 text-xs text-muted">
             No online payment on this checkout — settle at the venue unless the
             organizer states otherwise.

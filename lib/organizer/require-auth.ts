@@ -33,7 +33,10 @@ export async function requireOwnEvent(
   }
 
   const profile = await getOrganizerByEmail(sessionResult.email);
-  if (!isOwnOrganizerEvent(event, sessionResult, profile?.name)) {
+  if (!isOwnOrganizerEvent(event, sessionResult, {
+    id: profile?.id,
+    name: profile?.name,
+  })) {
     return { error: "You do not have permission to manage this event." };
   }
 

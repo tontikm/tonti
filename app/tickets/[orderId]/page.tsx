@@ -4,6 +4,7 @@ import { CheckCircle2, Ticket } from "lucide-react";
 import { TicketEventHero } from "@/components/tickets/TicketEventHero";
 import { TicketPassCard } from "@/components/tickets/TicketPassCard";
 import { TicketWhatsAppActions } from "@/components/tickets/TicketWhatsAppActions";
+import { SuccessConfetti } from "@/components/tickets/SuccessConfetti";
 import { Button } from "@/components/ui/Button";
 import { getFanUser } from "@/lib/auth/session";
 import { canUserAccessOrder } from "@/lib/fan/orders";
@@ -60,6 +61,7 @@ export default async function TicketConfirmationPage({ params }: Props) {
 
   return (
     <div className="mx-auto max-w-3xl px-4 py-12 sm:px-6">
+      <SuccessConfetti />
       <div className="rounded-2xl border border-emerald-500/40 bg-emerald-500/10 p-6 shadow-[0_0_40px_-12px_rgba(52,211,153,0.35)]">
         <div className="flex items-start gap-4">
           <CheckCircle2 className="mt-0.5 h-8 w-8 shrink-0 text-emerald-400" />

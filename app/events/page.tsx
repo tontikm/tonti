@@ -1,6 +1,6 @@
 import { Suspense } from "react";
 import { EventsPageContent } from "./EventsPageContent";
-import { getAllEvents } from "@/lib/data/events";
+import { getPublicEvents } from "@/lib/data/events";
 
 export const metadata = {
   title: "Browse Events",
@@ -8,7 +8,7 @@ export const metadata = {
 };
 
 export default async function EventsPage() {
-  const events = await getAllEvents();
+  const events = await getPublicEvents();
   return (
     <Suspense
       fallback={

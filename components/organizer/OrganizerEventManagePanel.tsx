@@ -1,11 +1,11 @@
 import Link from "next/link";
 import {
-  ArrowLeft,
+  FileText,
   LayoutDashboard,
   Pencil,
   ScanLine,
   Settings2,
-  Ticket,
+  Tag,
   Users,
 } from "lucide-react";
 
@@ -28,14 +28,25 @@ export function OrganizerEventManagePanel({
         <h2 className="text-lg font-semibold">Manage this event</h2>
       </div>
       <p className="mt-2 text-sm text-muted">
-        You&apos;re viewing <span className="text-foreground">{eventTitle}</span>{" "}
-        as fans see it. Use the dashboard tools below instead of buying tickets.
+        You own <span className="text-foreground">{eventTitle}</span>. Open the
+        management hub for live sales, check-ins, and reports.
       </p>
 
-      <nav className="mt-6 space-y-2">
-        <Link href={`/organizer/events/${eventSlug}/edit`} className={linkClass}>
-          <Pencil className="h-4 w-4 shrink-0 text-violet-400" />
-          Edit event
+      <Link
+        href={`/organizer/events/${eventSlug}`}
+        className="mt-5 flex items-center justify-center gap-2 rounded-xl bg-violet-600 px-4 py-3 text-sm font-semibold text-white transition-colors hover:bg-violet-500"
+      >
+        <LayoutDashboard className="h-4 w-4 shrink-0" />
+        Open management hub
+      </Link>
+
+      <nav className="mt-4 space-y-2">
+        <Link
+          href={`/organizer/events/${eventSlug}/report`}
+          className={linkClass}
+        >
+          <FileText className="h-4 w-4 shrink-0 text-violet-400" />
+          Event report
         </Link>
         <Link
           href={`/organizer/events/${eventSlug}/tickets`}
@@ -44,24 +55,26 @@ export function OrganizerEventManagePanel({
           <Users className="h-4 w-4 shrink-0 text-violet-400" />
           Guest list
         </Link>
+        <Link
+          href={`/organizer/events/${eventSlug}/promos`}
+          className={linkClass}
+        >
+          <Tag className="h-4 w-4 shrink-0 text-violet-400" />
+          Promo codes
+        </Link>
         <Link href={`/organizer/events/${eventSlug}/scan`} className={linkClass}>
           <ScanLine className="h-4 w-4 shrink-0 text-violet-400" />
           Door scanner
         </Link>
-        <Link href="/organizer/events" className={linkClass}>
-          <Ticket className="h-4 w-4 shrink-0 text-violet-400" />
-          All events
-        </Link>
-        <Link href="/organizer" className={linkClass}>
-          <LayoutDashboard className="h-4 w-4 shrink-0 text-violet-400" />
-          Dashboard
+        <Link href={`/organizer/events/${eventSlug}/edit`} className={linkClass}>
+          <Pencil className="h-4 w-4 shrink-0 text-violet-400" />
+          Edit event
         </Link>
       </nav>
 
       <p className="mt-6 border-t border-border pt-4 text-xs text-muted">
-        <ArrowLeft className="mr-1 inline h-3.5 w-3.5" />
-        Ticket sales appear on the public page for fans — not for organizer
-        accounts.
+        This is the public page as fans see it. Fans buy tickets here; use the
+        hub above to manage and track your event.
       </p>
     </div>
   );

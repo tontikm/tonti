@@ -1,7 +1,10 @@
 import { notFound } from "next/navigation";
-import { ScanLine, Users } from "lucide-react";
+import { ScanLine, Users, Tag } from "lucide-react";
 import { OrganizerPageHeader } from "@/components/organizer/OrganizerShell";
+import { PlatformFeeNotice } from "@/components/organizer/PlatformFeeNotice";
 import { TicketGuestList } from "@/components/organizer/TicketGuestList";
+import { CompTicketForm } from "@/components/organizer/CompTicketForm";
+import { ExportGuestListButton } from "@/components/organizer/ExportGuestListButton";
 import { Button } from "@/components/ui/Button";
 import { getEventBySlug } from "@/lib/data/events";
 import { getEventTicketSummary, getEventTickets } from "@/lib/tickets";
@@ -26,6 +29,7 @@ export default async function OrganizerEventTicketsPage({ params }: Props) {
   if (!event) notFound();
 
   const supabaseReady = isSupabaseAdminConfigured();
+  const hasPaidTiers = event.tiers.some((tier) => tier.price > 0);
   const [summary, tickets] = await Promise.all([
     getEventTicketSummary(slug),
     getEventTickets(slug),
@@ -37,10 +41,16 @@ export default async function OrganizerEventTicketsPage({ params }: Props) {
         title={event.title}
         description={`${formatEventDate(event.date)} · Guest list & check-ins`}
         action={
-          <Button href={`/organizer/events/${slug}/scan`} size="md">
-            <ScanLine className="h-4 w-4" />
-            Door scanner
-          </Button>
+          <div className="flex flex-wrap gap-2">
+            <Button href={`/organizer/events/${slug}/promos`} variant="secondary" size="md">
+              <Tag className="h-4 w-4" />
+              Promo codes
+            </Button>
+            <Button href={`/organizer/events/${slug}/scan`} size="md">
+              <ScanLine className="h-4 w-4" />
+              Door scanner
+            </Button>
+          </div>
         }
       />
 
@@ -57,6 +67,10 @@ export default async function OrganizerEventTicketsPage({ params }: Props) {
         <StatCard label="Checked in" value={summary.checkedIn} />
         <StatCard label="Pending" value={summary.valid} />
       </div>
+
+      {hasPaidTiers && (
+        <PlatformFeeNotice variant="inline" className="mt-6" />
+      )}
 
       <p className="mt-4 text-sm text-muted">
         <Users className="mr-1 inline h-4 w-4" />
@@ -85,10 +99,17 @@ export default async function OrganizerEventTicketsPage({ params }: Props) {
       )}
 
       <div className="mt-10">
-        <h2 className="text-lg font-semibold">Guest list</h2>
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <h2 className="text-lg font-semibold">Guest list</h2>
+          <ExportGuestListButton eventTitle={event.title} tickets={tickets} />
+        </div>
         <div className="mt-4 max-w-3xl">
           <TicketGuestList eventSlug={slug} tickets={tickets} />
         </div>
+      </div>
+
+      <div className="mt-10 max-w-3xl">
+        <CompTicketForm eventSlug={slug} tiers={event.tiers} />
       </div>
     </>
   );

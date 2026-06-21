@@ -26,6 +26,8 @@ export type TicketOrder = {
   eventSlug: string;
   buyerName: string;
   buyerEmail: string;
+  subtotalAmount: number;
+  serviceFee: number;
   totalAmount: number;
   ticketCount: number;
   status: string;
@@ -62,6 +64,27 @@ export type EventTicketSummary = {
     tierName: string;
     total: number;
     checkedIn: number;
+  }[];
+};
+
+export type EventSalesReport = {
+  grossRevenue: number;
+  serviceFee: number;
+  organizerNet: number;
+  orderCount: number;
+  totalTickets: number;
+  checkedIn: number;
+  checkInRate: number;
+  compTickets: number;
+  byTier: {
+    tierId: string;
+    tierName: string;
+    price: number;
+    capacity: number;
+    sold: number;
+    checkedIn: number;
+    comp: number;
+    revenue: number;
   }[];
 };
 
@@ -119,12 +142,15 @@ export type Event = {
   venue: Venue;
   tiers: TicketTier[];
   ageLimit?: number;
+  ageMax?: number;
   tags: string[];
   endDate?: string;
   organizerId?: string;
   organizerSlug?: string;
   organizerName?: string;
   organizerLogo?: string;
+  /** When true, the linked organizer profile is shown on the public event page. */
+  showOrganizerProfile?: boolean;
   prohibitedItems?: string[];
   contactEmail?: string;
   refundPolicy?: string;

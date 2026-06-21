@@ -1,10 +1,10 @@
 import Link from "next/link";
 import Image from "next/image";
 import { FEATURED_CITIES } from "@/lib/data/cities";
-import { getAllEvents, CITY_NAME_BY_SLUG } from "@/lib/data/events";
+import { getPublicEvents, CITY_NAME_BY_SLUG } from "@/lib/data/events";
 
 export async function CityGrid() {
-  const events = await getAllEvents();
+  const events = await getPublicEvents();
   const countByCity = (slug: string) => {
     const name = CITY_NAME_BY_SLUG[slug];
     return events.filter((e) => e.venue.city === name).length;

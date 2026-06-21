@@ -235,8 +235,8 @@ export function OrganizerLanding({ heroEvents }: OrganizerLandingProps) {
                 Ready to list your next event?
               </h2>
               <p className="mt-4 text-muted">
-                Create your organizer account in minutes. No setup fees — just
-                publish, sell, and scan.
+                Create your organizer account in minutes. No setup fees — 3%
+                platform fee on paid tickets only (free RSVPs excluded).
               </p>
               <OrganizerCtas className="mt-8 justify-center" />
               <p className="mt-8">

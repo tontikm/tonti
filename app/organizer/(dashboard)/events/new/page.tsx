@@ -1,5 +1,6 @@
 import { OrganizerPageHeader } from "@/components/organizer/OrganizerShell";
 import { EventCreateWizard } from "@/components/organizer/EventCreateWizard";
+import { PlatformFeeNotice } from "@/components/organizer/PlatformFeeNotice";
 import { getAllArtists } from "@/lib/data/artists";
 import { getAllVenues } from "@/lib/data/venues";
 import { getOrganizerByEmail } from "@/lib/organizer/profile";
@@ -24,7 +25,6 @@ export default async function NewOrganizerEventPage() {
     name: profile?.name ?? session?.name ?? null,
     logo: profile?.logo ?? null,
     email: profile?.email ?? session?.email ?? "",
-    defaultRefundPolicy: profile?.defaultRefundPolicy ?? null,
   };
 
   return (
@@ -48,6 +48,8 @@ export default async function NewOrganizerEventPage() {
           Add a venue before creating an event.
         </div>
       )}
+
+      <PlatformFeeNotice variant="banner" className="mb-6" />
 
       <EventCreateWizard venues={venues} artists={artists} defaults={defaults} />
     </>

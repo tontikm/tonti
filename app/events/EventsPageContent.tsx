@@ -1,11 +1,29 @@
 "use client";
 
+import { useMemo, useState } from "react";
+import dynamic from "next/dynamic";
 import Link from "next/link";
-import { useSearchParams } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
+import { LayoutGrid, Map as MapIcon, Navigation, X } from "lucide-react";
 import { EventCard } from "@/components/events/EventCard";
+import { Reveal } from "@/components/ui/Reveal";
 import { EVENT_CATEGORIES, getCategoryLabel } from "@/lib/data/categories";
 import { ALL_CITIES, FEATURED_CITIES } from "@/lib/data/cities";
+import { CITY_COORDS } from "@/lib/data/city-coords";
+import { getLowestPrice, getTicketsRemaining } from "@/lib/utils";
 import type { Event, EventCategory } from "@/lib/types";
+
+const EventsMap = dynamic(
+  () => import("@/components/events/EventsMap").then((m) => m.EventsMap),
+  {
+    ssr: false,
+    loading: () => (
+      <div className="skeleton h-[70vh] w-full rounded-2xl" />
+    ),
+  },
+);
+
+type SortKey = "soon" | "price-low" | "almost-gone";
 
 function matchesQuery(event: Event, q: string): boolean {
   const needle = q.toLowerCase();
@@ -17,17 +35,43 @@ function matchesQuery(event: Event, q: string): boolean {
   );
 }
 
+function remainingRatio(event: Event): number {
+  const totals = event.tiers.reduce(
+    (acc, tier) => {
+      acc.remaining += getTicketsRemaining(tier);
+      acc.capacity += tier.capacity;
+      return acc;
+    },
+    { remaining: 0, capacity: 0 },
+  );
+  if (totals.capacity === 0) return 1;
+  return totals.remaining / totals.capacity;
+}
+
 type EventsPageContentProps = {
   events: Event[];
 };
 
 export function EventsPageContent({ events: allEvents }: EventsPageContentProps) {
+  const router = useRouter();
   const searchParams = useSearchParams();
   const category = searchParams.get("category") as EventCategory | null;
   const city = searchParams.get("city");
   const when = searchParams.get("when");
   const query = searchParams.get("q") ?? "";
   const free = searchParams.get("free") === "1";
+
+  const [view, setView] = useState<"grid" | "map">("grid");
+  const [sort, setSort] = useState<SortKey>("soon");
+  const [maxPrice, setMaxPrice] = useState<number | null>(null);
+  const [locating, setLocating] = useState(false);
+
+  const priceCeiling = useMemo(() => {
+    const prices = allEvents
+      .map((e) => getLowestPrice(e.tiers) ?? 0)
+      .filter((p) => p > 0);
+    return prices.length ? Math.max(...prices) : 0;
+  }, [allEvents]);
 
   let events = allEvents;
 
@@ -42,6 +86,13 @@ export function EventsPageContent({ events: allEvents }: EventsPageContentProps)
 
   if (free) {
     events = events.filter((e) => e.tiers.some((t) => t.price === 0));
+  }
+
+  if (maxPrice != null) {
+    events = events.filter((e) => {
+      const low = getLowestPrice(e.tiers);
+      return low != null && low <= maxPrice;
+    });
   }
 
   if (when === "tonight") {
@@ -63,6 +114,16 @@ export function EventsPageContent({ events: allEvents }: EventsPageContentProps)
     });
   }
 
+  events = [...events].sort((a, b) => {
+    if (sort === "price-low") {
+      return (getLowestPrice(a.tiers) ?? 0) - (getLowestPrice(b.tiers) ?? 0);
+    }
+    if (sort === "almost-gone") {
+      return remainingRatio(a) - remainingRatio(b);
+    }
+    return new Date(a.date).getTime() - new Date(b.date).getTime();
+  });
+
   function buildHref(updates: Record<string, string | null>): string {
     const params = new URLSearchParams(searchParams.toString());
     for (const [key, value] of Object.entries(updates)) {
@@ -73,7 +134,72 @@ export function EventsPageContent({ events: allEvents }: EventsPageContentProps)
     return qs ? `/events?${qs}` : "/events";
   }
 
-  const hasFilters = Boolean(category || city || when || query || free);
+  function findNearestCity(lat: number, lng: number): string | null {
+    let nearest: { slug: string; dist: number } | null = null;
+    for (const cityItem of ALL_CITIES) {
+      const coords = CITY_COORDS[cityItem.name];
+      if (!coords) continue;
+      const dist =
+        (coords.lat - lat) ** 2 + (coords.lng - lng) ** 2;
+      if (!nearest || dist < nearest.dist) {
+        nearest = { slug: cityItem.slug, dist };
+      }
+    }
+    return nearest?.slug ?? null;
+  }
+
+  function handleNearMe() {
+    if (!navigator.geolocation) return;
+    setLocating(true);
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        const slug = findNearestCity(
+          position.coords.latitude,
+          position.coords.longitude,
+        );
+        setLocating(false);
+        if (slug) router.push(buildHref({ city: slug }));
+      },
+      () => setLocating(false),
+      { timeout: 8000 },
+    );
+  }
+
+  const hasFilters = Boolean(
+    category || city || when || query || free || maxPrice != null,
+  );
+
+  const activeChips: { label: string; onClear: () => void }[] = [];
+  if (query)
+    activeChips.push({
+      label: `"${query}"`,
+      onClear: () => router.push(buildHref({ q: null })),
+    });
+  if (category)
+    activeChips.push({
+      label: getCategoryLabel(category),
+      onClear: () => router.push(buildHref({ category: null })),
+    });
+  if (city)
+    activeChips.push({
+      label: ALL_CITIES.find((c) => c.slug === city)?.name ?? city,
+      onClear: () => router.push(buildHref({ city: null })),
+    });
+  if (when)
+    activeChips.push({
+      label: when === "tonight" ? "Tonight" : "This weekend",
+      onClear: () => router.push(buildHref({ when: null })),
+    });
+  if (free)
+    activeChips.push({
+      label: "Free",
+      onClear: () => router.push(buildHref({ free: null })),
+    });
+  if (maxPrice != null)
+    activeChips.push({
+      label: `Under R${maxPrice}`,
+      onClear: () => setMaxPrice(null),
+    });
 
   const title =
     when === "tonight"
@@ -97,8 +223,8 @@ export function EventsPageContent({ events: allEvents }: EventsPageContentProps)
         </p>
       </div>
 
-      <div className="mt-8 space-y-3">
-        <div className="flex flex-wrap gap-2">
+      <div className="sticky top-16 z-30 -mx-4 mt-6 space-y-3 bg-background/80 px-4 py-3 backdrop-blur sm:-mx-6 sm:px-6">
+        <div className="flex flex-wrap items-center gap-2">
           <FilterPill href="/events" active={!hasFilters}>
             All
           </FilterPill>
@@ -120,6 +246,57 @@ export function EventsPageContent({ events: allEvents }: EventsPageContentProps)
           >
             Free
           </FilterPill>
+
+          <button
+            type="button"
+            onClick={handleNearMe}
+            className="focus-ring inline-flex items-center gap-1.5 rounded-full border border-border px-3 py-1.5 text-sm text-muted transition-colors hover:border-foreground/40 hover:text-foreground"
+          >
+            <Navigation className="h-3.5 w-3.5" />
+            {locating ? "Locating…" : "Near me"}
+          </button>
+
+          <div className="ml-auto flex items-center gap-2">
+            <select
+              value={sort}
+              onChange={(e) => setSort(e.target.value as SortKey)}
+              aria-label="Sort events"
+              className="focus-ring rounded-full border border-border bg-surface px-3 py-1.5 text-sm text-foreground"
+            >
+              <option value="soon">Soonest</option>
+              <option value="price-low">Cheapest</option>
+              <option value="almost-gone">Almost gone</option>
+            </select>
+
+            <div className="inline-flex rounded-full border border-border p-0.5">
+              <button
+                type="button"
+                onClick={() => setView("grid")}
+                aria-pressed={view === "grid"}
+                aria-label="Grid view"
+                className={`focus-ring inline-flex h-8 w-8 items-center justify-center rounded-full transition-colors ${
+                  view === "grid"
+                    ? "bg-accent text-accent-foreground"
+                    : "text-muted hover:text-foreground"
+                }`}
+              >
+                <LayoutGrid className="h-4 w-4" />
+              </button>
+              <button
+                type="button"
+                onClick={() => setView("map")}
+                aria-pressed={view === "map"}
+                aria-label="Map view"
+                className={`focus-ring inline-flex h-8 w-8 items-center justify-center rounded-full transition-colors ${
+                  view === "map"
+                    ? "bg-accent text-accent-foreground"
+                    : "text-muted hover:text-foreground"
+                }`}
+              >
+                <MapIcon className="h-4 w-4" />
+              </button>
+            </div>
+          </div>
         </div>
 
         <div className="flex flex-wrap gap-2">
@@ -145,6 +322,51 @@ export function EventsPageContent({ events: allEvents }: EventsPageContentProps)
             </FilterPill>
           ))}
         </div>
+
+        {priceCeiling > 0 && (
+          <div className="flex items-center gap-3 text-sm text-muted">
+            <span className="shrink-0">Max price</span>
+            <input
+              type="range"
+              min={0}
+              max={priceCeiling}
+              step={50}
+              value={maxPrice ?? priceCeiling}
+              onChange={(e) => {
+                const value = Number(e.target.value);
+                setMaxPrice(value >= priceCeiling ? null : value);
+              }}
+              className="h-1 w-full max-w-xs cursor-pointer accent-[var(--brand)]"
+              aria-label="Maximum ticket price"
+            />
+            <span className="w-20 shrink-0 font-mono text-foreground">
+              {maxPrice != null ? `R${maxPrice}` : "Any"}
+            </span>
+          </div>
+        )}
+
+        {activeChips.length > 0 && (
+          <div className="flex flex-wrap items-center gap-2">
+            {activeChips.map((chip) => (
+              <button
+                key={chip.label}
+                type="button"
+                onClick={chip.onClear}
+                className="focus-ring inline-flex items-center gap-1 rounded-full bg-surface-hover px-3 py-1 text-xs text-foreground"
+              >
+                {chip.label}
+                <X className="h-3 w-3" />
+              </button>
+            ))}
+            <Link
+              href="/events"
+              onClick={() => setMaxPrice(null)}
+              className="text-xs text-muted underline hover:text-foreground"
+            >
+              Clear all
+            </Link>
+          </div>
+        )}
       </div>
 
       {events.length === 0 ? (
@@ -157,10 +379,16 @@ export function EventsPageContent({ events: allEvents }: EventsPageContentProps)
             Clear filters
           </Link>
         </div>
+      ) : view === "map" ? (
+        <div className="mt-8">
+          <EventsMap events={events} />
+        </div>
       ) : (
-        <div className="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {events.map((event) => (
-            <EventCard key={event.slug} event={event} />
+        <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          {events.map((event, index) => (
+            <Reveal key={event.slug} delay={Math.min(index, 8) * 0.03}>
+              <EventCard event={event} />
+            </Reveal>
           ))}
         </div>
       )}
@@ -180,7 +408,7 @@ function FilterPill({
   return (
     <Link
       href={href}
-      className={`rounded-full border px-3 py-1.5 text-sm transition-colors ${
+      className={`focus-ring rounded-full border px-3 py-1.5 text-sm transition-colors ${
         active
           ? "border-foreground bg-accent text-accent-foreground"
           : "border-border text-muted hover:border-foreground/40 hover:text-foreground"

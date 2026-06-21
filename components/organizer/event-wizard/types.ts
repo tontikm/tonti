@@ -35,12 +35,12 @@ export type EventWizardState = {
   venueCapacity: string;
   lineup: WizardLineupEntry[];
   ageLimit: string;
+  ageMax: string;
   prohibitedItems: string[];
   tags: string;
-  contactEmail: string;
-  refundPolicy: string;
   tiers: WizardTier[];
   featured: boolean;
+  showOrganizerProfile: boolean;
   acceptedTerms: boolean;
 };
 
@@ -49,7 +49,6 @@ export type OrganizerWizardDefaults = {
   name: string | null;
   logo: string | null;
   email: string;
-  defaultRefundPolicy: string | null;
 };
 
 export const WIZARD_STEPS = [

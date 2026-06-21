@@ -1,16 +1,21 @@
+"use client";
+
 import Image from "next/image";
 import Link from "next/link";
+import { motion, useReducedMotion } from "motion/react";
 import { MapPin, Calendar } from "lucide-react";
 import type { Event } from "@/lib/types";
 import { Badge } from "@/components/ui/Badge";
 import { getCategoryColor, getCategoryLabel } from "@/lib/data/categories";
 import { getSafeEventImageUrl } from "@/lib/images";
 import {
+  availabilityLabel,
+  formatAgeRange,
   formatDateRange,
   formatEventTime,
   formatPrice,
+  getEventAvailability,
   getLowestPrice,
-  getTicketsRemaining,
 } from "@/lib/utils";
 
 type EventCardProps = {
@@ -19,105 +24,121 @@ type EventCardProps = {
 };
 
 export function EventCard({ event, featured = false }: EventCardProps) {
+  const reduceMotion = useReducedMotion();
   const lowestPrice = getLowestPrice(event.tiers);
-  const soldOut = event.tiers.every((t) => getTicketsRemaining(t) === 0);
-  const almostGone = event.tiers.some(
-    (t) =>
-      getTicketsRemaining(t) > 0 &&
-      getTicketsRemaining(t) / t.capacity < 0.15,
-  );
+  const availability = getEventAvailability(event.tiers);
 
   return (
-    <Link
-      href={`/events/${event.slug}`}
-      className={`group relative overflow-hidden rounded-2xl border border-border bg-surface transition-all hover:border-accent/40 hover:shadow-xl hover:shadow-accent/5 ${
-        featured ? "sm:col-span-2 sm:grid sm:grid-cols-2" : ""
-      }`}
+    <motion.div
+      whileHover={reduceMotion ? undefined : { y: -6 }}
+      transition={{ type: "spring", stiffness: 320, damping: 24 }}
+      className="h-full"
     >
-      <div
-        className={`relative overflow-hidden ${featured ? "aspect-[4/3] sm:aspect-auto sm:min-h-[280px]" : "aspect-[4/3]"}`}
+      <Link
+        href={`/events/${event.slug}`}
+        className={`group relative flex h-full flex-col overflow-hidden rounded-2xl border border-border bg-surface transition-[border-color,box-shadow] duration-300 hover:border-brand/40 hover:shadow-[var(--shadow-2)] focus-ring ${
+          featured ? "sm:col-span-2 sm:grid sm:grid-cols-2" : ""
+        }`}
       >
-        <Image
-          src={getSafeEventImageUrl(event.image)}
-          alt={event.title}
-          fill
-          className="object-cover transition-transform duration-500 group-hover:scale-105"
-          sizes={
-            featured
-              ? "(max-width: 640px) 100vw, 50vw"
-              : "(max-width: 640px) 100vw, 33vw"
-          }
-        />
-        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
+        <div
+          className={`relative overflow-hidden ${featured ? "aspect-[4/3] sm:aspect-auto sm:min-h-[280px]" : "aspect-[4/3]"}`}
+        >
+          <Image
+            src={getSafeEventImageUrl(event.image)}
+            alt={event.title}
+            fill
+            className="object-cover transition-transform duration-500 group-hover:scale-105"
+            sizes={
+              featured
+                ? "(max-width: 640px) 100vw, 50vw"
+                : "(max-width: 640px) 100vw, 33vw"
+            }
+          />
+          <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
 
-        <div className="absolute left-3 top-3 flex flex-wrap gap-2">
-          <Badge color={getCategoryColor(event.category)}>
-            {getCategoryLabel(event.category)}
-          </Badge>
-          {soldOut && (
-            <Badge className="border border-white/30 bg-black/70 text-white">
-              Sold out
+          <div className="absolute left-3 top-3 flex flex-wrap gap-2">
+            <Badge color={getCategoryColor(event.category)}>
+              {getCategoryLabel(event.category)}
             </Badge>
-          )}
-          {!soldOut && almostGone && (
-            <Badge className="border border-white/40 bg-white/15 text-white">
-              Almost gone
-            </Badge>
-          )}
-          {event.ageLimit != null && event.ageLimit >= 18 && (
-            <Badge className="border border-white/30 bg-black/70 text-white">
-              {event.ageLimit}+
-            </Badge>
-          )}
-        </div>
-
-        {lowestPrice !== null && !soldOut && (
-          <div className="absolute bottom-3 right-3 rounded-md border border-white/15 bg-black/70 px-2.5 py-1 font-mono text-sm font-semibold backdrop-blur-sm">
-            {lowestPrice === 0 ? (
-              <span className="text-emerald-400">Free</span>
-            ) : (
-              <>
-                <span className="text-white/75">From </span>
-                <span className="text-emerald-400">
-                  {formatPrice(lowestPrice)}
+            {availability === "sold-out" && (
+              <Badge className="border border-white/30 bg-black/70 text-white">
+                Sold out
+              </Badge>
+            )}
+            {availability === "limited" && (
+              <span className="inline-flex items-center gap-1.5 rounded-full border border-brand/40 bg-brand-soft px-2.5 py-0.5 text-xs font-medium text-brand">
+                <span className="relative flex h-1.5 w-1.5">
+                  <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-brand opacity-75" />
+                  <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-brand" />
                 </span>
-              </>
+                Almost gone
+              </span>
+            )}
+            {formatAgeRange(event.ageLimit, event.ageMax) && (
+              <Badge className="border border-white/30 bg-black/70 text-white">
+                {formatAgeRange(event.ageLimit, event.ageMax)}
+              </Badge>
             )}
           </div>
-        )}
-      </div>
 
-      <div className={`p-4 ${featured ? "flex flex-col justify-center" : ""}`}>
-        <h3
-          className={`font-semibold leading-snug group-hover:text-accent ${featured ? "text-xl sm:text-2xl" : "text-base"}`}
-        >
-          {event.title}
-        </h3>
-        {event.subtitle && (
-          <p className="mt-1 text-sm text-muted">{event.subtitle}</p>
-        )}
-
-        <div className="mt-3 space-y-1.5 text-sm text-muted">
-          <div className="flex items-center gap-2">
-            <Calendar className="h-3.5 w-3.5 shrink-0" />
-            <span>
-              {event.endDate
-                ? formatDateRange(event.date, event.endDate)
-                : `${formatDateRange(event.date)} · ${formatEventTime(event.showTime)}`}
-            </span>
-          </div>
-          <div className="flex items-center gap-2">
-            <MapPin className="h-3.5 w-3.5 shrink-0" />
-            <span>
-              {event.venue.name}, {event.venue.city}
-            </span>
-          </div>
+          {lowestPrice !== null && availability !== "sold-out" && (
+            <div className="absolute bottom-3 right-3 rounded-md border border-white/15 bg-black/70 px-2.5 py-1 font-mono text-sm font-semibold backdrop-blur-sm">
+              {lowestPrice === 0 ? (
+                <span className="text-brand">Free</span>
+              ) : (
+                <>
+                  <span className="text-white/75">From </span>
+                  <span className="text-brand">{formatPrice(lowestPrice)}</span>
+                </>
+              )}
+            </div>
+          )}
         </div>
 
-        <p className="mt-2 text-sm text-muted/80">
-          {event.artists.map((a) => a.name).join(", ")}
-        </p>
-      </div>
-    </Link>
+        <div className={`p-4 ${featured ? "flex flex-col justify-center" : ""}`}>
+          <h3
+            className={`font-semibold leading-snug transition-colors group-hover:text-brand ${featured ? "text-xl sm:text-2xl" : "text-base"}`}
+          >
+            {event.title}
+          </h3>
+          {event.subtitle && (
+            <p className="mt-1 text-sm text-muted">{event.subtitle}</p>
+          )}
+
+          <div className="mt-3 space-y-1.5 text-sm text-muted">
+            <div className="flex items-center gap-2">
+              <Calendar className="h-3.5 w-3.5 shrink-0" />
+              <span>
+                {event.endDate
+                  ? formatDateRange(event.date, event.endDate)
+                  : `${formatDateRange(event.date)} · ${formatEventTime(event.showTime)}`}
+              </span>
+            </div>
+            <div className="flex items-center gap-2">
+              <MapPin className="h-3.5 w-3.5 shrink-0" />
+              <span>
+                {event.venue.name}, {event.venue.city}
+              </span>
+            </div>
+          </div>
+
+          <p className="mt-2 text-sm text-muted/80">
+            {event.artists.map((a) => a.name).join(", ")}
+          </p>
+
+          <p
+            className={`mt-3 text-xs font-medium ${
+              availability === "sold-out"
+                ? "text-red-400"
+                : availability === "limited"
+                  ? "text-brand"
+                  : "text-emerald-400"
+            }`}
+          >
+            {availabilityLabel(availability)}
+          </p>
+        </div>
+      </Link>
+    </motion.div>
   );
 }

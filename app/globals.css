@@ -13,6 +13,18 @@
   --accent: #ffffff;
   --accent-hover: #e5e5e5;
   --accent-foreground: #000000;
+  /* Single restrained brand accent — electric lime. Used only for primary
+     CTAs, "live now", and urgency. Everything else stays monochrome. */
+  --brand: #c4f82a;
+  --brand-hover: #d4ff4d;
+  --brand-foreground: #0a0a0a;
+  --brand-soft: rgba(196, 248, 42, 0.14);
+  /* Elevation scale for cards, popovers, and the command palette. */
+  --shadow-1: 0 1px 2px rgba(0, 0, 0, 0.4);
+  --shadow-2: 0 8px 24px rgba(0, 0, 0, 0.45);
+  --shadow-3: 0 24px 64px rgba(0, 0, 0, 0.6);
+  /* Accessible focus ring. */
+  --focus-ring: 0 0 0 2px var(--background), 0 0 0 4px var(--brand);
 }
 
 @theme inline {
@@ -25,6 +37,10 @@
   --color-accent: var(--accent);
   --color-accent-hover: var(--accent-hover);
   --color-accent-foreground: var(--accent-foreground);
+  --color-brand: var(--brand);
+  --color-brand-hover: var(--brand-hover);
+  --color-brand-foreground: var(--brand-foreground);
+  --color-brand-soft: var(--brand-soft);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
   --font-pixel: var(--font-press-start);
@@ -193,5 +209,54 @@
       transparent 0
     );
     background-size: 24px 24px;
+  }
+
+  /* Shared accessible focus ring for interactive elements. */
+  .focus-ring:focus-visible {
+    outline: none;
+    box-shadow: var(--focus-ring);
+  }
+
+  /* Shimmer skeleton for loading states. */
+  .skeleton {
+    position: relative;
+    overflow: hidden;
+    background: var(--surface);
+  }
+
+  .skeleton::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    transform: translateX(-100%);
+    background: linear-gradient(
+      90deg,
+      transparent,
+      rgba(255, 255, 255, 0.06),
+      transparent
+    );
+    animation: skeleton-shimmer 1.4s ease-in-out infinite;
+  }
+
+  @keyframes skeleton-shimmer {
+    100% {
+      transform: translateX(100%);
+    }
+  }
+
+  /* Soft brand glow used behind primary CTAs and "live" chips. */
+  .brand-glow {
+    box-shadow: 0 6px 28px var(--brand-soft);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
   }
 }

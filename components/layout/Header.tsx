@@ -3,11 +3,13 @@ import { FanAuthLink, getFanNavLink } from "./HeaderFanLink";
 import { HeaderOrganizerLink } from "./HeaderOrganizerLink";
 import { getFanUser } from "@/lib/auth/session";
 import { getOrganizerSession } from "@/lib/organizer/session";
+import { buildSearchIndex } from "@/lib/search";
 
 export async function Header() {
-  const [fanUser, organizerSession] = await Promise.all([
+  const [fanUser, organizerSession, searchItems] = await Promise.all([
     getFanUser(),
     getOrganizerSession(),
+    buildSearchIndex(),
   ]);
   const organizerSignedIn = Boolean(organizerSession);
 
@@ -19,6 +21,7 @@ export async function Header() {
       }
       fanNavLink={getFanNavLink(fanUser, organizerSignedIn)}
       fanSignedIn={Boolean(fanUser)}
+      searchItems={searchItems}
     />
   );
 }

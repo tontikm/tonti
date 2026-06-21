@@ -7,9 +7,14 @@ Black-and-white, Tixr-inspired interface built around the pixel TONTI logo.
 
 - **Next.js 16** (App Router)
 - **TypeScript**
-- **Tailwind CSS v4** (monochrome design system)
+- **Tailwind CSS v4** (monochrome design system + a single electric-lime accent)
+- **motion** (Framer Motion) for scroll reveals, hover springs, and micro-interactions
+- **cmdk** for the Cmd/Ctrl-K command palette
+- **react-leaflet** + OSM tiles for the events map discovery view
 - **lucide-react** icons
 - **Supabase** (optional content backend; falls back to local seed data)
+- **PWA**: installable web app manifest + service worker so opened tickets (QR
+  codes) work offline at the door
 
 ## Getting started
 
@@ -85,6 +90,15 @@ Run migrations **in order** in the Supabase SQL editor:
 | [`0004_event_organizer_branding.sql`](supabase/migrations/0004_event_organizer_branding.sql) | Organizer logos in event header |
 | [`0005_organizers.sql`](supabase/migrations/0005_organizers.sql) | Organizer password accounts |
 | [`0006_payments.sql`](supabase/migrations/0006_payments.sql) | Payfast order tracking |
+| [`0007_fan_orders.sql`](supabase/migrations/0007_fan_orders.sql) | Fan account order linking |
+| [`0008_organizer_profiles.sql`](supabase/migrations/0008_organizer_profiles.sql) | Organizer profiles |
+| [`0009_orders_buyer_phone.sql`](supabase/migrations/0009_orders_buyer_phone.sql) | WhatsApp opt-in phone |
+| [`0010_orders_service_fee.sql`](supabase/migrations/0010_orders_service_fee.sql) | 3% platform fee tracking |
+| [`0011_event_follows.sql`](supabase/migrations/0011_event_follows.sql) | Fan event follows |
+| [`0012_promo_codes.sql`](supabase/migrations/0012_promo_codes.sql) | Promo codes + order discounts |
+| [`0013_event_show_organizer_profile.sql`](supabase/migrations/0013_event_show_organizer_profile.sql) | Opt-in organizer profile on event pages |
+| [`0014_event_age_range.sql`](supabase/migrations/0014_event_age_range.sql) | Optional maximum age for events |
+| [`0015_backfill_event_organizer_id.sql`](supabase/migrations/0015_backfill_event_organizer_id.sql) | Backfill `organizer_id` from `contact_email` |
 
 Then:
 
@@ -138,6 +152,13 @@ issued after the ITN webhook confirms payment:
 Without Payfast, paid tiers use **pay at door** — tickets are issued immediately
 with no online charge.
 
+## Platform fee
+
+Tonti charges a **3% platform fee on paid tickets** (free RSVPs are excluded). Fans
+pay the listed ticket price; the fee is absorbed by the organizer and stored on each
+order as `service_fee` (see migration `0010_orders_service_fee.sql`). Revenue
+breakdown appears on the organizer event tickets page.
+
 ## Deploy to Vercel
 
 1. Push this repo to GitHub (`main` branch).
@@ -155,7 +176,7 @@ Each `git push` to `main` triggers a new production deploy. Local `npm run dev` 
 
 ## Deploy checklist
 
-1. Run all migrations on production Supabase (through `0009_orders_buyer_phone.sql`).
+1. Run all migrations on production Supabase (through `0011_event_follows.sql`).
 2. Set env vars on Vercel — see `.env.example`.
 3. Add production URL + `/auth/callback` to Supabase Auth redirect URLs.
 4. Add Payfast notify URL: `https://your-domain.co.za/api/payments/payfast/notify`

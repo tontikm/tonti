@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { ProhibitedItemsInput } from "@/components/organizer/ProhibitedItemsInput";
 import { inputClass, labelClass } from "./shared";
 import type { EventWizardState } from "./types";
@@ -17,7 +18,7 @@ export function StepRules({ state, onChange }: StepRulesProps) {
       <div className="grid gap-4 sm:grid-cols-2">
         <div>
           <label htmlFor="ageLimit" className={labelClass}>
-            Age limit (e.g. 18 for adult events)
+            Minimum age
           </label>
           <input
             id="ageLimit"
@@ -30,18 +31,36 @@ export function StepRules({ state, onChange }: StepRulesProps) {
           />
         </div>
         <div>
-          <label htmlFor="tags" className={labelClass}>
-            Tags
+          <label htmlFor="ageMax" className={labelClass}>
+            Maximum age
           </label>
           <input
-            id="tags"
-            value={state.tags}
-            onChange={(e) => onChange({ tags: e.target.value })}
+            id="ageMax"
+            type="number"
+            min={0}
+            value={state.ageMax}
+            onChange={(e) => onChange({ ageMax: e.target.value })}
             className={inputClass}
-            placeholder="festival, outdoor, amapiano"
+            placeholder="21"
           />
-          <p className="mt-1 text-xs text-muted">Comma-separated</p>
+          <p className="mt-1 text-xs text-muted">
+            Leave blank for all ages, or set a range (e.g. 16–21).
+          </p>
         </div>
+      </div>
+
+      <div>
+        <label htmlFor="tags" className={labelClass}>
+          Tags
+        </label>
+        <input
+          id="tags"
+          value={state.tags}
+          onChange={(e) => onChange({ tags: e.target.value })}
+          className={inputClass}
+          placeholder="festival, outdoor, amapiano"
+        />
+        <p className="mt-1 text-xs text-muted">Comma-separated</p>
       </div>
 
       <ProhibitedItemsInput
@@ -49,35 +68,16 @@ export function StepRules({ state, onChange }: StepRulesProps) {
         onChange={(prohibitedItems) => onChange({ prohibitedItems })}
       />
 
-      <div>
-        <label htmlFor="contactEmail" className={labelClass}>
-          Day-of contact email
-        </label>
-        <input
-          id="contactEmail"
-          type="email"
-          value={state.contactEmail}
-          onChange={(e) => onChange({ contactEmail: e.target.value })}
-          className={inputClass}
-          placeholder="promoter@example.com"
-        />
-        <p className="mt-1 text-xs text-muted">
-          Shown to fans for support queries about this event.
-        </p>
-      </div>
-
-      <div>
-        <label htmlFor="refundPolicy" className={labelClass}>
-          Refund policy
-        </label>
-        <textarea
-          id="refundPolicy"
-          rows={4}
-          value={state.refundPolicy}
-          onChange={(e) => onChange({ refundPolicy: e.target.value })}
-          className={inputClass}
-          placeholder="All sales are final unless the event is cancelled…"
-        />
+      <div className="rounded-xl border border-border bg-surface/50 px-4 py-3 text-sm text-muted">
+        Refund rules for your event follow{" "}
+        <Link
+          href="/legal/refunds"
+          target="_blank"
+          className="font-medium text-foreground underline-offset-4 hover:underline"
+        >
+          Tonti&apos;s refund policy
+        </Link>
+        . You&apos;ll confirm this on the final step before publishing.
       </div>
     </section>
   );

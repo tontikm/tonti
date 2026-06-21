@@ -11,9 +11,10 @@ import {
   Ticket,
 } from "lucide-react";
 import { OrganizerTermsAcceptance } from "@/components/organizer/OrganizerTermsAcceptance";
+import { PlatformFeeNotice } from "@/components/organizer/PlatformFeeNotice";
 import { getCategoryLabel } from "@/lib/data/categories";
 import { getSafeOrganizerLogoUrl } from "@/lib/images";
-import { formatPrice } from "@/lib/utils";
+import { formatAgeRange, formatPrice } from "@/lib/utils";
 import type { EventWizardState, OrganizerWizardDefaults } from "./types";
 
 type StepReviewProps = {
@@ -88,7 +89,7 @@ export function StepReview({ state, defaults, onChange }: StepReviewProps) {
         </SummaryCard>
       </div>
 
-      {(lineup || state.ageLimit || state.prohibitedItems.length > 0 || state.refundPolicy) && (
+      {(lineup || state.ageLimit || state.ageMax || state.prohibitedItems.length > 0) && (
         <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-5">
           <h3 className="text-sm font-semibold">Policies & lineup</h3>
           <div className="mt-4 space-y-3 text-sm">
@@ -98,10 +99,18 @@ export function StepReview({ state, defaults, onChange }: StepReviewProps) {
                 <span className="font-medium">{lineup}</span>
               </p>
             )}
-            {state.ageLimit && (
+            {formatAgeRange(
+              state.ageLimit ? Number(state.ageLimit) : null,
+              state.ageMax ? Number(state.ageMax) : null,
+            ) && (
               <p>
-                <span className="text-muted">Age limit: </span>
-                <span className="font-medium">{state.ageLimit}+</span>
+                <span className="text-muted">Age: </span>
+                <span className="font-medium">
+                  {formatAgeRange(
+                    state.ageLimit ? Number(state.ageLimit) : null,
+                    state.ageMax ? Number(state.ageMax) : null,
+                  )}
+                </span>
               </p>
             )}
             {state.prohibitedItems.length > 0 && (
@@ -118,12 +127,6 @@ export function StepReview({ state, defaults, onChange }: StepReviewProps) {
                   ))}
                 </ul>
               </div>
-            )}
-            {state.refundPolicy && (
-              <p className="whitespace-pre-wrap text-muted">
-                <span className="font-medium text-foreground">Refund: </span>
-                {state.refundPolicy}
-              </p>
             )}
           </div>
         </div>
@@ -155,6 +158,8 @@ export function StepReview({ state, defaults, onChange }: StepReviewProps) {
         </ul>
       </div>
 
+      <PlatformFeeNotice variant="inline" />
+
       <div className="rounded-2xl border border-violet-500/20 bg-violet-950/20 p-5">
         <p className="text-xs font-medium uppercase tracking-wider text-violet-200/80">
           Presented by
@@ -184,6 +189,28 @@ export function StepReview({ state, defaults, onChange }: StepReviewProps) {
           . Edit your profile if this looks wrong.
         </p>
       </div>
+
+      <label className="flex cursor-pointer items-start gap-3 rounded-2xl border border-white/10 bg-white/[0.03] p-4 text-sm transition-colors hover:border-violet-500/30">
+        <input
+          type="checkbox"
+          checked={state.showOrganizerProfile}
+          onChange={(e) => onChange({ showOrganizerProfile: e.target.checked })}
+          className="mt-0.5 h-4 w-4 shrink-0 rounded border-border accent-violet-500"
+        />
+        <span>
+          <span className="font-medium text-foreground">
+            Show my organizer profile on this event
+          </span>
+          <span className="mt-1 block text-muted">
+            Fans will see your logo, bio, and social links from your profile.
+            Add website and Instagram URLs in your{" "}
+            <Link href="/organizer/profile/edit" className="text-foreground underline">
+              profile settings
+            </Link>
+            .
+          </span>
+        </span>
+      </label>
 
       <label className="flex cursor-pointer items-center gap-3 rounded-2xl border border-white/10 bg-white/[0.03] p-4 text-sm transition-colors hover:border-violet-500/30">
         <input

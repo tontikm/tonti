@@ -1,3 +1,4 @@
+import Image from "next/image";
 import Link from "next/link";
 import {
   Calendar,
@@ -16,11 +17,20 @@ import { getOrganizerDashboardStats } from "@/lib/organizer/stats";
 import { getOrganizerByEmail, isProfileComplete } from "@/lib/organizer/profile";
 import { getOrganizerSession } from "@/lib/organizer/session";
 import { isSupabaseAdminConfigured } from "@/lib/supabase/admin";
+import { getSafeEventImageUrl } from "@/lib/images";
 import { formatEventDate, formatPrice, getLowestPrice } from "@/lib/utils";
 
-export const metadata = {
-  title: "Dashboard",
-};
+export async function generateMetadata() {
+  const session = await getOrganizerSession();
+  const profile = session ? await getOrganizerByEmail(session.email) : null;
+  const name =
+    profile?.name?.trim() ||
+    session?.name?.trim() ||
+    session?.email?.split("@")[0];
+  return {
+    title: name ? `${name} · Dashboard` : "Dashboard",
+  };
+}
 
 export default async function OrganizerDashboardPage() {
   const stats = await getOrganizerDashboardStats();
@@ -28,12 +38,19 @@ export default async function OrganizerDashboardPage() {
   const session = await getOrganizerSession();
   const profile = session ? await getOrganizerByEmail(session.email) : null;
   const profileIncomplete = profile ? !isProfileComplete(profile) : false;
+  const organizerName =
+    profile?.name?.trim() ||
+    session?.name?.trim() ||
+    session?.email?.split("@")[0] ||
+    "Organizer";
 
   return (
     <>
       <OrganizerPageHeader
-        title="Dashboard"
+        title={organizerName}
         description="Overview of your events, RSVPs, and check-ins."
+        avatarUrl={profile?.logo}
+        avatarFallback={organizerName}
         action={
           <Button href="/organizer/events/new" size="md" className="organizer-accent-btn">
             <Plus className="h-4 w-4" />
@@ -114,22 +131,36 @@ export default async function OrganizerDashboardPage() {
                 return (
                   <li key={event.slug} className="py-4">
                     <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-                      <div>
+                      <div className="flex gap-3">
                         <Link
-                          href={`/events/${event.slug}`}
-                          className="font-medium hover:underline"
+                          href={`/organizer/events/${event.slug}`}
+                          className="relative h-16 w-24 shrink-0 overflow-hidden rounded-lg border border-white/10 bg-surface"
                         >
-                          {event.title}
+                          <Image
+                            src={getSafeEventImageUrl(event.image)}
+                            alt=""
+                            fill
+                            className="object-cover"
+                            sizes="96px"
+                          />
                         </Link>
-                        <p className="mt-1 flex items-center gap-1.5 text-sm text-muted">
-                          <Calendar className="h-3.5 w-3.5" />
-                          {formatEventDate(event.date)} · {event.venue.city}
-                        </p>
-                        {price !== null && (
-                          <p className="mt-1 text-sm font-mono text-muted">
-                            From {formatPrice(price)}
+                        <div>
+                          <Link
+                            href={`/organizer/events/${event.slug}`}
+                            className="font-medium hover:underline"
+                          >
+                            {event.title}
+                          </Link>
+                          <p className="mt-1 flex items-center gap-1.5 text-sm text-muted">
+                            <Calendar className="h-3.5 w-3.5" />
+                            {formatEventDate(event.date)} · {event.venue.city}
                           </p>
-                        )}
+                          {price !== null && (
+                            <p className="mt-1 text-sm font-mono text-muted">
+                              From {formatPrice(price)}
+                            </p>
+                          )}
+                        </div>
                       </div>
                       <div className="flex flex-wrap gap-2">
                         <Link
@@ -204,6 +235,62 @@ export default async function OrganizerDashboardPage() {
           </div>
         </section>
       </div>
+
+      {stats.pastEvents.length > 0 && (
+        <section className="mt-8 rounded-2xl border border-white/10 bg-white/[0.02] p-6">
+          <div className="flex items-center justify-between">
+            <h2 className="text-lg font-semibold">Recent past events</h2>
+            <Link
+              href="/organizer/events"
+              className="text-sm text-muted hover:text-foreground"
+            >
+              View all
+            </Link>
+          </div>
+          <ul className="mt-4 divide-y divide-white/10">
+            {stats.pastEvents.map((event) => (
+              <li
+                key={event.slug}
+                className="flex flex-col gap-2 py-4 sm:flex-row sm:items-center sm:justify-between"
+              >
+                <div className="flex gap-3">
+                  <Link
+                    href={`/organizer/events/${event.slug}`}
+                    className="relative h-16 w-24 shrink-0 overflow-hidden rounded-lg border border-white/10 bg-surface"
+                  >
+                    <Image
+                      src={getSafeEventImageUrl(event.image)}
+                      alt=""
+                      fill
+                      className="object-cover"
+                      sizes="96px"
+                    />
+                  </Link>
+                  <div>
+                    <Link
+                      href={`/organizer/events/${event.slug}`}
+                      className="font-medium hover:underline"
+                    >
+                      {event.title}
+                    </Link>
+                    <p className="mt-1 flex items-center gap-1.5 text-sm text-muted">
+                      <Calendar className="h-3.5 w-3.5" />
+                      {formatEventDate(event.date)} · {event.venue.city}
+                    </p>
+                  </div>
+                </div>
+                <Link
+                  href={`/organizer/events/${event.slug}/report`}
+                  className="inline-flex items-center gap-1 self-start rounded-full border border-white/15 px-3 py-1 text-xs text-muted hover:text-foreground sm:self-auto"
+                >
+                  <CalendarClock className="h-3 w-3" />
+                  Report
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
     </>
   );
 }

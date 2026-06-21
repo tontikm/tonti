@@ -7,7 +7,10 @@ import {
 import { ARTISTS } from "@/lib/data/artists";
 import { ALL_CITIES } from "@/lib/data/cities";
 import { VENUES } from "@/lib/data/venues";
+import { EVENT_IMAGES } from "@/lib/data/event-images";
 import { getSupabaseServer } from "@/lib/supabase/server";
+import { isPastEvent } from "@/lib/utils";
+import { eventBelongsToOrganizer } from "@/lib/organizer/ownership";
 import {
   formatSupabaseError,
   isConnectionError,
@@ -54,8 +57,7 @@ export const EVENTS: Event[] = [
     subtitle: "Two days of log-drum heaven",
     description:
       "The biggest amapiano gathering in Gauteng returns to Constitution Hill for two days of the country's hottest piano acts, yanos all-stars, and surprise guests. Bring your dance moves.",
-    image:
-      "https://images.unsplash.com/photo-1571266028243-e68fdf784baf?w=1200&q=80",
+    image: EVENT_IMAGES["amapiano-festival-jhb"],
     date: daysFromNow(12, 14),
     endDate: daysFromNow(13, 23),
     doorsTime: doorsBeforeShow(daysFromNow(12, 14)),
@@ -93,8 +95,7 @@ export const EVENTS: Event[] = [
     subtitle: "Free entry, all welcome",
     description:
       "Our weekly free showcase of rising SA talent at Constitution Hill. No ticket price — just RSVP and pull through for an evening of live music.",
-    image:
-      "https://images.unsplash.com/photo-1429962714451-bb934ecdc4ca?w=1200&q=80",
+    image: EVENT_IMAGES["tonti-sessions-free-fridays"],
     date: daysFromNow(4, 18),
     doorsTime: doorsBeforeShow(daysFromNow(4, 18)),
     showTime: daysFromNow(4, 18, 30),
@@ -122,8 +123,7 @@ export const EVENTS: Event[] = [
     subtitle: "Sunset afro-house sessions",
     description:
       "Nomvula brings her spiritual afro-house show to the Kirstenbosch lawns for a magical sunset set surrounded by the gardens and Table Mountain.",
-    image:
-      "https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=1200&q=80",
+    image: EVENT_IMAGES["nomvula-kirstenbosch"],
     date: daysFromNow(6, 17, 30),
     doorsTime: doorsBeforeShow(daysFromNow(6, 17, 30), 90),
     showTime: daysFromNow(6, 17, 30),
@@ -157,8 +157,7 @@ export const EVENTS: Event[] = [
     title: "Deep Sankomota — All Night House",
     description:
       "A marathon soulful house set from Deep Sankomota at the Grand Arena. Expect deep grooves from doors to last song.",
-    image:
-      "https://images.unsplash.com/photo-1506157782851-9777a7f546ce?w=1200&q=80",
+    image: EVENT_IMAGES["deep-sankomota-grandwest"],
     date: daysFromNow(20, 21),
     doorsTime: doorsBeforeShow(daysFromNow(20, 21)),
     showTime: daysFromNow(20, 22),
@@ -194,8 +193,7 @@ export const EVENTS: Event[] = [
     subtitle: "Gqom takeover",
     description:
       "The sound of eThekwini takes over the Durban ICC Arena. Raw, hypnotic gqom built to move thousands.",
-    image:
-      "https://images.unsplash.com/photo-1571330735066-03aaa9429da7?w=1200&q=80",
+    image: EVENT_IMAGES["durban-bass-union-icc"],
     date: daysFromNow(3, 21),
     doorsTime: doorsBeforeShow(daysFromNow(3, 21)),
     showTime: daysFromNow(3, 22),
@@ -230,8 +228,7 @@ export const EVENTS: Event[] = [
     title: "K1NG Verse — Coronation Tour",
     description:
       "Joburg's sharpest lyricist headlines the Sun Arena with a full live band, special guests, and the whole catalogue.",
-    image:
-      "https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=1200&q=80",
+    image: EVENT_IMAGES["k1ng-verse-sun-arena"],
     date: daysFromNow(15, 20),
     doorsTime: doorsBeforeShow(daysFromNow(15, 20)),
     showTime: daysFromNow(15, 20, 30),
@@ -265,8 +262,7 @@ export const EVENTS: Event[] = [
     title: "Township Funk — Kwaito Classics",
     description:
       "A nostalgic night of golden-era kwaito at Constitution Hill. Sing along to every anthem with the originators of the bounce.",
-    image:
-      "https://images.unsplash.com/photo-1459745456775-9afc3a8049bc?w=1200&q=80",
+    image: EVENT_IMAGES["township-funk-con-hill"],
     date: daysFromNow(9, 19),
     doorsTime: doorsBeforeShow(daysFromNow(9, 19)),
     showTime: daysFromNow(9, 20),
@@ -294,8 +290,7 @@ export const EVENTS: Event[] = [
     subtitle: "The Homecoming Show",
     description:
       "Afro-pop superstar Lerato Sky returns home to Durban for a sold-out-bound homecoming with her full live band and string section.",
-    image:
-      "https://images.unsplash.com/photo-1488376739361-ed24f5fef1d7?w=1200&q=80",
+    image: EVENT_IMAGES["lerato-sky-durban"],
     date: daysFromNow(2, 19, 30),
     doorsTime: doorsBeforeShow(daysFromNow(2, 19, 30)),
     showTime: daysFromNow(2, 20),
@@ -330,8 +325,7 @@ export const EVENTS: Event[] = [
     subtitle: "An evening of Cape jazz",
     description:
       "An intimate seated jazz evening at the Oude Libertas Amphitheatre under the Stellenbosch sky.",
-    image:
-      "https://images.unsplash.com/photo-1415201364774-f6f0ff5a0287?w=1200&q=80",
+    image: EVENT_IMAGES["cape-town-quartet-stellenbosch"],
     date: daysFromNow(24, 19),
     doorsTime: doorsBeforeShow(daysFromNow(24, 19)),
     showTime: daysFromNow(24, 19, 30),
@@ -357,8 +351,7 @@ export const EVENTS: Event[] = [
     title: "Veld Riders — Loud at The Boardwalk",
     description:
       "High-octane SA rock hits the coast. Veld Riders bring the riffs to The Boardwalk in Gqeberha.",
-    image:
-      "https://images.unsplash.com/photo-1498038432885-c6f3f1b912ee?w=1200&q=80",
+    image: EVENT_IMAGES["veld-riders-gqeberha"],
     date: daysFromNow(28, 20),
     doorsTime: doorsBeforeShow(daysFromNow(28, 20)),
     showTime: daysFromNow(28, 20, 30),
@@ -393,8 +386,7 @@ export const EVENTS: Event[] = [
     title: "Naledi — Starlight Tour",
     description:
       "Pop sensation Naledi lights up the Sun Arena with stadium-sized choruses, dancers, and a full production show.",
-    image:
-      "https://images.unsplash.com/photo-1501386761578-eac5c94b800a?w=1200&q=80",
+    image: EVENT_IMAGES["naledi-pop-sun-arena"],
     date: daysFromNow(1, 19),
     doorsTime: doorsBeforeShow(daysFromNow(1, 19)),
     showTime: daysFromNow(1, 20),
@@ -500,10 +492,12 @@ function mapEventRow(row: EventRow): Event {
     venue: row.venue ? mapVenueRow(row.venue) : VENUES[0],
     tiers,
     ageLimit: row.age_limit != null ? Number(row.age_limit) : undefined,
+    ageMax: row.age_max != null ? Number(row.age_max) : undefined,
     tags: (row.tags as string[]) ?? [],
     organizerId: (row.organizer_id as string) ?? undefined,
     organizerName: (row.organizer_name as string) ?? undefined,
     organizerLogo: (row.organizer_logo as string) ?? undefined,
+    showOrganizerProfile: Boolean(row.show_organizer_profile),
     prohibitedItems: (row.prohibited_items as string[]) ?? [],
     contactEmail: (row.contact_email as string) ?? undefined,
     refundPolicy: (row.refund_policy as string) ?? undefined,
@@ -516,49 +510,68 @@ const EVENTS_RELATIONS = `
   tiers:ticket_tiers(*),
   event_artists(position, artist:artists(*))`;
 
-const EVENTS_SELECT_BASE = `
+const EVENTS_CORE_COLUMNS = `
   slug, title, subtitle, description, image, date, end_date, doors_time,
-  show_time, genre, featured, age_limit, tags,
+  show_time, genre, featured, age_limit, tags`;
+
+const EVENTS_ORGANIZER_COLUMNS = `
+  organizer_name, organizer_logo, organizer_id, prohibited_items, contact_email,
+  refund_policy`;
+
+const EVENTS_SELECT_BASE = `
+  ${EVENTS_CORE_COLUMNS},
   ${EVENTS_RELATIONS}`;
 
 const EVENTS_SELECT_WITH_ORGANIZER = `
-  slug, title, subtitle, description, image, date, end_date, doors_time,
-  show_time, genre, featured, age_limit, tags, organizer_name, organizer_logo,
-  organizer_id, prohibited_items, contact_email, refund_policy,
+  ${EVENTS_CORE_COLUMNS}, ${EVENTS_ORGANIZER_COLUMNS},
+  ${EVENTS_RELATIONS}`;
+
+const EVENTS_SELECT_WITHOUT_AGE_MAX = `
+  ${EVENTS_CORE_COLUMNS}, ${EVENTS_ORGANIZER_COLUMNS},
+  show_organizer_profile,
+  ${EVENTS_RELATIONS}`;
+
+const EVENTS_SELECT_WITHOUT_SHOW_ORGANIZER = `
+  ${EVENTS_CORE_COLUMNS}, age_max, ${EVENTS_ORGANIZER_COLUMNS},
   ${EVENTS_RELATIONS}`;
 
 const EVENTS_SELECT_FULL = `
-  slug, title, subtitle, description, image, date, end_date, doors_time,
-  show_time, genre, featured, age_limit, tags, organizer_name, organizer_logo,
-  organizer_id, prohibited_items, contact_email, refund_policy,
+  ${EVENTS_CORE_COLUMNS}, age_max, ${EVENTS_ORGANIZER_COLUMNS},
+  show_organizer_profile,
   ${EVENTS_RELATIONS}`;
+
+const EVENT_SELECT_ATTEMPTS = [
+  EVENTS_SELECT_FULL,
+  EVENTS_SELECT_WITHOUT_AGE_MAX,
+  EVENTS_SELECT_WITHOUT_SHOW_ORGANIZER,
+  EVENTS_SELECT_WITH_ORGANIZER,
+  EVENTS_SELECT_BASE,
+] as const;
+
+async function fetchEventRowsFromSupabase(
+  supabase: NonNullable<ReturnType<typeof getSupabaseServer>>,
+): Promise<{ rows: EventRow[] | null; error: unknown | null }> {
+  let lastError: unknown = null;
+
+  for (const select of EVENT_SELECT_ATTEMPTS) {
+    const { data, error } = await supabase.from("events").select(select);
+    if (!error) {
+      return { rows: (data as unknown as EventRow[] | null) ?? null, error: null };
+    }
+    if (!isMissingColumnError(error)) {
+      return { rows: null, error };
+    }
+    lastError = error;
+  }
+
+  return { rows: null, error: lastError };
+}
 
 const loadEvents = cache(async (): Promise<Event[]> => {
   const supabase = getSupabaseServer();
   if (!supabase) return EVENTS;
 
-  const primary = await supabase.from("events").select(EVENTS_SELECT_FULL);
-  let rows: EventRow[] | null = (primary.data as unknown as EventRow[] | null) ?? null;
-  let error = primary.error;
-
-  if (error && isMissingColumnError(error)) {
-    const withOrganizer = await supabase.from("events").select(EVENTS_SELECT_WITH_ORGANIZER);
-    if (!withOrganizer.error) {
-      rows = (withOrganizer.data as unknown as EventRow[] | null) ?? null;
-      error = null;
-    }
-  }
-
-  if (error) {
-    const fallback = await supabase.from("events").select(EVENTS_SELECT_BASE);
-    if (!fallback.error) {
-      if (isMissingColumnError(error)) {
-        logOrganizerMigrationHint();
-      }
-      rows = (fallback.data as unknown as EventRow[] | null) ?? null;
-      error = null;
-    }
-  }
+  const { rows, error } = await fetchEventRowsFromSupabase(supabase);
 
   if (error) {
     const reason = formatSupabaseError(error);
@@ -577,6 +590,10 @@ const loadEvents = cache(async (): Promise<Event[]> => {
     return EVENTS;
   }
 
+  if (rows.length > 0 && rows[0] && !("organizer_id" in rows[0])) {
+    logOrganizerMigrationHint();
+  }
+
   return rows.map(mapEventRow);
 });
 
@@ -592,14 +609,19 @@ export async function getEventBySlug(slug: string): Promise<Event | undefined> {
   return events.find((e) => e.slug === slug);
 }
 
+/** Active (non-ended) events for public/fan-facing surfaces. */
+export async function getPublicEvents(): Promise<Event[]> {
+  return (await getAllEvents()).filter((e) => !isPastEvent(e));
+}
+
 export async function getFeaturedEvents(): Promise<Event[]> {
-  return (await getAllEvents()).filter((e) => e.featured);
+  return (await getPublicEvents()).filter((e) => e.featured);
 }
 
 export async function getEventsByCategory(
   category: EventCategory,
 ): Promise<Event[]> {
-  return (await getAllEvents()).filter((e) => e.category === category);
+  return (await getPublicEvents()).filter((e) => e.category === category);
 }
 
 export async function getEventsByOrganizerId(
@@ -612,42 +634,43 @@ export async function getEventsByOrganizerId(
 export async function getEventsForOrganizer(
   organizerId: string | undefined,
   organizerName: string | undefined,
+  organizerEmail?: string | undefined,
 ): Promise<Event[]> {
+  const identity = {
+    id: organizerId,
+    name: organizerName,
+    email: organizerEmail,
+  };
+
+  if (!identity.id && !identity.name && !identity.email) {
+    return [];
+  }
+
   const events = await getAllEvents();
-  if (organizerId) {
-    const byId = events.filter((e) => e.organizerId === organizerId);
-    if (byId.length > 0) return byId;
-  }
-  if (organizerName) {
-    return events.filter(
-      (e) =>
-        e.organizerName?.toLowerCase() === organizerName.toLowerCase(),
-    );
-  }
-  return events;
+  return events.filter((event) => eventBelongsToOrganizer(event, identity));
 }
 
 export async function getEventsByCity(citySlug: string): Promise<Event[]> {
   const cityName = CITY_NAME_BY_SLUG[citySlug];
   if (!cityName) return [];
-  return (await getAllEvents()).filter((e) => e.venue.city === cityName);
+  return (await getPublicEvents()).filter((e) => e.venue.city === cityName);
 }
 
 export async function getEventsByArtist(artistSlug: string): Promise<Event[]> {
-  return (await getAllEvents()).filter((e) =>
+  return (await getPublicEvents()).filter((e) =>
     e.artists.some((a) => a.slug === artistSlug),
   );
 }
 
 export async function getEventsByVenue(venueSlug: string): Promise<Event[]> {
-  return (await getAllEvents()).filter((e) => e.venue.slug === venueSlug);
+  return (await getPublicEvents()).filter((e) => e.venue.slug === venueSlug);
 }
 
 export async function getUpcomingEvents(days = 7): Promise<Event[]> {
   const now = new Date();
   const cutoff = new Date();
   cutoff.setDate(cutoff.getDate() + days);
-  return (await getAllEvents()).filter((e) => {
+  return (await getPublicEvents()).filter((e) => {
     const d = new Date(e.date);
     return d >= now && d <= cutoff;
   });
@@ -655,7 +678,7 @@ export async function getUpcomingEvents(days = 7): Promise<Event[]> {
 
 export async function searchEvents(query: string): Promise<Event[]> {
   const q = query.toLowerCase().trim();
-  const events = await getAllEvents();
+  const events = await getPublicEvents();
   if (!q) return events;
   return events.filter(
     (e) =>

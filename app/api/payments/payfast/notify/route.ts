@@ -6,6 +6,7 @@ import {
   fulfillTicketOrder,
   type LineItem,
 } from "@/lib/tickets/fulfill-order";
+import { incrementPromoUses } from "@/lib/promo/codes";
 
 export async function POST(request: Request) {
   const supabase = getSupabaseAdmin();
@@ -52,7 +53,9 @@ export async function POST(request: Request) {
 
   const { data: order } = await supabase
     .from("orders")
-    .select("id, event_slug, buyer_name, status, selections, total_amount")
+    .select(
+      "id, event_slug, buyer_name, status, selections, total_amount, promo_code_id",
+    )
     .eq("id", orderId)
     .maybeSingle();
 
@@ -88,6 +91,14 @@ export async function POST(request: Request) {
 
   if (!fulfilled.ok) {
     return new Response(fulfilled.error, { status: 500 });
+  }
+
+  const promoCodeId = order.promo_code_id as string | null;
+  if (promoCodeId) {
+    const promoResult = await incrementPromoUses(supabase, promoCodeId);
+    if (!promoResult.ok) {
+      return new Response(promoResult.error, { status: 500 });
+    }
   }
 
   await supabase

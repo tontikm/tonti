@@ -3,13 +3,14 @@ import { cn } from "@/lib/utils";
 
 type ButtonProps = {
   href?: string;
-  variant?: "primary" | "secondary" | "ghost" | "emerald";
+  variant?: "primary" | "secondary" | "ghost" | "emerald" | "brand";
   size?: "sm" | "md" | "lg";
   className?: string;
   children: React.ReactNode;
   onClick?: () => void;
   type?: "button" | "submit";
   disabled?: boolean;
+  form?: string;
 };
 
 const variants = {
@@ -20,6 +21,8 @@ const variants = {
   ghost: "text-muted hover:text-foreground hover:bg-surface",
   emerald:
     "bg-emerald-500 text-black hover:bg-emerald-400 shadow-lg shadow-emerald-500/20",
+  brand:
+    "bg-brand text-brand-foreground hover:bg-brand-hover brand-glow",
 };
 
 const sizes = {
@@ -37,9 +40,10 @@ export function Button({
   onClick,
   type = "button",
   disabled,
+  form,
 }: ButtonProps) {
   const classes = cn(
-    "inline-flex items-center justify-center gap-2 rounded-full font-medium transition-all",
+    "focus-ring inline-flex items-center justify-center gap-2 rounded-full font-medium transition-all",
     variants[variant],
     sizes[size],
     disabled && "pointer-events-none opacity-50",
@@ -57,6 +61,7 @@ export function Button({
   return (
     <button
       type={type}
+      form={form}
       className={classes}
       onClick={onClick}
       disabled={disabled}

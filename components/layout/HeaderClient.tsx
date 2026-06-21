@@ -4,6 +4,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { useEventBrand, type EventBrand } from "@/components/layout/EventBrandProvider";
+import type { SearchItem } from "@/lib/search";
 import { HeaderSearch } from "./HeaderSearch";
 import { SiteNav } from "./SiteNav";
 
@@ -12,6 +13,7 @@ type HeaderClientProps = {
   fanLink: React.ReactNode;
   fanNavLink: { href: string; label: string } | null;
   fanSignedIn: boolean;
+  searchItems: SearchItem[];
 };
 
 function TontiLogo({ className }: { className?: string }) {
@@ -66,6 +68,7 @@ export function HeaderClient({
   fanLink,
   fanNavLink,
   fanSignedIn,
+  searchItems,
 }: HeaderClientProps) {
   const pathname = usePathname();
   const { brand } = useEventBrand();
@@ -77,7 +80,7 @@ export function HeaderClient({
       <header className="sticky top-0 z-50 bg-black">
         <div className="mx-auto grid h-16 max-w-[1440px] grid-cols-[auto_1fr_auto] items-center gap-4 px-4 sm:grid-cols-[1fr_auto_1fr] sm:px-6 lg:px-8">
           <div className="flex items-center sm:justify-start">
-            <HeaderSearch />
+            <HeaderSearch searchItems={searchItems} />
           </div>
           <div className="flex justify-center">
             <HeaderLogo className="h-8 w-auto sm:h-9" brand={brand} />
@@ -97,7 +100,7 @@ export function HeaderClient({
       <div className="mx-auto flex h-16 max-w-[1440px] items-center justify-between px-4 sm:px-6 lg:px-8">
         <HeaderLogo brand={brand} />
         <div className="flex items-center gap-1 sm:gap-2">
-          <HeaderSearch />
+          <HeaderSearch searchItems={searchItems} />
           {fanLink}
           {organizerLink}
           <SiteNav fanNavLink={fanNavLink} fanSignedIn={fanSignedIn} />

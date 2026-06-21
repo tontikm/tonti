@@ -3,9 +3,11 @@ import { Calendar, Mail, MapPin, ShieldAlert } from "lucide-react";
 import type { Event, TicketOrder } from "@/lib/types";
 import { getSafeEventImageUrl } from "@/lib/images";
 import {
+  formatAgeRange,
   formatDateRange,
   formatEventTime,
   formatPrice,
+  isAdultsOnlyAge,
 } from "@/lib/utils";
 
 type TicketEventHeroProps = {
@@ -39,12 +41,12 @@ export function TicketEventHero({ event, order }: TicketEventHeroProps) {
               <MapPin className="h-4 w-4 shrink-0" />
               {event.venue.name}, {event.venue.city}
             </p>
-            {event.ageLimit != null && (
+            {formatAgeRange(event.ageLimit, event.ageMax) && (
               <p className="flex items-center gap-2 text-amber-200/90">
                 <ShieldAlert className="h-4 w-4 shrink-0" />
-                {event.ageLimit >= 18
-                  ? `${event.ageLimit}+ · Adults only — ID may be required`
-                  : `${event.ageLimit}+ age limit`}
+                {isAdultsOnlyAge(event.ageLimit, event.ageMax)
+                  ? `${formatAgeRange(event.ageLimit, event.ageMax)} · Adults only — ID may be required`
+                  : `${formatAgeRange(event.ageLimit, event.ageMax)} age limit`}
               </p>
             )}
           </div>
