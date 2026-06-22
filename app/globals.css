@@ -84,6 +84,11 @@
   }
 
   /* Tixr-style hero: warm stage light grading + bottom bowl fade. */
+  .carousel-backdrop {
+    filter: blur(40px) saturate(1.2) brightness(0.35);
+    transform: scale(1.08);
+  }
+
   .carousel-photo {
     filter: contrast(1.12) saturate(1.18) brightness(0.88);
   }
