@@ -933,6 +933,78 @@ export async function createEvent(
   redirect(`/events/${parsed.slug}?created=1`);
 }
 
+type SupabaseAdmin = NonNullable<ReturnType<typeof getSupabaseAdmin>>;
+
+/** Upsert tiers in place so sold tickets keep their FK references. */
+async function syncEventTicketTiers(
+  supabase: SupabaseAdmin,
+  eventSlug: string,
+  tiers: ParsedTier[],
+  soldById: Map<string, number>,
+): Promise<{ error?: string }> {
+  const { data: existingTiers, error: fetchError } = await supabase
+    .from("ticket_tiers")
+    .select("id")
+    .eq("event_slug", eventSlug);
+
+  if (fetchError) return { error: fetchError.message };
+
+  const existingIds = new Set(
+    (existingTiers ?? []).map((tier) => tier.id as string),
+  );
+  const incomingIds = new Set(tiers.map((tier) => tier.id));
+
+  const { error: upsertError } = await supabase.from("ticket_tiers").upsert(
+    tiers.map((tier) => ({
+      event_slug: eventSlug,
+      id: tier.id,
+      name: tier.name,
+      price: tier.price,
+      description: tier.description,
+      capacity: tier.capacity,
+      sold: soldById.get(tier.id) ?? 0,
+      position: tier.position,
+    })),
+    { onConflict: "event_slug,id" },
+  );
+
+  if (upsertError) return { error: upsertError.message };
+
+  const removedIds = [...existingIds].filter((id) => !incomingIds.has(id));
+  if (removedIds.length === 0) return {};
+
+  const { data: ticketRows, error: ticketsError } = await supabase
+    .from("tickets")
+    .select("tier_id")
+    .eq("event_slug", eventSlug)
+    .in("tier_id", removedIds);
+
+  if (ticketsError) return { error: ticketsError.message };
+
+  const tiersWithTickets = new Set(
+    (ticketRows ?? []).map((row) => row.tier_id as string),
+  );
+
+  for (const id of removedIds) {
+    if (tiersWithTickets.has(id) || (soldById.get(id) ?? 0) > 0) {
+      return {
+        error:
+          "Cannot remove a ticket tier that already has sold tickets. Leave existing tiers in place or set capacity to zero.",
+      };
+    }
+  }
+
+  const { error: deleteError } = await supabase
+    .from("ticket_tiers")
+    .delete()
+    .eq("event_slug", eventSlug)
+    .in("id", removedIds);
+
+  if (deleteError) return { error: deleteError.message };
+
+  return {};
+}
+
 export async function updateEvent(
   _prev: ActionState,
   formData: FormData,
@@ -1051,30 +1123,15 @@ export async function updateEvent(
     return { error: updateResult.error };
   }
 
-  const { error: deleteTiersError } = await supabase
-    .from("ticket_tiers")
-    .delete()
-    .eq("event_slug", originalSlug);
-
-  if (deleteTiersError) {
-    return { error: deleteTiersError.message };
-  }
-
-  const { error: tiersError } = await supabase.from("ticket_tiers").insert(
-    parsed.tiers.map((t) => ({
-      event_slug: originalSlug,
-      id: t.id,
-      name: t.name,
-      price: t.price,
-      description: t.description,
-      capacity: t.capacity,
-      sold: soldById.get(t.id) ?? 0,
-      position: t.position,
-    })),
+  const tierSync = await syncEventTicketTiers(
+    supabase,
+    originalSlug,
+    parsed.tiers,
+    soldById,
   );
 
-  if (tiersError) {
-    return { error: tiersError.message };
+  if (tierSync.error) {
+    return { error: tierSync.error };
   }
 
   const { error: deleteArtistsError } = await supabase
