@@ -87,21 +87,21 @@ export function TicketTierSelector({
 
   return (
     <>
-      <div className="rounded-2xl border border-border bg-surface p-6">
+      <div className="rounded-2xl border border-border bg-surface p-4 lg:p-6">
         <div className="flex items-center gap-2">
-          <Ticket className="h-5 w-5 text-accent" />
-          <h2 className="text-lg font-semibold">Get tickets</h2>
+          <Ticket className="h-4 w-4 text-accent lg:h-5 lg:w-5" />
+          <h2 className="text-base font-semibold lg:text-lg">Get tickets</h2>
         </div>
 
         {organizerEmail && (
           <OrganizerFanAuthNotice
             organizerEmail={organizerEmail}
             fanLoginHref={`/login?next=${encodeURIComponent(buildCheckoutUrl(eventSlug, {}))}`}
-            className="mt-4"
+            className="mt-3 lg:mt-4"
           />
         )}
 
-        <div className="mt-6 space-y-4">
+        <div className="mt-4 space-y-3 lg:mt-6 lg:space-y-4">
           {tiers.map((tier) => {
             const remaining = getTicketsRemaining(tier);
             const availability = getTierAvailability(tier);
@@ -117,7 +117,7 @@ export function TicketTierSelector({
             return (
               <div
                 key={tier.id}
-                className={`rounded-xl border p-4 transition-colors ${
+                className={`rounded-xl border p-3 transition-colors lg:p-4 ${
                   soldOut
                     ? "border-border/50 opacity-60"
                     : qty > 0
@@ -125,10 +125,10 @@ export function TicketTierSelector({
                       : "border-border hover:border-border/80"
                 }`}
               >
-                <div className="flex items-start justify-between gap-4">
-                  <div>
-                    <div className="flex flex-wrap items-center gap-2">
-                      <h3 className="font-medium">{tier.name}</h3>
+                <div className="flex items-start justify-between gap-3 lg:gap-4">
+                  <div className="min-w-0 flex-1">
+                    <div className="flex flex-wrap items-center gap-1.5 lg:gap-2">
+                      <h3 className="text-sm font-medium lg:text-base">{tier.name}</h3>
                       <span
                         className={`text-xs font-medium ${availabilityClassName(availability)}`}
                       >
@@ -141,26 +141,28 @@ export function TicketTierSelector({
                       )}
                     </div>
                     {tier.description && (
-                      <p className="mt-1 text-sm text-muted">{tier.description}</p>
+                      <p className="mt-0.5 text-xs text-muted lg:mt-1 lg:text-sm">
+                        {tier.description}
+                      </p>
                     )}
-                    <p className="mt-2 text-lg font-semibold">
+                    <p className="mt-1.5 text-base font-semibold lg:mt-2 lg:text-lg">
                       {tier.price === 0 ? "Free" : formatPrice(tier.price)}
                     </p>
                   </div>
 
                   {!soldOut && !purchaseDisabled && (
-                    <div className="flex items-center gap-2">
+                    <div className="flex shrink-0 items-center gap-1.5 lg:gap-2">
                       <motion.button
                         type="button"
                         whileTap={reduceMotion ? undefined : { scale: 0.85 }}
                         onClick={() => updateQty(tier.id, -1, remaining)}
                         disabled={qty === 0}
-                        className="focus-ring flex h-8 w-8 items-center justify-center rounded-full border border-border text-muted transition-colors hover:border-brand hover:text-foreground disabled:opacity-30"
+                        className="focus-ring flex h-7 w-7 items-center justify-center rounded-full border border-border text-muted transition-colors hover:border-brand hover:text-foreground disabled:opacity-30 lg:h-8 lg:w-8"
                         aria-label="Decrease quantity"
                       >
-                        <Minus className="h-4 w-4" />
+                        <Minus className="h-3.5 w-3.5 lg:h-4 lg:w-4" />
                       </motion.button>
-                      <div className="relative h-6 w-6 overflow-hidden text-center">
+                      <div className="relative h-5 w-5 overflow-hidden text-center lg:h-6 lg:w-6">
                         <AnimatePresence mode="popLayout" initial={false}>
                           <motion.span
                             key={qty}
@@ -168,7 +170,7 @@ export function TicketTierSelector({
                             animate={{ y: 0, opacity: 1 }}
                             exit={reduceMotion ? undefined : { y: -12, opacity: 0 }}
                             transition={{ duration: 0.18 }}
-                            className="absolute inset-0 font-medium"
+                            className="absolute inset-0 text-sm font-medium lg:text-base"
                           >
                             {qty}
                           </motion.span>
@@ -179,10 +181,10 @@ export function TicketTierSelector({
                         whileTap={reduceMotion ? undefined : { scale: 0.85 }}
                         onClick={() => updateQty(tier.id, 1, remaining)}
                         disabled={qty >= maxQty}
-                        className="focus-ring flex h-8 w-8 items-center justify-center rounded-full border border-border text-muted transition-colors hover:border-brand hover:text-foreground disabled:opacity-30"
+                        className="focus-ring flex h-7 w-7 items-center justify-center rounded-full border border-border text-muted transition-colors hover:border-brand hover:text-foreground disabled:opacity-30 lg:h-8 lg:w-8"
                         aria-label="Increase quantity"
                       >
-                        <Plus className="h-4 w-4" />
+                        <Plus className="h-3.5 w-3.5 lg:h-4 lg:w-4" />
                       </motion.button>
                     </div>
                   )}
@@ -193,13 +195,13 @@ export function TicketTierSelector({
         </div>
 
         {totalTickets >= MAX_CHECKOUT_TICKETS && !purchaseDisabled && (
-          <p className="mt-4 text-sm text-muted">
+          <p className="mt-3 text-xs text-muted lg:mt-4 lg:text-sm">
             Maximum {MAX_CHECKOUT_TICKETS} tickets per order.
           </p>
         )}
 
         {allSoldOut && (
-          <p className="mt-6 text-sm text-muted">
+          <p className="mt-4 text-xs text-muted lg:mt-6 lg:text-sm">
             All tiers are sold out for {eventTitle}.
           </p>
         )}
@@ -211,7 +213,11 @@ export function TicketTierSelector({
         totalLabel={totalLabel}
         subtitle={purchaseSubtitle}
         action={
-          <Button href={checkoutUrl} size="lg" className="whitespace-nowrap">
+          <Button
+            href={checkoutUrl}
+            size="lg"
+            className="whitespace-nowrap px-4 py-2.5 text-sm sm:px-6 sm:py-3 sm:text-base"
+          >
             Continue to checkout
           </Button>
         }
