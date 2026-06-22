@@ -63,7 +63,7 @@ export function FeaturedCarousel({ events }: FeaturedCarouselProps) {
       onBlur={() => setPaused(false)}
     >
       <div className="mx-auto max-w-[1440px] px-4 sm:px-6 lg:px-8">
-        <div className="relative aspect-[16/10] max-h-[min(72vh,680px)] min-h-[320px] w-full overflow-hidden rounded-[28px] bg-black sm:aspect-[16/9] sm:rounded-[32px]">
+        <div className="relative aspect-[4/5] max-h-[min(72vh,680px)] min-h-[320px] w-full overflow-hidden rounded-[28px] bg-black sm:aspect-[3/4] sm:rounded-[32px]">
           {events.map((event, index) => {
             const isActive = index === active;
             const soldOut = event.tiers.every(
@@ -88,11 +88,11 @@ export function FeaturedCarousel({ events }: FeaturedCarouselProps) {
                   alt=""
                   fill
                   priority={index === 0}
-                  className="carousel-photo object-cover object-center scale-[1.03]"
+                  className="carousel-photo object-contain object-center"
                   sizes="(max-width: 1440px) 100vw, 1440px"
                 />
 
-                <div className="carousel-grade pointer-events-none absolute inset-0" />
+                <div className="pointer-events-none absolute inset-x-0 bottom-0 h-[55%] bg-gradient-to-t from-black/90 via-black/45 to-transparent" />
                 <div className="carousel-bowl pointer-events-none absolute inset-x-0 bottom-0 h-[45%]" />
 
                 <div className="relative z-10 flex h-full flex-col justify-end px-6 pb-20 pt-16 sm:px-10 sm:pb-24 lg:px-12">
