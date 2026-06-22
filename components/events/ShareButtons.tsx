@@ -12,7 +12,7 @@ export function ShareButtons({ title }: ShareButtonsProps) {
 
   function shareWhatsApp() {
     const url = typeof window !== "undefined" ? window.location.href : "";
-    const text = `${title} — book on Tonti`;
+    const text = `${title}. Book on Tonti`;
     window.open(
       `https://wa.me/?text=${encodeURIComponent(`${text} ${url}`)}`,
       "_blank",

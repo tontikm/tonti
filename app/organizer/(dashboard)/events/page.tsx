@@ -73,7 +73,7 @@ export default async function OrganizerEventsPage({ searchParams }: Props) {
 
       {!supabaseReady && (
         <div className="mb-6 rounded-xl border border-white/20 bg-white/5 px-4 py-3 text-sm text-muted">
-          Supabase is not configured — new events cannot be saved yet. Add{" "}
+          Supabase is not configured. New events cannot be saved yet. Add{" "}
           <code className="text-foreground">SUPABASE_SERVICE_ROLE_KEY</code> to{" "}
           <code className="text-foreground">.env.local</code> and run the
           migration + seed script.

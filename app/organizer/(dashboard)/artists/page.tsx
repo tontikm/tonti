@@ -33,7 +33,7 @@ export default async function OrganizerArtistsPage({ searchParams }: Props) {
 
       {created === "1" && (
         <div className="mb-6 rounded-xl border border-white/20 bg-white/5 px-4 py-3 text-sm">
-          Artist added — select them when creating an event lineup.
+          Artist added. Select them when creating an event lineup.
         </div>
       )}
 

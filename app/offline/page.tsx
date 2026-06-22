@@ -13,7 +13,7 @@ export default function OfflinePage() {
       </div>
       <h1 className="mt-6 text-2xl font-bold">You&apos;re offline</h1>
       <p className="mt-3 text-muted">
-        Pages you&apos;ve already opened — including your tickets — still work
+        Pages you&apos;ve already opened, including your tickets, still work
         without a connection. Reconnect to browse new events.
       </p>
       <Link

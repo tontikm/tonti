@@ -29,7 +29,7 @@ export function OrganizerFanAuthNotice({
       <p className="mt-1 text-muted">
         Organizer login is for your dashboard only. To {fanAction}, sign out
         as organizer and sign in with a separate{" "}
-        <span className="text-foreground">fan account</span> — you can use the
+        <span className="text-foreground">fan account</span>. You can use the
         same email if you registered both ways.
       </p>
       <div className="mt-3 flex flex-wrap items-center gap-3">

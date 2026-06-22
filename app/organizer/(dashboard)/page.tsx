@@ -65,7 +65,7 @@ export default async function OrganizerDashboardPage() {
           <Link href="/organizer/profile/edit" className="font-medium underline">
             organizer profile
           </Link>{" "}
-          — add a public slug and invoice address before your first paid event.
+          add a public slug and invoice address before your first paid event.
         </div>
       )}
 

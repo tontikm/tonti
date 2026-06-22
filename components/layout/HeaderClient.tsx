@@ -43,7 +43,7 @@ function HeaderLogo({
       <Link
         href={brand.href}
         className="group flex max-w-[160px] items-center sm:max-w-[200px]"
-        aria-label={`${brand.name} — event home`}
+        aria-label={`${brand.name}, event home`}
       >
         <Image
           src={brand.logo}

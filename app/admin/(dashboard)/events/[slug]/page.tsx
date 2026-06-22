@@ -51,7 +51,7 @@ export default async function AdminEventSalesPage({ params }: Props) {
       </Link>
 
       <AdminPageHeader
-        title={`${event.title} — sales`}
+        title={`${event.title} · sales`}
         description={`${formatDateRange(event.date, event.endDate)} · Show ${formatEventTime(event.showTime)} · ${status === "ended" ? "Final" : "Live"}${event.organizerName ? ` · ${event.organizerName}` : ""}`}
         action={
           <Link
@@ -199,7 +199,7 @@ export default async function AdminEventSalesPage({ params }: Props) {
                     <td className="px-4 py-4 font-mono text-amber-200/90">
                       {isConfirmed ? (
                         feeMissing ? (
-                          <span title="Legacy order — run migration 0022 or check fee">
+                          <span title="Legacy order. Run migration 0022 or check fee">
                             {formatPrice(order.serviceFee)} ⚠
                           </span>
                         ) : (

@@ -36,7 +36,7 @@ export default async function NewOrganizerEventPage() {
 
       {!supabaseReady && (
         <div className="mb-6 rounded-xl border border-white/20 bg-white/5 px-4 py-3 text-sm text-muted">
-          Connect Supabase before publishing — the wizard is available for
+          Connect Supabase before publishing. The wizard is available for
           preview, but submissions will fail until{" "}
           <code className="text-foreground">SUPABASE_SERVICE_ROLE_KEY</code> is
           set.

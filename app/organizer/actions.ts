@@ -1104,7 +1104,7 @@ export async function updateEvent(
     const sold = soldById.get(tier.id) ?? 0;
     if (sold > tier.capacity) {
       return {
-        error: `"${tier.name}" has ${sold} tickets sold — capacity cannot be below that.`,
+        error: `"${tier.name}" has ${sold} tickets sold. Capacity cannot be below that.`,
       };
     }
   }

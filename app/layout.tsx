@@ -25,11 +25,11 @@ const pressStart = Press_Start_2P({
 
 export const metadata: Metadata = {
   title: {
-    default: "Tonti — Live Music Tickets in South Africa",
+    default: "Tonti | Live Music Tickets in South Africa",
     template: "%s | Tonti",
   },
   description:
-    "Discover and book tickets to the best live music in South Africa. Concerts, festivals, and club nights — music only.",
+    "Discover and book tickets to the best live music in South Africa. Concerts, festivals, and club nights. Music only.",
   keywords: [
     "tickets",
     "concerts",

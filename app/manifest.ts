@@ -2,7 +2,7 @@ import type { MetadataRoute } from "next";
 
 export default function manifest(): MetadataRoute.Manifest {
   return {
-    name: "Tonti — Live Music Tickets",
+    name: "Tonti | Live Music Tickets",
     short_name: "Tonti",
     description:
       "Discover and book tickets to the best live music in South Africa. Your tickets work offline at the door.",

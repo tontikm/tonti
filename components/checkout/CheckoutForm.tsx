@@ -51,7 +51,7 @@ export function CheckoutForm({
       ? "Confirm free tickets"
       : payfastEnabled
         ? "Continue to Payfast"
-        : "Confirm order — pay at door";
+        : "Confirm order (pay at door)";
 
   const purchaseSubtitle = isFree
     ? "R0 due now"
@@ -173,7 +173,7 @@ export function CheckoutForm({
         <h2 className="text-lg font-semibold">Payment</h2>
         {isFree ? (
           <p className="mt-2 text-sm text-muted">
-            This order is free. No payment step — confirm below to receive your
+            This order is free. No payment step. Confirm below to receive your
             QR tickets instantly.
           </p>
         ) : payfastEnabled ? (
@@ -185,7 +185,7 @@ export function CheckoutForm({
           <div className="mt-2 space-y-2 text-sm text-muted">
             <p>
               Online payment is not enabled yet. Confirm below to receive QR
-              tickets — pay the organizer at the door or as instructed.
+              tickets. Pay the organizer at the door or as instructed.
             </p>
           </div>
         )}

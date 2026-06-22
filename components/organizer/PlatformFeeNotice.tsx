@@ -29,7 +29,7 @@ export function PlatformFeeNotice({
             </p>
             <p className="mt-1 text-sm text-muted">
               Fans pay your listed ticket price. The {feePercent}% fee applies
-              only to paid tiers — free RSVPs are excluded — and is deducted
+              only to paid tiers. Free RSVPs are excluded, and the fee is deducted
               from your side, not added to the fan&apos;s price.
             </p>
           </div>

@@ -59,7 +59,7 @@ export default async function HomePage() {
             </h2>
             <p className="mt-3 text-muted">
               List your music event on Tonti. Set tiers, track sales, and scan
-              tickets at the door — built for SA promoters, venues, and artists.
+              tickets at the door, built for SA promoters, venues, and artists.
             </p>
             <div className="mt-8">
               <Button href="/for-organizers" size="lg">

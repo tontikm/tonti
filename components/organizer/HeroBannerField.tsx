@@ -20,7 +20,7 @@ export function HeroBannerField({
         Homepage hero banner (optional)
       </label>
       <p className="mb-3 text-xs text-muted">
-        Wide landscape image recommended — 16:9 (e.g. 1920×1080). Used
+        Wide landscape image recommended (16:9, e.g. 1920×1080). Used
         full-bleed on the homepage carousel. Your poster is still used on the
         event page.
       </p>

@@ -105,7 +105,7 @@ export function ArtistForm() {
           placeholder="https://images.unsplash.com/…"
         />
         <p className="mt-1 text-xs text-muted">
-          Optional — defaults to a stock photo if left blank
+          Optional. Defaults to a stock photo if left blank
         </p>
       </div>
 

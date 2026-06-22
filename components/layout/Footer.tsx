@@ -19,7 +19,7 @@ export function Footer() {
             />
             <p className="mt-4 max-w-sm text-sm leading-relaxed text-muted">
               South Africa&apos;s home for live music. Discover gigs, festivals,
-              and club nights — every moment matters.
+              and club nights. Every moment matters.
             </p>
             <div className="mt-6">
               <SocialLinks />

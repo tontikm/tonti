@@ -52,7 +52,7 @@ export function CheckoutSummary({
           <p className="flex items-center gap-2 text-amber-200/90">
             <ShieldAlert className="h-4 w-4 shrink-0" />
             {isAdultsOnlyAge(event.ageLimit, event.ageMax)
-              ? `${formatAgeRange(event.ageLimit, event.ageMax)} · Adults only — ID may be required`
+              ? `${formatAgeRange(event.ageLimit, event.ageMax)} · Adults only. ID may be required`
               : `${formatAgeRange(event.ageLimit, event.ageMax)} age limit`}
           </p>
         )}
@@ -101,7 +101,7 @@ export function CheckoutSummary({
           <p className="mt-3 text-xs text-muted">
             {payfastEnabled
               ? "You'll pay securely via Payfast. QR tickets are issued after payment confirms."
-              : "No online payment on this checkout — settle at the venue unless the organizer states otherwise."}
+              : "No online payment on this checkout. Settle at the venue unless the organizer states otherwise."}
           </p>
         )}
       </div>

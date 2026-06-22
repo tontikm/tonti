@@ -22,7 +22,7 @@ export function TicketWhatsAppActions({
       <h2 className="text-lg font-semibold">Get tickets on WhatsApp</h2>
       {buyerPhone ? (
         <p className="mt-2 text-sm text-muted">
-          We saved your number — tap below to send your tickets.
+          We saved your number. Tap below to send your tickets.
         </p>
       ) : (
         <p className="mt-2 text-sm text-muted">

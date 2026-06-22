@@ -60,7 +60,7 @@ export function CheckoutExperience({
           role="status"
           className="mt-4 flex items-start justify-between gap-3 rounded-xl border border-amber-500/30 bg-amber-500/10 px-4 py-3 text-sm text-amber-100"
         >
-          <p>Payment was cancelled. Your tickets were not charged — try again when ready.</p>
+          <p>Payment was cancelled. Your tickets were not charged. Try again when ready.</p>
           <button
             type="button"
             onClick={() => setShowCancelledNotice(false)}
@@ -80,7 +80,7 @@ export function CheckoutExperience({
             ? "Review your order, then continue to Payfast for secure payment."
             : "Review your order and confirm your tickets."
           : organizerEmail
-            ? "You're signed in as an organizer — use a fan account below to complete this order."
+            ? "You're signed in as an organizer. Use a fan account below to complete this order."
             : "Sign in or create an account to complete your order."}
       </p>
 

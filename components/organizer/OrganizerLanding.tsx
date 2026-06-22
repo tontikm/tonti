@@ -41,7 +41,7 @@ const PILLARS = [
     icon: CalendarDays,
     title: "Event setup",
     description:
-      "Posters, categories, lineups, venues, and artists — everything you need to publish a show.",
+      "Posters, categories, lineups, venues, and artists. Everything you need to publish a show.",
     iconBg: "bg-pink-500/20 text-pink-200",
     topLine: "from-pink-500/60 to-transparent",
     glow: "from-pink-500/15 to-transparent",
@@ -65,9 +65,9 @@ const SECTIONS = [
     border: "border-l-violet-500",
     bullets: [
       "Create events with dates, venues, and lineups",
-      "Choose a category — nightlife, festival, music, or lifestyle",
+      "Choose a category: nightlife, festival, music, or lifestyle",
       "Set ticket tiers with capacity and pricing",
-      "Appear in Tonti discovery — homepage, categories, and cities",
+      "Appear in Tonti discovery: homepage, categories, and cities",
     ],
   },
   {
@@ -130,7 +130,7 @@ export function OrganizerLanding({ heroEvents }: OrganizerLandingProps) {
             </h1>
             <p className="mt-6 max-w-xl text-lg leading-relaxed text-muted">
               Built for South African promoters, venues, and artists. List events,
-              sell tickets, and scan guests at the door — all in one place.
+              sell tickets, and scan guests at the door, all in one place.
             </p>
             <OrganizerCtas className="mt-8" />
           </div>
@@ -238,7 +238,7 @@ export function OrganizerLanding({ heroEvents }: OrganizerLandingProps) {
                 Ready to list your next event?
               </h2>
               <p className="mt-4 text-muted">
-                Create your organizer account in minutes. No setup fees — see
+                Create your organizer account in minutes. No setup fees. See
                 pricing above.
               </p>
               <OrganizerCtas className="mt-8 justify-center" />

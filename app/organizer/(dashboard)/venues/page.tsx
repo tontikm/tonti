@@ -31,7 +31,7 @@ export default async function OrganizerVenuesPage({ searchParams }: Props) {
 
       {created === "1" && (
         <div className="mb-6 rounded-xl border border-white/20 bg-white/5 px-4 py-3 text-sm">
-          Venue added — it&apos;s now available in the event form.
+          Venue added. It&apos;s now available in the event form.
         </div>
       )}
 

@@ -52,7 +52,7 @@ export default async function OrganizerEventReportPage({ params }: Props) {
           Back to event hub
         </Link>
         <OrganizerPageHeader
-          title={`${event.title} — report`}
+          title={`${event.title} · report`}
           description={`${formatDateRange(event.date, event.endDate)} · Show ${formatEventTime(event.showTime)} · ${status === "ended" ? "Final" : "Live"}`}
           action={
             <div className="flex flex-wrap gap-2">
@@ -67,7 +67,7 @@ export default async function OrganizerEventReportPage({ params }: Props) {
       </div>
 
       <div className="hidden print:mb-6 print:block">
-        <h1 className="text-2xl font-bold">{event.title} — event report</h1>
+        <h1 className="text-2xl font-bold">{event.title} · event report</h1>
         <p className="mt-1 text-sm text-muted">
           {formatDateRange(event.date, event.endDate)} · Show{" "}
           {formatEventTime(event.showTime)}

@@ -95,7 +95,7 @@ export default async function EditOrganizerEventPage({
 
       {!supabaseReady && (
         <div className="mb-6 rounded-xl border border-white/20 bg-white/5 px-4 py-3 text-sm text-muted">
-          Connect Supabase before saving changes — add{" "}
+          Connect Supabase before saving changes. Add{" "}
           <code className="text-foreground">SUPABASE_SERVICE_ROLE_KEY</code> to{" "}
           <code className="text-foreground">.env.local</code>.
         </div>

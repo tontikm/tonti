@@ -63,7 +63,7 @@ export default async function AdminOrganizerDetailPage({ params }: Props) {
 
       <div className="hidden print:mb-6 print:block">
         <h1 className="text-2xl font-bold">
-          Tonti — organizer statement
+          Tonti organizer statement
         </h1>
         <p className="mt-1 text-lg font-medium">{summary.name ?? summary.email}</p>
         <p className="text-sm text-muted">

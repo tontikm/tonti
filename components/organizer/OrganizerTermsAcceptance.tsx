@@ -56,7 +56,7 @@ export function OrganizerTermsAcceptance({
           </Link>
           . I confirm I have authority to list this event and that the
           information is accurate. I understand Tonti charges a 3% platform fee
-          per paid ticket (free RSVPs excluded), deducted from my side — not
+          per paid ticket (free RSVPs excluded), deducted from my side, not
           added to the fan&apos;s price.
         </span>
       </label>

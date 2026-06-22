@@ -82,8 +82,8 @@ export function TicketTierSelector({
   const totalLabel = totalPrice === 0 ? "Free" : formatPrice(totalPrice);
   const purchaseSubtitle =
     totalPrice === 0
-      ? "Free RSVP — no payment required"
-      : "Pay at the door — online payment coming soon";
+      ? "Free RSVP. No payment required"
+      : "Pay at the door. Online payment coming soon";
 
   return (
     <>

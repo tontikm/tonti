@@ -45,7 +45,7 @@ export function TicketEventHero({ event, order }: TicketEventHeroProps) {
               <p className="flex items-center gap-2 text-amber-200/90">
                 <ShieldAlert className="h-4 w-4 shrink-0" />
                 {isAdultsOnlyAge(event.ageLimit, event.ageMax)
-                  ? `${formatAgeRange(event.ageLimit, event.ageMax)} · Adults only — ID may be required`
+                  ? `${formatAgeRange(event.ageLimit, event.ageMax)} · Adults only. ID may be required`
                   : `${formatAgeRange(event.ageLimit, event.ageMax)} age limit`}
               </p>
             )}
@@ -73,7 +73,7 @@ export function TicketEventHero({ event, order }: TicketEventHeroProps) {
             </p>
             {order.totalAmount > 0 && (
               <p className="mt-1 text-xs text-amber-200/90">
-                Pay at the door — no online charge today
+                Pay at the door. No online charge today
               </p>
             )}
           </div>
