@@ -3,6 +3,7 @@ import { AdminFeaturedToggle } from "@/components/admin/AdminFeaturedToggle";
 import { AdminPageHeader } from "@/components/admin/AdminShell";
 import { OrganizerStatusBadge } from "@/components/admin/OrganizerStatusBadge";
 import { listAdminEvents } from "@/lib/admin/data";
+import { isFeeIncomplete } from "@/lib/payments/order-revenue";
 import { formatDateRange, formatPrice } from "@/lib/utils";
 
 export const metadata = {
@@ -45,6 +46,17 @@ export default async function AdminEventsPage() {
                   <tr key={event.slug} className="bg-surface/20">
                     <td className="px-4 py-4">
                       <p className="font-medium">{event.title}</p>
+                      {isFeeIncomplete(
+                        event.sales.grossRevenue,
+                        event.sales.platformFee,
+                      ) && (
+                        <Link
+                          href={`/admin/events/${event.slug}`}
+                          className="mt-1 inline-block rounded-full bg-amber-500/20 px-2 py-0.5 text-[10px] font-medium uppercase tracking-wide text-amber-200 hover:bg-amber-500/30"
+                        >
+                          Fee incomplete
+                        </Link>
+                      )}
                       {event.isPubliclyVisible ? (
                         <Link
                           href={`/events/${event.slug}`}

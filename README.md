@@ -110,6 +110,8 @@ Run migrations **in order** in the Supabase SQL editor:
 | [`0019_event_hero_image.sql`](supabase/migrations/0019_event_hero_image.sql) | Optional wide homepage carousel hero image |
 | [`0020_platform_admins.sql`](supabase/migrations/0020_platform_admins.sql) | Platform admin accounts |
 | [`0021_organizer_approval.sql`](supabase/migrations/0021_organizer_approval.sql) | Organizer pending/approved/suspended status |
+| [`0022_backfill_service_fee.sql`](supabase/migrations/0022_backfill_service_fee.sql) | Backfill `service_fee` on legacy confirmed orders |
+| [`0023_organizer_payouts.sql`](supabase/migrations/0023_organizer_payouts.sql) | Manual EFT payout tracking for organizers |
 
 Then:
 
@@ -192,7 +194,7 @@ Each `git push` to `main` triggers a new production deploy. Local `npm run dev` 
 
 See **[`docs/LAUNCH.md`](docs/LAUNCH.md)** for the full step-by-step launch guide.
 
-1. Run all migrations on production Supabase (through `0021_organizer_approval.sql`).
+1. Run all migrations on production Supabase (through `0023_organizer_payouts.sql`).
 2. Set env vars on Vercel — see `.env.example`.
 3. Add production URL + `/auth/callback` to Supabase Auth redirect URLs.
 4. Add Payfast notify URL (if using online payments): `https://your-domain.co.za/api/payments/payfast/notify`

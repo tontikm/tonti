@@ -1,3 +1,5 @@
+import { SERVICE_FEE_RATE } from "@/lib/payments/service-fee";
+
 /** Revenue breakdown for a single order row or amounts object. */
 
 export type OrderRevenueInput = {
@@ -57,4 +59,19 @@ export function revenueFromDbRow(row: {
     collected: collectedAmount(amounts),
     organizerNet: organizerNetFromOrder(amounts),
   };
+}
+
+/** True when a paid order is missing the expected platform fee (legacy data). */
+export function isFeeIncomplete(
+  collected: number,
+  platformFee: number,
+): boolean {
+  if (collected <= 0) return false;
+  const expected = roundCurrency(collected * SERVICE_FEE_RATE);
+  return platformFee < expected - 0.01;
+}
+
+export function expectedPlatformFee(collected: number): number {
+  if (collected <= 0) return 0;
+  return roundCurrency(collected * SERVICE_FEE_RATE);
 }

@@ -6,7 +6,9 @@ Use this after code is deployed to Vercel. Complete each section in order.
 
 Run every file in [`supabase/migrations/`](../supabase/migrations/) **in numeric order** in the Supabase SQL editor:
 
-`0001` through `0021` (includes demo event cleanup `0016`–`0018`, orders/tickets RLS `0017`, homepage hero image `0019`, platform admins `0020`, and organizer approval `0021`).
+`0001` through `0023` (includes demo event cleanup `0016`–`0018`, orders/tickets RLS `0017`, homepage hero image `0019`, platform admins `0020`, organizer approval `0021`, service fee backfill `0022`, and organizer payouts `0023`).
+
+After deploying, run **`0022_backfill_service_fee.sql`** once to fix legacy orders with `service_fee = 0`. Optionally run **`0023_organizer_payouts.sql`** to track manual EFT payouts in `/admin/payouts`.
 
 Then create real events at `/organizer/events/new` **or** seed:
 
@@ -45,6 +47,7 @@ Sign in at `/admin/login` on your deployed site. From there you can:
 - Approve or suspend organizers (`/admin/organizers`)
 - Feature events on the homepage (`/admin/events`)
 - Review orders and platform fees (`/admin/orders`)
+- Export organizer payout CSV and record EFT (`/admin/payouts`)
 
 New organizers register as **pending** — they can use the organizer dashboard, but their events stay hidden until you approve them.
 

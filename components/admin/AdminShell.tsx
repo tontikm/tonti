@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import Image from "next/image";
 import {
+  Banknote,
   Calendar,
   LayoutDashboard,
   LogOut,
@@ -26,6 +27,7 @@ const NAV = [
   { href: "/admin", label: "Overview", icon: LayoutDashboard, exact: true },
   { href: "/admin/organizers", label: "Organizers", icon: Users },
   { href: "/admin/events", label: "Events", icon: Calendar },
+  { href: "/admin/payouts", label: "Payouts", icon: Banknote },
   { href: "/admin/orders", label: "Orders", icon: ShoppingBag },
 ];
 

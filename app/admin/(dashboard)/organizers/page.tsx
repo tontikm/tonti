@@ -94,6 +94,12 @@ export default async function AdminOrganizersPage({ searchParams }: Props) {
                         /organizers/{org.slug}
                       </Link>
                     )}
+                    <Link
+                      href={`/admin/organizers/${org.id}`}
+                      className="mt-1 block text-xs text-amber-200 underline-offset-4 hover:underline"
+                    >
+                      Statement
+                    </Link>
                   </td>
                   <td className="px-4 py-4">
                     <OrganizerStatusBadge status={org.status} />

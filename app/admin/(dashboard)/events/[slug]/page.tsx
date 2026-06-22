@@ -177,8 +177,15 @@ export default async function AdminEventSalesPage({ params }: Props) {
                   totalAmount: order.totalAmount,
                   serviceFee: order.serviceFee,
                 });
+                const feeMissing =
+                  isConfirmed &&
+                  order.totalAmount > 0 &&
+                  order.serviceFee === 0;
                 return (
-                  <tr key={order.id} className="bg-surface/20">
+                  <tr
+                    key={order.id}
+                    className={feeMissing ? "bg-amber-950/20" : "bg-surface/20"}
+                  >
                     <td className="px-4 py-4">
                       <p className="font-medium">{order.buyerName}</p>
                       <p className="text-xs text-muted">{order.buyerEmail}</p>
@@ -190,7 +197,17 @@ export default async function AdminEventSalesPage({ params }: Props) {
                       {isConfirmed ? formatPrice(gross) : "—"}
                     </td>
                     <td className="px-4 py-4 font-mono text-amber-200/90">
-                      {isConfirmed ? formatPrice(order.serviceFee) : "—"}
+                      {isConfirmed ? (
+                        feeMissing ? (
+                          <span title="Legacy order — run migration 0022 or check fee">
+                            {formatPrice(order.serviceFee)} ⚠
+                          </span>
+                        ) : (
+                          formatPrice(order.serviceFee)
+                        )
+                      ) : (
+                        "—"
+                      )}
                     </td>
                     <td className="px-4 py-4 font-mono">
                       {isConfirmed ? formatPrice(organizerNet) : "—"}

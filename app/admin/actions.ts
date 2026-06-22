@@ -27,6 +27,7 @@ function revalidateAdminPaths() {
   revalidatePath("/admin/organizers");
   revalidatePath("/admin/events", "layout");
   revalidatePath("/admin/orders");
+  revalidatePath("/admin/payouts");
   revalidatePath("/");
   revalidatePath("/events");
 }
@@ -157,4 +158,57 @@ function isMissingStatusColumn(error: { message?: string }): boolean {
     error.message?.includes("status") &&
       error.message?.includes("column"),
   );
+}
+
+export async function recordOrganizerPayout(
+  _prev: AdminActionState,
+  formData: FormData,
+): Promise<AdminActionState> {
+  const session = await requireAdminSession();
+  if ("error" in session) return session;
+
+  const organizerId = String(formData.get("organizerId") ?? "").trim();
+  const amountRaw = String(formData.get("amount") ?? "").trim();
+  const paidAtRaw = String(formData.get("paidAt") ?? "").trim();
+  const reference = String(formData.get("reference") ?? "").trim() || null;
+  const notes = String(formData.get("notes") ?? "").trim() || null;
+
+  if (!organizerId) {
+    return { error: "Missing organizer." };
+  }
+
+  const amount = Number(amountRaw);
+  if (!Number.isFinite(amount) || amount <= 0) {
+    return { error: "Enter a valid payout amount." };
+  }
+
+  const paidAt = paidAtRaw
+    ? new Date(`${paidAtRaw}T12:00:00`).toISOString()
+    : new Date().toISOString();
+
+  const supabase = getSupabaseAdmin();
+  if (!supabase) return { error: "Supabase is not configured." };
+
+  const { error } = await supabase.from("organizer_payouts").insert({
+    organizer_id: organizerId,
+    amount: Math.round(amount * 100) / 100,
+    paid_at: paidAt,
+    reference,
+    notes,
+  });
+
+  if (error) {
+    if (error.message.includes("Could not find the table")) {
+      return {
+        error:
+          "Run supabase/migrations/0023_organizer_payouts.sql in the Supabase SQL editor.",
+      };
+    }
+    return { error: error.message };
+  }
+
+  revalidateAdminPaths();
+  revalidatePath(`/admin/organizers/${organizerId}`);
+
+  return { success: `Recorded payout of R${amount.toFixed(2)}.` };
 }

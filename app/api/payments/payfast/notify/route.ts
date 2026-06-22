@@ -105,6 +105,7 @@ export async function POST(request: Request) {
   await supabase
     .from("orders")
     .update({
+      status: "confirmed",
       payment_reference: payload.pf_payment_id ?? null,
     })
     .eq("id", orderId);
@@ -115,6 +116,10 @@ export async function POST(request: Request) {
   revalidatePath("/events");
   revalidatePath("/");
   revalidatePath("/account");
+  revalidatePath("/admin", "layout");
+  revalidatePath("/admin/events", "layout");
+  revalidatePath("/admin/orders");
+  revalidatePath("/admin/payouts");
 
   return new Response("OK");
 }

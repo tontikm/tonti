@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { AdminPageHeader } from "@/components/admin/AdminShell";
 import { getPlatformDashboardStats } from "@/lib/admin/stats";
+import { getOrganizerPayoutSummaries } from "@/lib/admin/payouts";
 import { formatPrice } from "@/lib/utils";
 
 export const metadata = {
@@ -9,7 +10,14 @@ export const metadata = {
 };
 
 export default async function AdminOverviewPage() {
-  const stats = await getPlatformDashboardStats();
+  const [stats, payoutSummaries] = await Promise.all([
+    getPlatformDashboardStats(),
+    getOrganizerPayoutSummaries(),
+  ]);
+
+  const totalOwedToOrganizers = payoutSummaries
+    .filter((row) => row.status === "approved")
+    .reduce((sum, row) => sum + row.organizerOwed, 0);
 
   const cards = [
     {
@@ -52,6 +60,11 @@ export default async function AdminOverviewPage() {
       label: "Organizer share (all events)",
       value: formatPrice(stats.totalOrganizerNet),
       href: "/admin/orders",
+    },
+    {
+      label: "Owed to organizers",
+      value: formatPrice(totalOwedToOrganizers),
+      href: "/admin/payouts",
     },
     {
       label: "Suspended organizers",
