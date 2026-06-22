@@ -39,12 +39,12 @@ export default async function AdminOverviewPage() {
       href: "/admin/orders",
     },
     {
-      label: "Platform fees (confirmed)",
+      label: "Platform fees (all events)",
       value: formatPrice(stats.totalServiceFee),
       href: "/admin/orders",
     },
     {
-      label: "Gross ticket revenue",
+      label: "Gross revenue (all events)",
       value: formatPrice(stats.totalGrossRevenue),
       href: "/admin/orders",
     },

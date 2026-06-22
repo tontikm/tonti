@@ -1,6 +1,13 @@
 import { cache } from "react";
 import { getSupabaseAdmin } from "@/lib/supabase/admin";
 import { isMissingColumnError } from "@/lib/supabase/errors";
+import {
+  EMPTY_EVENT_SALES,
+  getAdminEventSalesSummaries,
+  type AdminEventSalesSummary,
+} from "@/lib/admin/sales";
+
+export type { AdminEventSalesSummary };
 
 export type OrganizerStatus = "pending" | "approved" | "suspended";
 
@@ -38,6 +45,7 @@ export type AdminEventRow = {
   organizerName: string | null;
   organizerStatus: OrganizerStatus | null;
   isPubliclyVisible: boolean;
+  sales: AdminEventSalesSummary;
 };
 
 const loadApprovedOrganizerIds = cache(async (): Promise<Set<string>> => {
@@ -118,7 +126,10 @@ export async function listAdminEvents(): Promise<AdminEventRow[]> {
   const supabase = getSupabaseAdmin();
   if (!supabase) return [];
 
-  const approvedIds = await getApprovedOrganizerIds();
+  const [approvedIds, salesBySlug] = await Promise.all([
+    getApprovedOrganizerIds(),
+    getAdminEventSalesSummaries(),
+  ]);
 
   const { data: events, error } = await supabase
     .from("events")
@@ -155,9 +166,10 @@ export async function listAdminEvents(): Promise<AdminEventRow[]> {
     const organizerStatus = organizerId
       ? (statusByOrganizerId.get(organizerId) ?? null)
       : null;
+    const slug = row.slug as string;
 
     return {
-      slug: row.slug as string,
+      slug,
       title: row.title as string,
       date: row.date as string,
       featured: Boolean(row.featured),
@@ -168,21 +180,31 @@ export async function listAdminEvents(): Promise<AdminEventRow[]> {
         { organizerId },
         approvedIds,
       ),
+      sales: salesBySlug.get(slug) ?? { ...EMPTY_EVENT_SALES },
     };
   });
 }
 
-export async function listAdminOrders(limit = 100): Promise<AdminOrderRow[]> {
+export async function listAdminOrders(
+  limit = 100,
+  eventSlug?: string,
+): Promise<AdminOrderRow[]> {
   const supabase = getSupabaseAdmin();
   if (!supabase) return [];
 
-  const { data, error } = await supabase
+  let query = supabase
     .from("orders")
     .select(
       "id, event_slug, buyer_name, buyer_email, total_amount, subtotal_amount, service_fee, status, payment_provider, payment_reference, ticket_count, created_at",
     )
     .order("created_at", { ascending: false })
     .limit(limit);
+
+  if (eventSlug) {
+    query = query.eq("event_slug", eventSlug);
+  }
+
+  const { data, error } = await query;
 
   if (error || !data) return [];
 
