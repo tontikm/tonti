@@ -23,6 +23,8 @@ export type EventWizardState = {
   description: string;
   posterFile: File | null;
   posterPreview: string | null;
+  heroBannerFile: File | null;
+  heroBannerPreview: string | null;
   showDate: string;
   showTime: string;
   endDate: string;

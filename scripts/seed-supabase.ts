@@ -75,6 +75,7 @@ async function seed() {
     subtitle: e.subtitle ?? null,
     description: e.description,
     image: e.image,
+    hero_image: null,
     date: e.date,
     end_date: e.endDate ?? null,
     doors_time: e.doorsTime,

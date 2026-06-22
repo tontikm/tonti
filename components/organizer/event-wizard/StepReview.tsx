@@ -10,6 +10,7 @@ import {
   Tag,
   Ticket,
 } from "lucide-react";
+import { HeroBannerField } from "@/components/organizer/HeroBannerField";
 import { OrganizerTermsAcceptance } from "@/components/organizer/OrganizerTermsAcceptance";
 import { PlatformFeeNotice } from "@/components/organizer/PlatformFeeNotice";
 import { getCategoryLabel } from "@/lib/data/categories";
@@ -224,6 +225,21 @@ export function StepReview({ state, defaults, onChange }: StepReviewProps) {
           Feature on homepage carousel
         </span>
       </label>
+
+      {state.featured && (
+        <HeroBannerField
+          previewUrl={state.heroBannerPreview}
+          onFileChange={(file) => {
+            if (state.heroBannerPreview) {
+              URL.revokeObjectURL(state.heroBannerPreview);
+            }
+            onChange({
+              heroBannerFile: file ?? null,
+              heroBannerPreview: file ? URL.createObjectURL(file) : null,
+            });
+          }}
+        />
+      )}
 
       <OrganizerTermsAcceptance
         checked={state.acceptedTerms}

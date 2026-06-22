@@ -9,6 +9,7 @@ export function buildEventFormData(state: EventWizardState): FormData {
   if (state.subtitle) fd.set("subtitle", state.subtitle);
   fd.set("description", state.description);
   if (state.posterFile) fd.set("poster", state.posterFile);
+  if (state.heroBannerFile) fd.set("heroBanner", state.heroBannerFile);
 
   const showDateTime =
     state.showDate && state.showTime

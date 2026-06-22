@@ -21,6 +21,8 @@ export function useEventWizardState(defaults: OrganizerWizardDefaults) {
     description: "",
     posterFile: null,
     posterPreview: null,
+    heroBannerFile: null,
+    heroBannerPreview: null,
     showDate: show.date,
     showTime: show.time,
     endDate: "",

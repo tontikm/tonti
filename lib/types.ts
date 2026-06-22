@@ -133,6 +133,8 @@ export type Event = {
   subtitle?: string;
   description: string;
   image: string;
+  /** Wide landscape banner for homepage carousel when featured. */
+  heroImage?: string | null;
   date: string;
   doorsTime: string;
   showTime: string;

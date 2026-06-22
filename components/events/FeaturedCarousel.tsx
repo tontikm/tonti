@@ -18,6 +18,19 @@ type FeaturedCarouselProps = {
 
 const AUTOPLAY_MS = 6000;
 
+function getCarouselSlide(event: Event) {
+  if (event.heroImage) {
+    return {
+      mode: "hero" as const,
+      src: getSafeEventImageUrl(event.heroImage),
+    };
+  }
+  return {
+    mode: "poster" as const,
+    src: getSafeEventImageUrl(event.image),
+  };
+}
+
 export function FeaturedCarousel({ events }: FeaturedCarouselProps) {
   const [active, setActive] = useState(0);
   const [paused, setPaused] = useState(false);
@@ -63,15 +76,43 @@ export function FeaturedCarousel({ events }: FeaturedCarouselProps) {
       onBlur={() => setPaused(false)}
     >
       <div className="mx-auto max-w-[1440px] px-4 sm:px-6 lg:px-8">
-        <div className="relative aspect-[4/5] max-h-[min(72vh,680px)] min-h-[320px] w-full overflow-hidden rounded-[28px] bg-black sm:aspect-[3/4] sm:rounded-[32px]">
+        <div className="relative aspect-[16/10] max-h-[min(70vh,720px)] min-h-[320px] w-full overflow-hidden rounded-[28px] bg-black sm:aspect-[16/9] sm:rounded-[32px]">
           {events.map((event, index) => {
             const isActive = index === active;
+            const slide = getCarouselSlide(event);
             const soldOut = event.tiers.every(
               (t) => getTicketsRemaining(t) === 0,
             );
             const dateLine = event.endDate
               ? formatDateRange(event.date, event.endDate)
               : `${formatDateRange(event.date)} · ${formatEventTime(event.showTime)} SAST`;
+
+            const copyBlock = (
+              <>
+                {event.subtitle && (
+                  <p className="mb-2 text-sm font-medium uppercase tracking-[0.18em] text-white/70 sm:text-base">
+                    {event.subtitle}
+                  </p>
+                )}
+
+                <h2 className="text-3xl font-bold leading-[1.05] tracking-tight text-white sm:text-4xl lg:text-5xl">
+                  {event.title}
+                </h2>
+
+                <p className="mt-3 max-w-2xl text-sm leading-relaxed text-white/75 sm:text-base">
+                  {event.venue.name}, {event.venue.city} · {dateLine}
+                </p>
+
+                <div className="mt-6">
+                  <Link
+                    href={`/events/${event.slug}`}
+                    className="inline-flex rounded-full bg-white px-6 py-3 text-sm font-semibold text-black transition-opacity hover:opacity-90"
+                  >
+                    {soldOut ? "View event" : "Get tickets"}
+                  </Link>
+                </div>
+              </>
+            );
 
             return (
               <div
@@ -83,52 +124,47 @@ export function FeaturedCarousel({ events }: FeaturedCarouselProps) {
                     : "pointer-events-none z-0 opacity-0"
                 }`}
               >
-                <Image
-                  src={getSafeEventImageUrl(event.image)}
-                  alt=""
-                  fill
-                  aria-hidden
-                  className="carousel-backdrop object-cover object-center"
-                  sizes="(max-width: 1440px) 100vw, 1440px"
-                />
-                <Image
-                  src={getSafeEventImageUrl(event.image)}
-                  alt=""
-                  fill
-                  priority={index === 0}
-                  className="carousel-photo relative z-[1] object-contain object-center"
-                  sizes="(max-width: 1440px) 100vw, 1440px"
-                />
-
-                <div className="pointer-events-none absolute inset-x-0 bottom-0 z-[2] h-[55%] bg-gradient-to-t from-black/90 via-black/45 to-transparent" />
-                <div className="carousel-bowl pointer-events-none absolute inset-x-0 bottom-0 z-[2] h-[45%]" />
-
-                <div className="relative z-10 flex h-full flex-col justify-end px-6 pb-20 pt-16 sm:px-10 sm:pb-24 lg:px-12">
-                  <div className="max-w-3xl">
-                    {event.subtitle && (
-                      <p className="mb-2 text-sm font-medium uppercase tracking-[0.18em] text-white/70 sm:text-base">
-                        {event.subtitle}
-                      </p>
-                    )}
-
-                    <h2 className="text-3xl font-bold leading-[1.05] tracking-tight text-white sm:text-4xl lg:text-5xl">
-                      {event.title}
-                    </h2>
-
-                    <p className="mt-3 max-w-2xl text-sm leading-relaxed text-white/75 sm:text-base">
-                      {event.venue.name}, {event.venue.city} · {dateLine}
-                    </p>
-
-                    <div className="mt-6">
-                      <Link
-                        href={`/events/${event.slug}`}
-                        className="inline-flex rounded-full bg-white px-6 py-3 text-sm font-semibold text-black transition-opacity hover:opacity-90"
-                      >
-                        {soldOut ? "View event" : "Get tickets"}
-                      </Link>
+                {slide.mode === "hero" ? (
+                  <>
+                    <Image
+                      src={slide.src}
+                      alt=""
+                      fill
+                      priority={index === 0}
+                      className="carousel-photo object-cover object-center"
+                      sizes="(max-width: 1440px) 100vw, 1440px"
+                    />
+                    <div className="pointer-events-none absolute inset-0 z-[2] bg-gradient-to-r from-black/80 via-black/35 to-transparent" />
+                    <div className="pointer-events-none absolute inset-x-0 bottom-0 z-[2] h-[45%] bg-gradient-to-t from-black/80 via-black/30 to-transparent" />
+                    <div className="relative z-10 flex h-full flex-col justify-end px-6 pb-20 pt-16 text-left sm:px-10 sm:pb-24 lg:px-12">
+                      <div className="max-w-xl">{copyBlock}</div>
                     </div>
-                  </div>
-                </div>
+                  </>
+                ) : (
+                  <>
+                    <Image
+                      src={slide.src}
+                      alt=""
+                      fill
+                      aria-hidden
+                      className="carousel-backdrop object-cover object-center"
+                      sizes="(max-width: 1440px) 100vw, 1440px"
+                    />
+                    <Image
+                      src={slide.src}
+                      alt=""
+                      fill
+                      priority={index === 0}
+                      className="carousel-photo relative z-[1] object-contain object-center"
+                      sizes="(max-width: 1440px) 100vw, 1440px"
+                    />
+                    <div className="pointer-events-none absolute inset-x-0 bottom-0 z-[2] h-[55%] bg-gradient-to-t from-black/90 via-black/45 to-transparent" />
+                    <div className="carousel-bowl pointer-events-none absolute inset-x-0 bottom-0 z-[2] h-[45%]" />
+                    <div className="relative z-10 flex h-full flex-col justify-end px-6 pb-20 pt-16 sm:px-10 sm:pb-24 lg:px-12">
+                      <div className="max-w-3xl">{copyBlock}</div>
+                    </div>
+                  </>
+                )}
               </div>
             );
           })}

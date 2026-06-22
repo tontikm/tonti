@@ -14,6 +14,7 @@ import { EntityTypeahead } from "@/components/organizer/EntityTypeahead";
 import { LineupInput } from "@/components/organizer/LineupInput";
 import { NewVenueFields } from "@/components/organizer/NewVenueFields";
 import { ImagePlus, Plus, Trash2 } from "lucide-react";
+import { HeroBannerField } from "@/components/organizer/HeroBannerField";
 import { ProhibitedItemsInput } from "@/components/organizer/ProhibitedItemsInput";
 
 type TierRow = {
@@ -31,6 +32,7 @@ export type EventFormInitial = {
   subtitle?: string;
   description: string;
   image: string;
+  heroImage?: string | null;
   organizerName?: string;
   organizerLogo?: string;
   showDate: string;
@@ -142,11 +144,15 @@ export function EventForm({
         ],
   );
   const [posterPreview, setPosterPreview] = useState<string | null>(null);
+  const [heroBannerPreview, setHeroBannerPreview] = useState<string | null>(null);
   const [organizerName, setOrganizerName] = useState(initial?.organizerName ?? "");
   const [organizerLogoPreview, setOrganizerLogoPreview] = useState<string | null>(
     null,
   );
   const currentPoster = posterPreview ?? (initial ? getSafeEventImageUrl(initial.image) : null);
+  const currentHeroBanner =
+    heroBannerPreview ??
+    (initial?.heroImage ? getSafeEventImageUrl(initial.heroImage) : null);
   const currentOrganizerLogo =
     organizerLogoPreview ??
     (initial?.organizerLogo
@@ -184,6 +190,12 @@ export function EventForm({
     };
   }, [organizerLogoPreview]);
 
+  useEffect(() => {
+    return () => {
+      if (heroBannerPreview) URL.revokeObjectURL(heroBannerPreview);
+    };
+  }, [heroBannerPreview]);
+
   function onPosterChange(file: File | undefined) {
     if (posterPreview) URL.revokeObjectURL(posterPreview);
     if (!file) {
@@ -200,6 +212,15 @@ export function EventForm({
       return;
     }
     setOrganizerLogoPreview(URL.createObjectURL(file));
+  }
+
+  function onHeroBannerChange(file: File | undefined) {
+    if (heroBannerPreview) URL.revokeObjectURL(heroBannerPreview);
+    if (!file) {
+      setHeroBannerPreview(null);
+      return;
+    }
+    setHeroBannerPreview(URL.createObjectURL(file));
   }
 
   function onTitleChange(value: string) {
@@ -576,6 +597,13 @@ export function EventForm({
           />
           Feature on homepage carousel
         </label>
+
+        {featured && (
+          <HeroBannerField
+            previewUrl={currentHeroBanner}
+            onFileChange={onHeroBannerChange}
+          />
+        )}
 
         <label className="flex items-start gap-3 text-sm">
           <input

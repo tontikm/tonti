@@ -19,6 +19,35 @@ export function validatePosterFile(file: File): string | null {
   return null;
 }
 
+export function validateHeroBannerFile(file: File): string | null {
+  return validatePosterFile(file);
+}
+
+export async function uploadEventHeroBanner(
+  supabase: SupabaseClient,
+  eventSlug: string,
+  file: File,
+): Promise<string> {
+  const validationError = validateHeroBannerFile(file);
+  if (validationError) throw new Error(validationError);
+
+  const ext =
+    file.name.split(".").pop()?.toLowerCase().replace(/[^a-z0-9]/g, "") ||
+    "jpg";
+  const path = `${eventSlug}/hero-${Date.now()}.${ext}`;
+  const buffer = Buffer.from(await file.arrayBuffer());
+
+  const { error } = await supabase.storage.from(BUCKET).upload(path, buffer, {
+    contentType: file.type,
+    upsert: false,
+  });
+
+  if (error) throw new Error(error.message);
+
+  const { data } = supabase.storage.from(BUCKET).getPublicUrl(path);
+  return data.publicUrl;
+}
+
 export async function uploadEventPoster(
   supabase: SupabaseClient,
   eventSlug: string,

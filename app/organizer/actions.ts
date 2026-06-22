@@ -6,9 +6,11 @@ import type { EventCategory, Genre } from "@/lib/types";
 import { isEventCategory } from "@/lib/data/categories";
 import { getSupabaseAdmin } from "@/lib/supabase/admin";
 import {
+  uploadEventHeroBanner,
   uploadEventPoster,
   uploadOrganizerLogo,
   uploadProfileOrganizerLogo,
+  validateHeroBannerFile,
   validateOrganizerLogoFile,
   validatePosterFile,
 } from "@/lib/supabase/upload-poster";
@@ -215,6 +217,7 @@ type ParsedEventForm = {
   subtitle: string | null;
   description: string;
   posterFile: File | null;
+  heroBannerFile: File | null;
   organizerName: string | null;
   organizerLogoFile: File | null;
   showDateTime: string;
@@ -252,6 +255,11 @@ function parseEventForm(
   const posterRaw = formData.get("poster");
   const posterFile =
     posterRaw instanceof File && posterRaw.size > 0 ? posterRaw : null;
+  const heroBannerRaw = formData.get("heroBanner");
+  const heroBannerFile =
+    heroBannerRaw instanceof File && heroBannerRaw.size > 0
+      ? heroBannerRaw
+      : null;
   const organizerName =
     String(formData.get("organizerName") ?? "").trim() || null;
   const organizerLogoRaw = formData.get("organizerLogo");
@@ -313,6 +321,10 @@ function parseEventForm(
     const posterError = validatePosterFile(posterFile);
     if (posterError) return { error: posterError };
   }
+  if (heroBannerFile) {
+    const heroError = validateHeroBannerFile(heroBannerFile);
+    if (heroError) return { error: heroError };
+  }
   if (organizerLogoFile) {
     const logoError = validateOrganizerLogoFile(organizerLogoFile);
     if (logoError) return { error: logoError };
@@ -357,6 +369,7 @@ function parseEventForm(
     subtitle,
     description,
     posterFile,
+    heroBannerFile,
     organizerName,
     organizerLogoFile,
     showDateTime,
@@ -539,6 +552,7 @@ function eventRowWithoutOrganizer(
   parsed: ParsedEventForm,
   image: string,
   times: ReturnType<typeof eventTimesFromForm>,
+  heroImage: string | null,
 ) {
   const { showTime, date, doorsTime, endDate } = times;
   return {
@@ -547,6 +561,7 @@ function eventRowWithoutOrganizer(
     subtitle: parsed.subtitle,
     description: parsed.description,
     image,
+    hero_image: heroImage,
     date,
     end_date: endDate,
     doors_time: doorsTime,
@@ -574,9 +589,10 @@ function eventRowWithOrganizer(
   image: string,
   times: ReturnType<typeof eventTimesFromForm>,
   organizerLogo: string | null,
+  heroImage: string | null,
 ) {
   return {
-    ...eventRowWithoutOrganizer(parsed, image, times),
+    ...eventRowWithoutOrganizer(parsed, image, times, heroImage),
     organizer_name: parsed.organizerName,
     organizer_logo: organizerLogo,
   };
@@ -588,8 +604,15 @@ async function insertEventRow(
   image: string,
   times: ReturnType<typeof eventTimesFromForm>,
   organizerLogo: string | null,
+  heroImage: string | null,
 ): Promise<{ error?: string; organizerSkipped?: boolean }> {
-  const withOrganizer = eventRowWithOrganizer(parsed, image, times, organizerLogo);
+  const withOrganizer = eventRowWithOrganizer(
+    parsed,
+    image,
+    times,
+    organizerLogo,
+    heroImage,
+  );
   const { error } = await supabase.from("events").insert(withOrganizer);
 
   if (!error) return {};
@@ -597,7 +620,7 @@ async function insertEventRow(
   if (isMissingColumnError(error)) {
     const { error: fallbackError } = await supabase
       .from("events")
-      .insert(eventRowWithoutOrganizer(parsed, image, times));
+      .insert(eventRowWithoutOrganizer(parsed, image, times, heroImage));
 
     if (!fallbackError) {
       return {
@@ -617,12 +640,14 @@ async function updateEventRow(
   image: string,
   times: ReturnType<typeof eventTimesFromForm>,
   organizerLogo: string | null,
+  heroImage: string | null,
 ): Promise<{ error?: string; organizerSkipped?: boolean }> {
   const withOrganizer = {
     title: parsed.title,
     subtitle: parsed.subtitle,
     description: parsed.description,
     image,
+    hero_image: heroImage,
     date: times.date,
     end_date: times.endDate,
     doors_time: times.doorsTime,
@@ -689,12 +714,12 @@ async function loadExistingEventImage(
   supabase: NonNullable<ReturnType<typeof getSupabaseAdmin>>,
   slug: string,
 ): Promise<
-  | { ok: true; image: string; organizerLogo: string | null }
+  | { ok: true; image: string; heroImage: string | null; organizerLogo: string | null }
   | { ok: false; error: string }
 > {
   const withLogo = await supabase
     .from("events")
-    .select("image, organizer_logo")
+    .select("image, hero_image, organizer_logo")
     .eq("slug", slug)
     .maybeSingle();
 
@@ -702,6 +727,7 @@ async function loadExistingEventImage(
     return {
       ok: true,
       image: withLogo.data.image as string,
+      heroImage: (withLogo.data.hero_image as string | null) ?? null,
       organizerLogo: (withLogo.data.organizer_logo as string | null) ?? null,
     };
   }
@@ -720,6 +746,7 @@ async function loadExistingEventImage(
     return {
       ok: true,
       image: fallback.data.image as string,
+      heroImage: null,
       organizerLogo: null,
     };
   }
@@ -728,6 +755,29 @@ async function loadExistingEventImage(
     ok: false,
     error: withLogo.error?.message ?? "Event not found.",
   };
+}
+
+async function uploadHeroBannerIfNeeded(
+  supabase: NonNullable<ReturnType<typeof getSupabaseAdmin>>,
+  slug: string,
+  file: File | null,
+): Promise<{ ok: true; url: string | null } | { ok: false; error: string }> {
+  if (!file) return { ok: true, url: null };
+  try {
+    const url = await uploadEventHeroBanner(supabase, slug, file);
+    return { ok: true, url };
+  } catch (err) {
+    const message =
+      err instanceof Error ? err.message : "Failed to upload homepage hero.";
+    if (message.includes("Bucket not found")) {
+      return {
+        ok: false,
+        error:
+          'Storage bucket missing. Run supabase/migrations/0002_event_posters_storage.sql in the Supabase SQL editor.',
+      };
+    }
+    return { ok: false, error: message };
+  }
 }
 
 export async function createEvent(
@@ -811,12 +861,22 @@ export async function createEvent(
     }
   }
 
+  let heroImage: string | null = null;
+  const heroUpload = await uploadHeroBannerIfNeeded(
+    supabase,
+    parsed.slug,
+    parsed.heroBannerFile,
+  );
+  if (!heroUpload.ok) return { error: heroUpload.error };
+  heroImage = heroUpload.url;
+
   const insertResult = await insertEventRow(
     supabase,
     parsed,
     image,
     times,
     organizerLogo,
+    heroImage,
   );
 
   if (insertResult.error) {
@@ -944,6 +1004,15 @@ export async function updateEvent(
     }
   }
 
+  let heroImage = existing.heroImage;
+  const heroUpload = await uploadHeroBannerIfNeeded(
+    supabase,
+    parsed.slug,
+    parsed.heroBannerFile,
+  );
+  if (!heroUpload.ok) return { error: heroUpload.error };
+  if (heroUpload.url) heroImage = heroUpload.url;
+
   const { data: existingTiers } = await supabase
     .from("ticket_tiers")
     .select("id, sold")
@@ -969,6 +1038,7 @@ export async function updateEvent(
     image,
     times,
     organizerLogo,
+    heroImage,
   );
 
   if (updateResult.error) {

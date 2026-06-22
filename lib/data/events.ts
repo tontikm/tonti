@@ -100,6 +100,7 @@ function mapEventRow(row: EventRow): Event {
     subtitle: (row.subtitle as string) ?? undefined,
     description: row.description as string,
     image: row.image as string,
+    heroImage: (row.hero_image as string) ?? undefined,
     date: row.date as string,
     endDate: (row.end_date as string) ?? undefined,
     doorsTime: row.doors_time as string,
@@ -129,7 +130,7 @@ const EVENTS_RELATIONS = `
   event_artists(position, artist:artists(*))`;
 
 const EVENTS_CORE_COLUMNS = `
-  slug, title, subtitle, description, image, date, end_date, doors_time,
+  slug, title, subtitle, description, image, hero_image, date, end_date, doors_time,
   show_time, genre, featured, age_limit, tags`;
 
 const EVENTS_ORGANIZER_COLUMNS = `

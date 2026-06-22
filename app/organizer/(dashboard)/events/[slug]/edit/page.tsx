@@ -59,6 +59,7 @@ export default async function EditOrganizerEventPage({
     subtitle: event.subtitle,
     description: event.description,
     image: event.image,
+    heroImage: event.heroImage,
     showDate: show.date,
     showTime: show.time,
     endDate: end.date,
