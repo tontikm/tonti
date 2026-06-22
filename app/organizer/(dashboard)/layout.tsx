@@ -1,5 +1,6 @@
 import { redirect } from "next/navigation";
 import { OrganizerShell } from "@/components/organizer/OrganizerShell";
+import { OrganizerPendingBanner } from "@/components/organizer/OrganizerPendingBanner";
 import { getOrganizerSession } from "@/lib/organizer/session";
 
 export default async function OrganizerDashboardLayout({
@@ -12,5 +13,10 @@ export default async function OrganizerDashboardLayout({
     redirect("/organizer/login");
   }
 
-  return <OrganizerShell session={session}>{children}</OrganizerShell>;
+  return (
+    <OrganizerShell session={session}>
+      <OrganizerPendingBanner />
+      {children}
+    </OrganizerShell>
+  );
 }

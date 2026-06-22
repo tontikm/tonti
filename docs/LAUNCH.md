@@ -6,7 +6,7 @@ Use this after code is deployed to Vercel. Complete each section in order.
 
 Run every file in [`supabase/migrations/`](../supabase/migrations/) **in numeric order** in the Supabase SQL editor:
 
-`0001` through `0019` (includes demo event cleanup `0016`–`0018`, orders/tickets RLS `0017`, and homepage hero image `0019`).
+`0001` through `0021` (includes demo event cleanup `0016`–`0018`, orders/tickets RLS `0017`, homepage hero image `0019`, platform admins `0020`, and organizer approval `0021`).
 
 Then create real events at `/organizer/events/new` **or** seed:
 
@@ -24,11 +24,29 @@ Copy from [`.env.example`](../.env.example). **Required for production:**
 | `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Anon/public key |
 | `SUPABASE_SERVICE_ROLE_KEY` | Server-only; never expose to client |
 | `ORGANIZER_SESSION_SECRET` | `openssl rand -hex 32` |
+| `ADMIN_SESSION_SECRET` | `openssl rand -hex 32` (different from organizer secret) |
 | `NEXT_PUBLIC_SITE_URL` | Production origin, no trailing slash |
 
 **Recommended:** `NEXT_PUBLIC_CONTACT_EMAIL`, support/legal emails, social URLs.
 
 **Do not set** `ORGANIZER_DEV_PASSWORD` in production.
+
+## 2b. Platform admin account
+
+After migration `0020_platform_admins.sql`, create your admin login (not linked from the public site):
+
+```bash
+npx tsx --env-file=.env.local scripts/create-platform-admin.ts \
+  --email you@example.com --password 'your-secure-password' --name 'Site Owner'
+```
+
+Sign in at `/admin/login` on your deployed site. From there you can:
+
+- Approve or suspend organizers (`/admin/organizers`)
+- Feature events on the homepage (`/admin/events`)
+- Review orders and platform fees (`/admin/orders`)
+
+New organizers register as **pending** — they can use the organizer dashboard, but their events stay hidden until you approve them.
 
 ### Payfast (optional)
 
@@ -110,7 +128,9 @@ Run on phone and desktop against the live URL:
 - [ ] Fan: browse → event → tickets → checkout → sign in → confirm → QR tickets page
 - [ ] Fan: ticket page loads with logo + event thumbnail on each pass
 - [ ] Fan: ticket page works offline (airplane mode after first load)
-- [ ] Organizer: login → create event → visible on `/events`
+- [ ] Organizer: login → create event → visible on `/events` **after admin approval**
+- [ ] Admin: sign in at `/admin/login` → approve organizer → event appears publicly
+- [ ] Admin: feature an event on homepage from `/admin/events`
 - [ ] Organizer: door scanner → check in → detail card → Dismiss / Scan next
 - [ ] Organizer: tap **Checked in** stat → filtered guest list → **Details** on a row
 - [ ] Organizer: export guest list CSV

@@ -10,6 +10,10 @@ import { getSupabaseServer } from "@/lib/supabase/server";
 import { isPastEvent } from "@/lib/utils";
 import { eventBelongsToOrganizer } from "@/lib/organizer/ownership";
 import {
+  getApprovedOrganizerIds,
+  isEventPubliclyVisible,
+} from "@/lib/admin/data";
+import {
   formatSupabaseError,
   isConnectionError,
   isMissingColumnError,
@@ -228,9 +232,27 @@ export async function getEventBySlug(slug: string): Promise<Event | undefined> {
   return events.find((e) => e.slug === slug);
 }
 
-/** Active (non-ended) events for public/fan-facing surfaces. */
+async function filterPubliclyVisibleEvents(events: Event[]): Promise<Event[]> {
+  const approvedOrganizerIds = await getApprovedOrganizerIds();
+  return events.filter(
+    (event) =>
+      !isPastEvent(event) &&
+      isEventPubliclyVisible(event, approvedOrganizerIds),
+  );
+}
+
+/** Active events from approved organizers for fan-facing surfaces. */
 export async function getPublicEvents(): Promise<Event[]> {
-  return (await getAllEvents()).filter((e) => !isPastEvent(e));
+  const events = await getAllEvents();
+  return filterPubliclyVisibleEvents(events);
+}
+
+/** Public event detail — returns undefined if hidden or ended. */
+export async function getPublicEventBySlug(
+  slug: string,
+): Promise<Event | undefined> {
+  const events = await getPublicEvents();
+  return events.find((e) => e.slug === slug);
 }
 
 export async function getFeaturedEvents(): Promise<Event[]> {

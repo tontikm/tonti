@@ -118,7 +118,6 @@ export function EventForm({
   const [prohibitedItems, setProhibitedItems] = useState<string[]>(
     initial?.prohibitedItems ?? [],
   );
-  const [featured, setFeatured] = useState(initial?.featured ?? false);
   const [showOrganizerProfile, setShowOrganizerProfile] = useState(
     initial?.showOrganizerProfile ?? false,
   );
@@ -587,23 +586,10 @@ export function EventForm({
           .
         </div>
 
-        <label className="flex items-center gap-3 text-sm">
-          <input
-            type="checkbox"
-            name="featured"
-            checked={featured}
-            onChange={(e) => setFeatured(e.target.checked)}
-            className="h-4 w-4 rounded border-border"
-          />
-          Feature on homepage carousel
-        </label>
-
-        {featured && (
-          <HeroBannerField
-            previewUrl={currentHeroBanner}
-            onFileChange={onHeroBannerChange}
-          />
-        )}
+        <HeroBannerField
+          previewUrl={currentHeroBanner}
+          onFileChange={onHeroBannerChange}
+        />
 
         <label className="flex items-start gap-3 text-sm">
           <input

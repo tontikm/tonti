@@ -72,7 +72,7 @@ export async function loginOrganizer(
   if (supabase) {
     const { data: organizer, error } = await supabase
       .from("organizers")
-      .select("id, email, password_hash, name, slug")
+      .select("id, email, password_hash, name, slug, status")
       .eq("email", email)
       .maybeSingle();
 
@@ -92,6 +92,12 @@ export async function loginOrganizer(
 
     if (!password || !verifyOrganizerPassword(password, organizer.password_hash)) {
       return { error: "Incorrect password." };
+    }
+
+    if (organizer.status === "suspended") {
+      return {
+        error: "Your account has been suspended. Contact support for help.",
+      };
     }
 
     await setOrganizerSession({
@@ -167,6 +173,7 @@ export async function registerOrganizer(
       email,
       name,
       slug,
+      status: "pending",
       password_hash: hashOrganizerPassword(password),
     })
     .select("id, slug")
@@ -276,7 +283,6 @@ function parseEventForm(
   const venueCitySlug = String(formData.get("venueCitySlug") ?? "").trim();
   const venueAddress = String(formData.get("venueAddress") ?? "").trim();
   const venueCapacity = Number(formData.get("venueCapacity") ?? 500);
-  const featured = formData.get("featured") === "on";
   const showOrganizerProfile = formData.get("showOrganizerProfile") === "on";
   const ageLimitRaw = String(formData.get("ageLimit") ?? "").trim();
   const ageLimit = ageLimitRaw ? Number(ageLimitRaw) : null;
@@ -381,7 +387,7 @@ function parseEventForm(
     venueCitySlug,
     venueAddress,
     venueCapacity,
-    featured,
+    featured: false,
     ageLimit,
     ageMax,
     tags,
@@ -567,7 +573,7 @@ function eventRowWithoutOrganizer(
     doors_time: doorsTime,
     show_time: showTime,
     genre: parsed.category,
-    featured: parsed.featured,
+    featured: false,
     venue_slug: parsed.venueSlug,
     age_limit: parsed.ageLimit,
     age_max: parsed.ageMax,
@@ -653,7 +659,7 @@ async function updateEventRow(
     doors_time: times.doorsTime,
     show_time: times.showTime,
     genre: parsed.category,
-    featured: parsed.featured,
+    featured: false,
     venue_slug: parsed.venueSlug,
     age_limit: parsed.ageLimit,
     age_max: parsed.ageMax,
@@ -688,7 +694,7 @@ async function updateEventRow(
         doors_time: times.doorsTime,
         show_time: times.showTime,
         genre: parsed.category,
-        featured: parsed.featured,
+        featured: false,
         venue_slug: parsed.venueSlug,
         age_limit: parsed.ageLimit,
         age_max: parsed.ageMax,
@@ -1129,31 +1135,6 @@ export async function deleteEvent(slug: string): Promise<ActionState> {
   revalidatePath("/events");
   revalidatePath("/organizer/events");
   redirect("/organizer/events?deleted=1");
-}
-
-export async function toggleEventFeatured(
-  slug: string,
-  featured: boolean,
-): Promise<ActionState> {
-  const ownEvent = await requireOwnEvent(slug);
-  if ("error" in ownEvent) return ownEvent;
-
-  const supabase = getSupabaseAdmin();
-  if (!supabase) {
-    return { error: "Supabase is not configured." };
-  }
-
-  const { error } = await supabase
-    .from("events")
-    .update({ featured })
-    .eq("slug", slug);
-
-  if (error) {
-    return { error: error.message };
-  }
-
-  revalidateEventPaths(slug);
-  return { success: featured ? "Event featured on homepage." : "Removed from homepage carousel." };
 }
 
 export async function getOrganizerAuthStatus(): Promise<{

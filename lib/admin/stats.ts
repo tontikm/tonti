@@ -1,0 +1,77 @@
+import { getSupabaseAdmin } from "@/lib/supabase/admin";
+
+export type PlatformDashboardStats = {
+  organizerCount: number;
+  pendingOrganizerCount: number;
+  approvedOrganizerCount: number;
+  suspendedOrganizerCount: number;
+  eventCount: number;
+  featuredEventCount: number;
+  orderCount: number;
+  confirmedOrderCount: number;
+  totalServiceFee: number;
+  totalGrossRevenue: number;
+};
+
+export async function getPlatformDashboardStats(): Promise<PlatformDashboardStats> {
+  const empty: PlatformDashboardStats = {
+    organizerCount: 0,
+    pendingOrganizerCount: 0,
+    approvedOrganizerCount: 0,
+    suspendedOrganizerCount: 0,
+    eventCount: 0,
+    featuredEventCount: 0,
+    orderCount: 0,
+    confirmedOrderCount: 0,
+    totalServiceFee: 0,
+    totalGrossRevenue: 0,
+  };
+
+  const supabase = getSupabaseAdmin();
+  if (!supabase) return empty;
+
+  const [
+  organizersRes,
+  eventsRes,
+  featuredRes,
+  ordersRes,
+  confirmedOrdersRes,
+  ] = await Promise.all([
+    supabase.from("organizers").select("status"),
+    supabase.from("events").select("*", { count: "exact", head: true }),
+    supabase
+      .from("events")
+      .select("*", { count: "exact", head: true })
+      .eq("featured", true),
+    supabase.from("orders").select("*", { count: "exact", head: true }),
+    supabase
+      .from("orders")
+      .select("subtotal_amount, total_amount, service_fee")
+      .eq("status", "confirmed"),
+  ]);
+
+  const organizers = organizersRes.data ?? [];
+  const confirmedOrders = confirmedOrdersRes.data ?? [];
+
+  let totalServiceFee = 0;
+  let totalGrossRevenue = 0;
+  for (const order of confirmedOrders) {
+    totalServiceFee += Number(order.service_fee ?? 0);
+    totalGrossRevenue += Number(
+      order.subtotal_amount ?? order.total_amount ?? 0,
+    );
+  }
+
+  return {
+    organizerCount: organizers.length,
+    pendingOrganizerCount: organizers.filter((o) => o.status === "pending").length,
+    approvedOrganizerCount: organizers.filter((o) => o.status === "approved").length,
+    suspendedOrganizerCount: organizers.filter((o) => o.status === "suspended").length,
+    eventCount: eventsRes.count ?? 0,
+    featuredEventCount: featuredRes.count ?? 0,
+    orderCount: ordersRes.count ?? 0,
+    confirmedOrderCount: confirmedOrders.length,
+    totalServiceFee: Math.round(totalServiceFee * 100) / 100,
+    totalGrossRevenue: Math.round(totalGrossRevenue * 100) / 100,
+  };
+}

@@ -6,7 +6,6 @@ import {
   Calendar,
   Clock,
   MapPin,
-  Sparkles,
   Tag,
   Ticket,
 } from "lucide-react";
@@ -213,33 +212,22 @@ export function StepReview({ state, defaults, onChange }: StepReviewProps) {
         </span>
       </label>
 
-      <label className="flex cursor-pointer items-center gap-3 rounded-2xl border border-white/10 bg-white/[0.03] p-4 text-sm transition-colors hover:border-violet-500/30">
-        <input
-          type="checkbox"
-          checked={state.featured}
-          onChange={(e) => onChange({ featured: e.target.checked })}
-          className="h-4 w-4 rounded border-border accent-violet-500"
-        />
-        <span className="flex items-center gap-2">
-          <Sparkles className="h-4 w-4 text-violet-300" />
-          Feature on homepage carousel
-        </span>
-      </label>
-
-      {state.featured && (
-        <HeroBannerField
-          previewUrl={state.heroBannerPreview}
-          onFileChange={(file) => {
-            if (state.heroBannerPreview) {
-              URL.revokeObjectURL(state.heroBannerPreview);
-            }
-            onChange({
-              heroBannerFile: file ?? null,
-              heroBannerPreview: file ? URL.createObjectURL(file) : null,
-            });
-          }}
-        />
-      )}
+      <HeroBannerField
+        previewUrl={state.heroBannerPreview}
+        onFileChange={(file) => {
+          if (state.heroBannerPreview) {
+            URL.revokeObjectURL(state.heroBannerPreview);
+          }
+          onChange({
+            heroBannerFile: file ?? null,
+            heroBannerPreview: file ? URL.createObjectURL(file) : null,
+          });
+        }}
+      />
+      <p className="text-xs text-muted">
+        Optional wide banner for the homepage carousel. Tonti features events
+        from the platform admin panel.
+      </p>
 
       <OrganizerTermsAcceptance
         checked={state.acceptedTerms}

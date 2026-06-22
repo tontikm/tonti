@@ -30,6 +30,7 @@ import {
   validatePromoForCheckout,
   type PromoPreview,
 } from "@/lib/promo/codes";
+import { getPublicEventBySlug } from "@/lib/data/events";
 
 export type ClaimState = {
   error?: string;
@@ -322,13 +323,8 @@ export async function claimTickets(
     return { error: "Maximum 10 tickets per order." };
   }
 
-  const { data: eventRow } = await supabase
-    .from("events")
-    .select("slug, title")
-    .eq("slug", eventSlug)
-    .maybeSingle();
-
-  if (!eventRow) return { error: "Event not found." };
+  const publicEvent = await getPublicEventBySlug(eventSlug);
+  if (!publicEvent) return { error: "Event not found." };
 
   const built = await buildLineItems(supabase, eventSlug, chosen);
   if ("error" in built) return { error: built.error };

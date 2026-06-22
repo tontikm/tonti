@@ -262,7 +262,6 @@ function EventListRow({
           </div>
           <OrganizerEventActions
             slug={item.slug}
-            featured={item.featured}
             supabaseReady={supabaseReady}
           />
         </div>

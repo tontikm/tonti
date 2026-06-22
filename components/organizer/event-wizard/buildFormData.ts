@@ -51,7 +51,6 @@ export function buildEventFormData(state: EventWizardState): FormData {
     fd.append("tierDescription", tier.description);
   }
 
-  if (state.featured) fd.set("featured", "on");
   if (state.showOrganizerProfile) fd.set("showOrganizerProfile", "on");
   if (state.acceptedTerms) fd.set("acceptTerms", "on");
 

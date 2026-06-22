@@ -1,5 +1,5 @@
 import { ImageResponse } from "next/og";
-import { getEventBySlug } from "@/lib/data/events";
+import { getPublicEventBySlug } from "@/lib/data/events";
 import { formatEventDate, getLowestPrice } from "@/lib/utils";
 
 export const alt = "Tonti event";
@@ -12,7 +12,7 @@ export default async function Image({
   params: Promise<{ slug: string }>;
 }) {
   const { slug } = await params;
-  const event = await getEventBySlug(slug);
+  const event = await getPublicEventBySlug(slug);
 
   if (!event) {
     return new ImageResponse(

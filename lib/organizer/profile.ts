@@ -8,7 +8,7 @@ const ORGANIZER_COLUMNS = `
   id, email, name, slug, logo, bio, phone, website_url, instagram_url,
   invoice_company_name, invoice_address_line1, invoice_address_line2,
   invoice_city, invoice_province, invoice_postal_code, vat_number,
-  default_refund_policy, created_at`;
+  default_refund_policy, status, created_at`;
 
 function mapOrganizerRow(row: Record<string, unknown>): OrganizerProfile {
   return {
@@ -29,6 +29,7 @@ function mapOrganizerRow(row: Record<string, unknown>): OrganizerProfile {
     invoicePostalCode: (row.invoice_postal_code as string) ?? null,
     vatNumber: (row.vat_number as string) ?? null,
     defaultRefundPolicy: (row.default_refund_policy as string) ?? null,
+    status: (row.status as OrganizerProfile["status"]) ?? undefined,
     createdAt: row.created_at as string,
   };
 }

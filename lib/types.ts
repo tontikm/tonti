@@ -106,11 +106,14 @@ export type Venue = {
   image: string;
 };
 
+export type OrganizerStatus = "pending" | "approved" | "suspended";
+
 export type OrganizerProfile = {
   id: string;
   email: string;
   name: string | null;
   slug: string | null;
+  status?: OrganizerStatus;
   logo: string | null;
   bio: string | null;
   phone: string | null;

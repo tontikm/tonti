@@ -44,9 +44,14 @@ develop. Pricing is in ZAR (R) and all times are SAST (Africa/Johannesburg).
 | `/venues/[slug]` | Venue calendar |
 | `/cities/[slug]` | City event hub |
 | `/organizer/login` | Organizer sign-in |
-| `/organizer/register` | Create organizer account |
+| `/organizer/register` | Create organizer account (pending until admin approval) |
 | `/organizer` | Dashboard — stats, upcoming events, quick actions |
-| `/organizer/events` | List, edit, delete, and feature events |
+| `/organizer/events` | List, edit, and delete events |
+| `/admin/login` | Platform admin sign-in (not linked publicly) |
+| `/admin` | Admin overview — organizers, events, orders, platform fees |
+| `/admin/organizers` | Approve, suspend, or reinstate organizers |
+| `/admin/events` | Feature events on homepage carousel |
+| `/admin/orders` | Cross-platform order list |
 | `/organizer/events/new` | Create event form |
 | `/organizer/events/[slug]/edit` | Edit event + re-upload poster |
 | `/organizer/events/[slug]/tickets` | Guest list, tier stats, search |
@@ -103,6 +108,8 @@ Run migrations **in order** in the Supabase SQL editor:
 | [`0017_orders_tickets_rls.sql`](supabase/migrations/0017_orders_tickets_rls.sql) | Restrict orders/tickets reads to owning fan |
 | [`0018_remove_all_seed_events.sql`](supabase/migrations/0018_remove_all_seed_events.sql) | Remove remaining fictional seed events |
 | [`0019_event_hero_image.sql`](supabase/migrations/0019_event_hero_image.sql) | Optional wide homepage carousel hero image |
+| [`0020_platform_admins.sql`](supabase/migrations/0020_platform_admins.sql) | Platform admin accounts |
+| [`0021_organizer_approval.sql`](supabase/migrations/0021_organizer_approval.sql) | Organizer pending/approved/suspended status |
 
 Then:
 
@@ -117,12 +124,15 @@ npx tsx --env-file=.env.local scripts/seed-supabase.ts
 1. Set `SUPABASE_SERVICE_ROLE_KEY` in `.env.local`.
 2. Run migration **0005** for password accounts.
 3. Register at `/organizer/register`, then sign in at `/organizer/login`.
+4. Create your platform admin account (see [`docs/LAUNCH.md`](docs/LAUNCH.md)) and sign in at `/admin/login` to approve organizers and feature events.
+
+New organizers start as **pending** — their events stay hidden until approved in `/admin/organizers`. Homepage featuring is **admin-only** (`/admin/events`).
 
 Without Supabase, set `ORGANIZER_DEV_PASSWORD` in `.env.local` for a simple local
 password gate (empty passwords are not accepted).
 
-Set `ORGANIZER_SESSION_SECRET` to a long random string in `.env.local` and
-production. Organizer sessions are HMAC-signed; unsigned legacy cookies are rejected.
+Set `ORGANIZER_SESSION_SECRET` and `ADMIN_SESSION_SECRET` to long random strings in `.env.local` and
+production. Organizer and admin sessions are HMAC-signed with separate secrets.
 See [`docs/SECURITY.md`](docs/SECURITY.md).
 
 When creating events, venues and artists are matched by name. Unmatched artists are
@@ -182,7 +192,7 @@ Each `git push` to `main` triggers a new production deploy. Local `npm run dev` 
 
 See **[`docs/LAUNCH.md`](docs/LAUNCH.md)** for the full step-by-step launch guide.
 
-1. Run all migrations on production Supabase (through `0019_event_hero_image.sql`).
+1. Run all migrations on production Supabase (through `0021_organizer_approval.sql`).
 2. Set env vars on Vercel — see `.env.example`.
 3. Add production URL + `/auth/callback` to Supabase Auth redirect URLs.
 4. Add Payfast notify URL (if using online payments): `https://your-domain.co.za/api/payments/payfast/notify`

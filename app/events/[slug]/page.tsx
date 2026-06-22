@@ -17,7 +17,8 @@ import { ShareButtons } from "@/components/events/ShareButtons";
 import { EventFollowButton } from "@/components/events/EventFollowButton";
 import { EventOrganizerProfile } from "@/components/events/EventOrganizerProfile";
 import { Badge } from "@/components/ui/Badge";
-import { getEventBySlug, getAllEvents } from "@/lib/data/events";
+import { getEventBySlug, getAllEvents, getPublicEventBySlug } from "@/lib/data/events";
+import { isEventPubliclyVisible, getApprovedOrganizerIds } from "@/lib/admin/data";
 import { isEventFollowed, followEvent } from "@/lib/fan/follows";
 import { getOrganizerByEmail, getOrganizerById } from "@/lib/organizer/profile";
 import { isOwnOrganizerEvent } from "@/lib/organizer/ownership";
@@ -49,7 +50,7 @@ export async function generateStaticParams() {
 
 export async function generateMetadata({ params }: Props) {
   const { slug } = await params;
-  const event = await getEventBySlug(slug);
+  const event = await getPublicEventBySlug(slug);
   if (!event) return { title: "Event not found" };
   return {
     title: event.title,
@@ -77,6 +78,13 @@ export default async function EventDetailPage({ params, searchParams }: Props) {
       name: organizerProfile?.name,
     },
   );
+
+  if (!isOwnEvent) {
+    const approvedIds = await getApprovedOrganizerIds();
+    if (!isEventPubliclyVisible(event, approvedIds)) {
+      notFound();
+    }
+  }
   const organizerEmailForTickets =
     organizerSession && !fanUser && !isOwnEvent
       ? organizerSession.email
