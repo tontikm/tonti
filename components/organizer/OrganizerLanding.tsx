@@ -7,6 +7,7 @@ import {
   Users,
 } from "lucide-react";
 import { OrganizerFeaturePreview } from "@/components/organizer/OrganizerFeaturePreview";
+import { OrganizerFeeTiers } from "@/components/organizer/OrganizerFeeTiers";
 import { OrganizerHeroVisual } from "@/components/organizer/OrganizerHeroVisual";
 import { OrganizerPhotoStrip } from "@/components/organizer/OrganizerPhotoStrip";
 import { OrganizerPublicShell } from "@/components/organizer/OrganizerPublicShell";
@@ -223,6 +224,8 @@ export function OrganizerLanding({ heroEvents }: OrganizerLandingProps) {
         </div>
       </section>
 
+      <OrganizerFeeTiers />
+
       <section className="relative border-b border-white/10 bg-gradient-to-b from-violet-950/20 to-black">
         <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
           <div className="h-64 w-64 rounded-full bg-violet-600/10 blur-3xl sm:h-96 sm:w-96" />
@@ -235,8 +238,8 @@ export function OrganizerLanding({ heroEvents }: OrganizerLandingProps) {
                 Ready to list your next event?
               </h2>
               <p className="mt-4 text-muted">
-                Create your organizer account in minutes. No setup fees — 3%
-                platform fee on paid tickets only (free RSVPs excluded).
+                Create your organizer account in minutes. No setup fees — see
+                pricing above.
               </p>
               <OrganizerCtas className="mt-8 justify-center" />
               <p className="mt-8">
