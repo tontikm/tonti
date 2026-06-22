@@ -1,4 +1,5 @@
 import { getSupabaseAdmin } from "@/lib/supabase/admin";
+import { revenueFromDbRow } from "@/lib/payments/order-revenue";
 
 export type PlatformDashboardStats = {
   organizerCount: number;
@@ -11,6 +12,7 @@ export type PlatformDashboardStats = {
   confirmedOrderCount: number;
   totalServiceFee: number;
   totalGrossRevenue: number;
+  totalOrganizerNet: number;
 };
 
 export async function getPlatformDashboardStats(): Promise<PlatformDashboardStats> {
@@ -25,6 +27,7 @@ export async function getPlatformDashboardStats(): Promise<PlatformDashboardStat
     confirmedOrderCount: 0,
     totalServiceFee: 0,
     totalGrossRevenue: 0,
+    totalOrganizerNet: 0,
   };
 
   const supabase = getSupabaseAdmin();
@@ -55,11 +58,12 @@ export async function getPlatformDashboardStats(): Promise<PlatformDashboardStat
 
   let totalServiceFee = 0;
   let totalGrossRevenue = 0;
+  let totalOrganizerNet = 0;
   for (const order of confirmedOrders) {
-    totalServiceFee += Number(order.service_fee ?? 0);
-    totalGrossRevenue += Number(
-      order.subtotal_amount ?? order.total_amount ?? 0,
-    );
+    const { collected, serviceFee, organizerNet } = revenueFromDbRow(order);
+    totalServiceFee += serviceFee;
+    totalGrossRevenue += collected;
+    totalOrganizerNet += organizerNet;
   }
 
   return {
@@ -73,5 +77,6 @@ export async function getPlatformDashboardStats(): Promise<PlatformDashboardStat
     confirmedOrderCount: confirmedOrders.length,
     totalServiceFee: Math.round(totalServiceFee * 100) / 100,
     totalGrossRevenue: Math.round(totalGrossRevenue * 100) / 100,
+    totalOrganizerNet: Math.round(totalOrganizerNet * 100) / 100,
   };
 }

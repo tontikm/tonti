@@ -5,6 +5,7 @@ import { AdminPageHeader } from "@/components/admin/AdminShell";
 import { AdminReportStat } from "@/components/admin/AdminReportStat";
 import { listAdminOrders } from "@/lib/admin/data";
 import { getEventBySlug } from "@/lib/data/events";
+import { organizerNetFromOrder } from "@/lib/payments/order-revenue";
 import { getEventSalesReport } from "@/lib/tickets";
 import {
   formatDateRange,
@@ -64,9 +65,9 @@ export default async function AdminEventSalesPage({ params }: Props) {
 
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
         <AdminReportStat
-          label="Gross revenue"
+          label="Collected revenue"
           value={formatPrice(report.grossRevenue)}
-          sub="Ticket face value (confirmed orders)"
+          sub="Paid by fans (confirmed orders, after promos)"
         />
         <AdminReportStat
           label="Tonti platform fee (3%)"
@@ -169,9 +170,13 @@ export default async function AdminEventSalesPage({ params }: Props) {
             </thead>
             <tbody className="divide-y divide-white/10">
               {orders.map((order) => {
-                const gross =
-                  order.subtotalAmount || order.totalAmount;
-                const organizerNet = gross - order.serviceFee;
+                const isConfirmed = order.status === "confirmed";
+                const gross = order.totalAmount || order.subtotalAmount;
+                const organizerNet = organizerNetFromOrder({
+                  subtotalAmount: order.subtotalAmount,
+                  totalAmount: order.totalAmount,
+                  serviceFee: order.serviceFee,
+                });
                 return (
                   <tr key={order.id} className="bg-surface/20">
                     <td className="px-4 py-4">
@@ -182,13 +187,13 @@ export default async function AdminEventSalesPage({ params }: Props) {
                       {order.ticketCount}
                     </td>
                     <td className="px-4 py-4 font-mono">
-                      {formatPrice(gross)}
+                      {isConfirmed ? formatPrice(gross) : "—"}
                     </td>
                     <td className="px-4 py-4 font-mono text-amber-200/90">
-                      {formatPrice(order.serviceFee)}
+                      {isConfirmed ? formatPrice(order.serviceFee) : "—"}
                     </td>
                     <td className="px-4 py-4 font-mono">
-                      {formatPrice(organizerNet)}
+                      {isConfirmed ? formatPrice(organizerNet) : "—"}
                     </td>
                     <td className="px-4 py-4 capitalize">{order.status}</td>
                     <td className="px-4 py-4 text-xs text-muted">
@@ -210,8 +215,9 @@ export default async function AdminEventSalesPage({ params }: Props) {
       )}
 
       <p className="mt-4 text-xs text-muted">
-        Revenue from confirmed orders only. Payouts to organizers are handled
-        outside Tonti (e.g. EFT after the event).
+        Summary totals use confirmed orders only. Pending or failed orders
+        appear in the list but do not affect revenue figures. Payouts to
+        organizers are handled outside Tonti (e.g. EFT after the event).
       </p>
     </>
   );

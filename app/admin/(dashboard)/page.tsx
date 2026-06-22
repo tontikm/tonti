@@ -44,8 +44,13 @@ export default async function AdminOverviewPage() {
       href: "/admin/orders",
     },
     {
-      label: "Gross revenue (all events)",
+      label: "Collected (all events)",
       value: formatPrice(stats.totalGrossRevenue),
+      href: "/admin/orders",
+    },
+    {
+      label: "Organizer share (all events)",
+      value: formatPrice(stats.totalOrganizerNet),
       href: "/admin/orders",
     },
     {

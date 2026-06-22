@@ -31,7 +31,7 @@ export default async function AdminEventsPage() {
                   <th className="px-4 py-3 font-medium">Event</th>
                   <th className="px-4 py-3 font-medium">Organizer</th>
                   <th className="px-4 py-3 font-medium">Tickets</th>
-                  <th className="px-4 py-3 font-medium">Gross</th>
+                  <th className="px-4 py-3 font-medium">Collected</th>
                   <th className="px-4 py-3 font-medium">Tonti (3%)</th>
                   <th className="px-4 py-3 font-medium">Organizer</th>
                   <th className="px-4 py-3 font-medium">Public</th>

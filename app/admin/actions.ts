@@ -6,7 +6,6 @@ import { getSupabaseAdmin } from "@/lib/supabase/admin";
 import { requireAdminSession } from "@/lib/admin/require-auth";
 import {
   clearAdminSession,
-  getAdminSession,
   setAdminSession,
 } from "@/lib/admin/session";
 import type { OrganizerStatus } from "@/lib/admin/data";
@@ -24,9 +23,9 @@ export type AdminActionState = {
 };
 
 function revalidateAdminPaths() {
-  revalidatePath("/admin");
+  revalidatePath("/admin", "layout");
   revalidatePath("/admin/organizers");
-  revalidatePath("/admin/events");
+  revalidatePath("/admin/events", "layout");
   revalidatePath("/admin/orders");
   revalidatePath("/");
   revalidatePath("/events");

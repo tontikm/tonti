@@ -1,6 +1,7 @@
 "use client";
 
 import { useTransition } from "react";
+import { useRouter } from "next/navigation";
 import { updateOrganizerStatus } from "@/app/admin/actions";
 import type { OrganizerStatus } from "@/lib/admin/data";
 import { Button } from "@/components/ui/Button";
@@ -12,11 +13,13 @@ export function OrganizerStatusActions({
   organizerId: string;
   status: OrganizerStatus;
 }) {
+  const router = useRouter();
   const [pending, startTransition] = useTransition();
 
   function run(next: OrganizerStatus) {
     startTransition(async () => {
       await updateOrganizerStatus(organizerId, next);
+      router.refresh();
     });
   }
 

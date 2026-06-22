@@ -1,4 +1,5 @@
 import { getSupabaseAdmin } from "@/lib/supabase/admin";
+import { revenueFromDbRow } from "@/lib/payments/order-revenue";
 
 export type AdminEventSalesSummary = {
   orderCount: number;
@@ -57,13 +58,12 @@ export async function getAdminEventSalesSummaries(): Promise<
 
   for (const row of orderRows ?? []) {
     const slug = row.event_slug as string;
-    const gross = Number(row.subtotal_amount ?? row.total_amount ?? 0);
-    const fee = Number(row.service_fee ?? 0);
+    const { collected, serviceFee, organizerNet } = revenueFromDbRow(row);
     accumulateSummary(map, slug, {
       orderCount: 1,
-      grossRevenue: gross,
-      platformFee: fee,
-      organizerNet: gross - fee,
+      grossRevenue: collected,
+      platformFee: serviceFee,
+      organizerNet,
     });
   }
 

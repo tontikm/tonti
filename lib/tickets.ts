@@ -8,6 +8,7 @@ import type {
   TicketTier,
 } from "@/lib/types";
 import { getSupabaseServer } from "@/lib/supabase/server";
+import { revenueFromDbRow } from "@/lib/payments/order-revenue";
 
 export function getSiteUrl(): string {
   return (
@@ -228,8 +229,8 @@ export async function getOrganizerEventStats(
     const slug = row.event_slug as string;
     const stat = stats.get(slug);
     if (!stat) continue;
-    const amount = Number(row.subtotal_amount ?? row.total_amount ?? 0);
-    stat.revenue += amount;
+    const { collected } = revenueFromDbRow(row);
+    stat.revenue += collected;
   }
 
   for (const stat of stats.values()) {
@@ -265,11 +266,10 @@ export async function getEventSalesReport(
 
     for (const row of orderRows ?? []) {
       orderCount += 1;
-      const subtotal = Number(row.subtotal_amount ?? row.total_amount ?? 0);
-      const fee = Number(row.service_fee ?? 0);
-      grossRevenue += subtotal;
+      const { collected, serviceFee: fee } = revenueFromDbRow(row);
+      grossRevenue += collected;
       serviceFee += fee;
-      if (Number(row.total_amount ?? subtotal) <= 0) {
+      if (Number(row.total_amount ?? collected) <= 0) {
         zeroTotalOrderIds.add(row.id as string);
       }
     }

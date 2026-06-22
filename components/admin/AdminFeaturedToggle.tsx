@@ -1,6 +1,7 @@
 "use client";
 
 import { useTransition } from "react";
+import { useRouter } from "next/navigation";
 import { Star } from "lucide-react";
 import { toggleEventFeatured } from "@/app/admin/actions";
 import { cn } from "@/lib/utils";
@@ -12,11 +13,13 @@ export function AdminFeaturedToggle({
   slug: string;
   featured: boolean;
 }) {
+  const router = useRouter();
   const [pending, startTransition] = useTransition();
 
   function onToggle() {
     startTransition(async () => {
       await toggleEventFeatured(slug, !featured);
+      router.refresh();
     });
   }
 

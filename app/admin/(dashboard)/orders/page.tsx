@@ -2,6 +2,7 @@ import Link from "next/link";
 import { AdminPageHeader } from "@/components/admin/AdminShell";
 import { listAdminOrders } from "@/lib/admin/data";
 import { getEventBySlug } from "@/lib/data/events";
+import { organizerNetFromOrder } from "@/lib/payments/order-revenue";
 import { formatPrice } from "@/lib/utils";
 
 export const metadata = {
@@ -61,9 +62,13 @@ export default async function AdminOrdersPage({ searchParams }: Props) {
             </thead>
             <tbody className="divide-y divide-white/10">
               {orders.map((order) => {
-                const gross =
-                  order.subtotalAmount || order.totalAmount;
-                const organizerNet = gross - order.serviceFee;
+                const isConfirmed = order.status === "confirmed";
+                const gross = order.totalAmount || order.subtotalAmount;
+                const organizerNet = organizerNetFromOrder({
+                  subtotalAmount: order.subtotalAmount,
+                  totalAmount: order.totalAmount,
+                  serviceFee: order.serviceFee,
+                });
                 return (
                   <tr key={order.id} className="bg-surface/20">
                     <td className="px-4 py-4">
@@ -84,13 +89,13 @@ export default async function AdminOrdersPage({ searchParams }: Props) {
                       {order.ticketCount}
                     </td>
                     <td className="px-4 py-4 font-mono">
-                      {formatPrice(gross)}
+                      {isConfirmed ? formatPrice(gross) : "—"}
                     </td>
                     <td className="px-4 py-4 font-mono text-amber-200/90">
-                      {formatPrice(order.serviceFee)}
+                      {isConfirmed ? formatPrice(order.serviceFee) : "—"}
                     </td>
                     <td className="px-4 py-4 font-mono">
-                      {formatPrice(organizerNet)}
+                      {isConfirmed ? formatPrice(organizerNet) : "—"}
                     </td>
                     <td className="px-4 py-4">
                       <span className="capitalize">{order.status}</span>
