@@ -1,7 +1,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import { EVENT_CATEGORIES } from "@/lib/data/categories";
-import { BRAND_LOGO_SRC, BRAND_NAME, LEGAL_HUB_LINK } from "@/lib/site";
+import { BRAND_LOGO_HEIGHT, BRAND_LOGO_SRC, BRAND_LOGO_WIDTH, BRAND_NAME, LEGAL_HUB_LINK } from "@/lib/site";
 import { SocialLinks } from "@/components/layout/SocialLinks";
 
 export function Footer() {
@@ -13,8 +13,8 @@ export function Footer() {
             <Image
               src={BRAND_LOGO_SRC}
               alt={BRAND_NAME}
-              width={598}
-              height={215}
+              width={BRAND_LOGO_WIDTH}
+              height={BRAND_LOGO_HEIGHT}
               className="h-8 w-auto"
             />
             <p className="mt-4 max-w-sm text-sm leading-relaxed text-muted">

@@ -1,7 +1,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import { Button } from "@/components/ui/Button";
-import { BRAND_LOGO_SRC, BRAND_NAME } from "@/lib/site";
+import { BRAND_LOGO_HEIGHT, BRAND_LOGO_SRC, BRAND_LOGO_WIDTH, BRAND_NAME } from "@/lib/site";
 import { cn } from "@/lib/utils";
 
 type OrganizerPublicShellProps = {
@@ -24,8 +24,8 @@ export function OrganizerPublicShell({
             <Image
               src={BRAND_LOGO_SRC}
               alt={BRAND_NAME}
-              width={598}
-              height={215}
+              width={BRAND_LOGO_WIDTH}
+              height={BRAND_LOGO_HEIGHT}
               className="h-7 w-auto"
               priority
             />

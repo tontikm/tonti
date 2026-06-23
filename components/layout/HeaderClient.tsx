@@ -5,7 +5,7 @@ import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { useEventBrand, type EventBrand } from "@/components/layout/EventBrandProvider";
 import type { SearchItem } from "@/lib/search";
-import { BRAND_LOGO_SRC, BRAND_NAME } from "@/lib/site";
+import { BRAND_LOGO_HEIGHT, BRAND_LOGO_SRC, BRAND_LOGO_WIDTH, BRAND_NAME } from "@/lib/site";
 import { HeaderSearch } from "./HeaderSearch";
 import { SiteNav } from "./SiteNav";
 
@@ -23,8 +23,8 @@ function BrandLogo({ className }: { className?: string }) {
       <Image
         src={BRAND_LOGO_SRC}
         alt={BRAND_NAME}
-        width={598}
-        height={215}
+        width={BRAND_LOGO_WIDTH}
+        height={BRAND_LOGO_HEIGHT}
         priority
         className={className ?? "h-7 w-auto"}
       />

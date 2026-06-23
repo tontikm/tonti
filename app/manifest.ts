@@ -1,5 +1,5 @@
 import type { MetadataRoute } from "next";
-import { BRAND_LOGO_SRC, BRAND_NAME } from "@/lib/site";
+import { BRAND_ICON_SQUARE_SRC, BRAND_ICON_SRC, BRAND_NAME } from "@/lib/site";
 
 export default function manifest(): MetadataRoute.Manifest {
   return {
@@ -14,8 +14,20 @@ export default function manifest(): MetadataRoute.Manifest {
     categories: ["music", "events", "entertainment"],
     icons: [
       {
-        src: BRAND_LOGO_SRC,
-        sizes: "598x215",
+        src: BRAND_ICON_SQUARE_SRC,
+        sizes: "512x512",
+        type: "image/png",
+        purpose: "any",
+      },
+      {
+        src: BRAND_ICON_SQUARE_SRC,
+        sizes: "512x512",
+        type: "image/png",
+        purpose: "maskable",
+      },
+      {
+        src: "/spotra-icon-square.png",
+        sizes: "512x512",
         type: "image/png",
         purpose: "any",
       },

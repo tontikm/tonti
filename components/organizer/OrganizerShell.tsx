@@ -19,7 +19,7 @@ import { useState } from "react";
 import type { OrganizerSession } from "@/lib/organizer/session";
 import { logoutOrganizer } from "@/app/organizer/actions";
 import { getSafeOrganizerLogoUrl } from "@/lib/images";
-import { BRAND_LOGO_SRC, BRAND_NAME } from "@/lib/site";
+import { BRAND_LOGO_HEIGHT, BRAND_LOGO_SRC, BRAND_LOGO_WIDTH, BRAND_NAME } from "@/lib/site";
 import { cn } from "@/lib/utils";
 
 type OrganizerShellProps = {
@@ -51,8 +51,8 @@ export function OrganizerShell({ session, children }: OrganizerShellProps) {
         <Image
           src={BRAND_LOGO_SRC}
           alt={BRAND_NAME}
-          width={598}
-          height={215}
+          width={BRAND_LOGO_WIDTH}
+          height={BRAND_LOGO_HEIGHT}
           className="h-7 w-auto"
         />
         <p className="mt-2 text-[10px] font-medium uppercase tracking-[0.25em] text-violet-300/80">
@@ -112,8 +112,8 @@ export function OrganizerShell({ session, children }: OrganizerShellProps) {
               <Image
                 src={BRAND_LOGO_SRC}
                 alt={BRAND_NAME}
-                width={598}
-                height={215}
+                width={BRAND_LOGO_WIDTH}
+                height={BRAND_LOGO_HEIGHT}
                 className="h-6 w-auto"
               />
               <span className="mt-0.5 text-[10px] font-medium uppercase tracking-[0.2em] text-violet-300/80">

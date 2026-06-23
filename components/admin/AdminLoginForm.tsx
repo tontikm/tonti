@@ -4,7 +4,7 @@ import { useActionState } from "react";
 import Image from "next/image";
 import { loginAdmin, type AdminLoginState } from "@/app/admin/actions";
 import { Button } from "@/components/ui/Button";
-import { BRAND_LOGO_SRC, BRAND_NAME } from "@/lib/site";
+import { BRAND_LOGO_HEIGHT, BRAND_LOGO_SRC, BRAND_LOGO_WIDTH, BRAND_NAME } from "@/lib/site";
 
 const inputClass =
   "w-full rounded-xl border border-white/15 bg-white/5 px-4 py-3 text-sm text-foreground placeholder:text-muted focus:border-white/40 focus:outline-none";
@@ -21,8 +21,8 @@ export function AdminLoginForm() {
         <Image
           src={BRAND_LOGO_SRC}
           alt={BRAND_NAME}
-          width={598}
-          height={215}
+          width={BRAND_LOGO_WIDTH}
+          height={BRAND_LOGO_HEIGHT}
           className="mx-auto h-8 w-auto"
         />
         <p className="mt-2 text-center text-[10px] font-medium uppercase tracking-[0.25em] text-muted">

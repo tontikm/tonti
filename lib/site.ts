@@ -10,8 +10,14 @@ export const BRAND_NAME = "Spotra";
 
 export const COMPANY_NAME = "Spotra (Pty) Ltd";
 
-/** Swap this path when the Spotra logo asset is ready. */
-export const BRAND_LOGO_SRC = "/tonti-logo.png";
+export const BRAND_LOGO_SRC = "/spotra-logo.png";
+export const BRAND_ICON_SRC = "/spotra-icon.png";
+/** Black ticket with white spot — favicon and light surfaces. */
+export const BRAND_ICON_INVERTED_SRC = "/spotra-icon-inverted.png";
+export const BRAND_ICON_SQUARE_SRC = "/spotra-icon-inverted-square.png";
+
+export const BRAND_LOGO_WIDTH = 1150;
+export const BRAND_LOGO_HEIGHT = 256;
 
 export const BRAND_DOMAIN =
   process.env.NEXT_PUBLIC_BRAND_DOMAIN ?? "spotra.co.za";

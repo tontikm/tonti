@@ -2,7 +2,7 @@ import Image from "next/image";
 import type { EventCategory, EventTicket } from "@/lib/types";
 import { TicketQr } from "@/components/tickets/TicketQr";
 import { getSafeEventImageUrl } from "@/lib/images";
-import { BRAND_LOGO_SRC, BRAND_NAME } from "@/lib/site";
+import { BRAND_LOGO_HEIGHT, BRAND_LOGO_SRC, BRAND_LOGO_WIDTH, BRAND_NAME } from "@/lib/site";
 
 const ACCENT_COLORS: Record<EventCategory, string> = {
   nightlife: "#a78bfa",
@@ -55,8 +55,8 @@ export function TicketPassCard({
         <Image
           src={BRAND_LOGO_SRC}
           alt={BRAND_NAME}
-          width={120}
-          height={32}
+          width={BRAND_LOGO_WIDTH}
+          height={BRAND_LOGO_HEIGHT}
           className="h-7 w-auto object-contain"
         />
       </div>
