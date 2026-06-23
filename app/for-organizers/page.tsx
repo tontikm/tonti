@@ -6,7 +6,7 @@ import { getOrganizerSession } from "@/lib/organizer/session";
 export const metadata = {
   title: "For organizers",
   description:
-    "List events, sell tickets, and scan guests at the door with Tonti, built for SA promoters, venues, and artists.",
+    "List events, sell tickets, and scan guests at the door with Spotra, built for SA promoters, venues, and artists.",
 };
 
 export default async function ForOrganizersPage() {

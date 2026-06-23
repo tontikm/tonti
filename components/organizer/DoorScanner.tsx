@@ -153,7 +153,7 @@ export function DoorScanner({ eventSlug, eventTitle }: DoorScannerProps) {
             <p className="px-4 py-3 text-sm text-amber-400">{cameraError}</p>
           )}
           <p className="px-4 pb-4 text-center text-xs text-muted">
-            Point at a Tonti QR code for {eventTitle}
+            Point at a Spotra QR code for {eventTitle}
           </p>
         </div>
       )}

@@ -16,6 +16,7 @@ import { NewVenueFields } from "@/components/organizer/NewVenueFields";
 import { ImagePlus, Plus, Trash2 } from "lucide-react";
 import { HeroBannerField } from "@/components/organizer/HeroBannerField";
 import { ProhibitedItemsInput } from "@/components/organizer/ProhibitedItemsInput";
+import { BRAND_DOMAIN } from "@/lib/site";
 
 type TierRow = {
   key: string;
@@ -299,7 +300,7 @@ export function EventForm({
             placeholder="amapiano-festival-jhb"
           />
           <p className="mt-1 text-xs text-muted">
-            tonti.co.za/events/{slug || "your-event-slug"}
+            {BRAND_DOMAIN}/events/{slug || "your-event-slug"}
             {isEdit && " · slug cannot be changed"}
           </p>
         </div>
@@ -581,7 +582,7 @@ export function EventForm({
             target="_blank"
             className="font-medium text-foreground underline-offset-4 hover:underline"
           >
-            Tonti&apos;s refund policy
+            Spotra&apos;s refund policy
           </Link>
           .
         </div>

@@ -6,19 +6,27 @@ export type SocialLink = {
   label: string;
 };
 
+export const BRAND_NAME = "Spotra";
+
+export const COMPANY_NAME = "Spotra (Pty) Ltd";
+
+/** Swap this path when the Spotra logo asset is ready. */
+export const BRAND_LOGO_SRC = "/tonti-logo.png";
+
+export const BRAND_DOMAIN =
+  process.env.NEXT_PUBLIC_BRAND_DOMAIN ?? "spotra.co.za";
+
 export const CONTACT_EMAIL =
-  process.env.NEXT_PUBLIC_CONTACT_EMAIL ?? "hello@tonti.co.za";
+  process.env.NEXT_PUBLIC_CONTACT_EMAIL ?? "hello@spotra.co.za";
 
 export const SUPPORT_EMAIL =
-  process.env.NEXT_PUBLIC_SUPPORT_EMAIL ?? "support@tonti.co.za";
+  process.env.NEXT_PUBLIC_SUPPORT_EMAIL ?? "support@spotra.co.za";
 
 export const LEGAL_EMAIL =
-  process.env.NEXT_PUBLIC_LEGAL_EMAIL ?? "legal@tonti.co.za";
+  process.env.NEXT_PUBLIC_LEGAL_EMAIL ?? "legal@spotra.co.za";
 
 export const POPIA_EMAIL =
-  process.env.NEXT_PUBLIC_POPIA_EMAIL ?? "privacy@tonti.co.za";
-
-export const COMPANY_NAME = "Tonti (Pty) Ltd";
+  process.env.NEXT_PUBLIC_POPIA_EMAIL ?? "privacy@spotra.co.za";
 
 export function getSiteOrigin(): string {
   if (process.env.NEXT_PUBLIC_SITE_URL) {
@@ -35,7 +43,7 @@ export const SOCIAL_LINKS: SocialLink[] = [
     platform: "instagram",
     href:
       process.env.NEXT_PUBLIC_INSTAGRAM_URL ??
-      "https://www.instagram.com/tonti.co.za",
+      "https://www.instagram.com/spotra.co.za",
     label: "Instagram",
   },
   {
@@ -49,14 +57,14 @@ export const SOCIAL_LINKS: SocialLink[] = [
     platform: "tiktok",
     href:
       process.env.NEXT_PUBLIC_TIKTOK_URL ??
-      "https://www.tiktok.com/@tonti.co.za",
+      "https://www.tiktok.com/@spotra.co.za",
     label: "TikTok",
   },
   {
     platform: "facebook",
     href:
       process.env.NEXT_PUBLIC_FACEBOOK_URL ??
-      "https://www.facebook.com/tonti.co.za",
+      "https://www.facebook.com/spotra.co.za",
     label: "Facebook",
   },
 ].filter((link): link is SocialLink => link.href.length > 0);

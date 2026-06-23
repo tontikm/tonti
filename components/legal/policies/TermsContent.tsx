@@ -1,14 +1,14 @@
-import { COMPANY_NAME, CONTACT_EMAIL, LEGAL_EMAIL } from "@/lib/site";
+import { COMPANY_NAME, CONTACT_EMAIL, LEGAL_EMAIL, BRAND_NAME, BRAND_DOMAIN } from "@/lib/site";
 
 export function TermsContent() {
   return (
     <>
       <section>
-        <h2>1. About Tonti</h2>
+        <h2>1. About {BRAND_NAME}</h2>
         <p>
-          Tonti is a live-music ticketing and discovery platform operated by{" "}
-          {COMPANY_NAME} (&quot;Tonti&quot;, &quot;we&quot;, &quot;us&quot;). By
-          accessing tonti.co.za or related services, you agree to these terms.
+          {BRAND_NAME} is a live-music ticketing and discovery platform operated by{" "}
+          {COMPANY_NAME} (&quot;{BRAND_NAME}&quot;, &quot;we&quot;, &quot;us&quot;). By
+          accessing {BRAND_DOMAIN} or related services, you agree to these terms.
         </p>
       </section>
 
@@ -33,7 +33,7 @@ export function TermsContent() {
             availability at the time of checkout.
           </li>
           <li>
-            QR tickets are personal. Do not share codes publicly. Tonti is not
+            QR tickets are personal. Do not share codes publicly. {BRAND_NAME} is not
             responsible for loss arising from shared or duplicated codes.
           </li>
           <li>
@@ -54,7 +54,7 @@ export function TermsContent() {
 
       <section>
         <h2>5. Acceptable use</h2>
-        <p>You may not use Tonti to:</p>
+        <p>You may not use {BRAND_NAME} to:</p>
         <ul>
           <li>List non-music events or misleading listings</li>
           <li>Scrape, reverse engineer, or disrupt the platform</li>
@@ -66,7 +66,7 @@ export function TermsContent() {
       <section>
         <h2>6. Limitation of liability</h2>
         <p>
-          Tonti provides the platform &quot;as is&quot;. To the fullest extent
+          {BRAND_NAME} provides the platform &quot;as is&quot;. To the fullest extent
           permitted by South African law, we are not liable for event
           cancellations, changes, venue conditions, or organizer actions beyond
           our reasonable control. Nothing in these terms limits rights you cannot

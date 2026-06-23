@@ -4,6 +4,7 @@ import { useEffect } from "react";
 import Image from "next/image";
 import { ImagePlus } from "lucide-react";
 import { slugify } from "@/lib/utils";
+import { BRAND_DOMAIN } from "@/lib/site";
 import { inputClass, labelClass } from "./shared";
 import type { EventWizardState } from "./types";
 
@@ -70,7 +71,7 @@ export function StepBasics({ state, onChange }: StepBasicsProps) {
           placeholder="amapiano-festival-jhb"
         />
         <p className="mt-1 text-xs text-muted">
-          tonti.co.za/events/{state.slug || "your-event-slug"}
+          {BRAND_DOMAIN}/events/{state.slug || "your-event-slug"}
         </p>
       </div>
 

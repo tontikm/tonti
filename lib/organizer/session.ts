@@ -1,7 +1,7 @@
 import { createHmac, timingSafeEqual } from "crypto";
 import { cookies } from "next/headers";
 
-const COOKIE_NAME = "tonti_organizer_session";
+const COOKIE_NAME = "spotra_organizer_session";
 
 export type OrganizerSession = {
   id?: string;
@@ -16,7 +16,7 @@ function getSessionSecret(): string | null {
     return process.env.ORGANIZER_SESSION_SECRET;
   }
   if (process.env.NODE_ENV === "development") {
-    return "tonti-dev-organizer-session";
+    return "spotra-dev-organizer-session";
   }
   return null;
 }

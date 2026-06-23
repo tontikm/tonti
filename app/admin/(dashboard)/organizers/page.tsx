@@ -38,7 +38,7 @@ export default async function AdminOrganizersPage({ searchParams }: Props) {
     <>
       <AdminPageHeader
         title="Organizers"
-        description="Approve new organizers before their events appear on Tonti."
+        description="Approve new organizers before their events appear on Spotra."
       />
 
       <div className="mb-6 flex flex-wrap gap-2">

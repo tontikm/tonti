@@ -25,7 +25,7 @@ export function OrganizerLoginForm() {
             href="/for-organizers"
             className="mb-6 inline-block text-sm text-muted hover:text-foreground"
           >
-            ← Why Tonti for organizers?
+            ← Why Spotra for organizers?
           </Link>
         }
         title="Organizer login"

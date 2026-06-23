@@ -4,6 +4,7 @@ import { useActionState } from "react";
 import Image from "next/image";
 import { loginAdmin, type AdminLoginState } from "@/app/admin/actions";
 import { Button } from "@/components/ui/Button";
+import { BRAND_LOGO_SRC, BRAND_NAME } from "@/lib/site";
 
 const inputClass =
   "w-full rounded-xl border border-white/15 bg-white/5 px-4 py-3 text-sm text-foreground placeholder:text-muted focus:border-white/40 focus:outline-none";
@@ -18,8 +19,8 @@ export function AdminLoginForm() {
     <div className="flex min-h-screen items-center justify-center bg-black px-4">
       <div className="w-full max-w-md rounded-2xl border border-white/10 bg-surface/50 p-8">
         <Image
-          src="/tonti-logo.png"
-          alt="Tonti"
+          src={BRAND_LOGO_SRC}
+          alt={BRAND_NAME}
           width={598}
           height={215}
           className="mx-auto h-8 w-auto"

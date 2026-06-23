@@ -1,4 +1,4 @@
-const KEY = "tonti:recently-viewed";
+const KEY = "spotra:recently-viewed";
 const MAX = 8;
 
 export function recordRecentlyViewed(slug: string): void {

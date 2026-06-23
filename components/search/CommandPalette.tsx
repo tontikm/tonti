@@ -88,7 +88,7 @@ export function CommandPalette({
         className="absolute inset-0 bg-black/70 backdrop-blur-sm"
       />
       <Command
-        label="Search Tonti"
+        label="Search Spotra"
         shouldFilter
         className="relative z-10 w-full max-w-xl overflow-hidden rounded-2xl border border-border bg-surface shadow-[var(--shadow-3)]"
         filter={(value, search) => {

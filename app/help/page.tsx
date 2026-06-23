@@ -9,14 +9,14 @@ import {
 
 export const metadata = {
   title: "Help & support",
-  description: "Get help with tickets, RSVPs, refunds, and organizer tools on Tonti.",
+  description: "Get help with tickets, RSVPs, refunds, and organizer tools on Spotra.",
 };
 
 export default function HelpPage() {
   return (
     <LegalLayout
       title="Help & support"
-      description="Answers to common questions about tickets, RSVPs, and listing events on Tonti."
+      description="Answers to common questions about tickets, RSVPs, and listing events on Spotra."
       lastUpdated="16 June 2026"
     >
       <section>
@@ -48,7 +48,7 @@ export default function HelpPage() {
         <p>
           Sign in at{" "}
           <Link href="/for-organizers" className="text-foreground hover:underline">
-            Tonti for organizers
+            Spotra for organizers
           </Link>
           , create an event, upload a poster, set ticket tiers, and publish.
         </p>
@@ -84,7 +84,7 @@ export default function HelpPage() {
         </ul>
         {SOCIAL_LINKS.length > 0 && (
           <div className="mt-6">
-            <p className="mb-3 text-foreground">Follow Tonti</p>
+            <p className="mb-3 text-foreground">Follow Spotra</p>
             <SocialLinks />
           </div>
         )}

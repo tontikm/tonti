@@ -25,7 +25,7 @@ export function PlatformFeeNotice({
           </div>
           <div>
             <p className="font-medium text-foreground">
-              Tonti platform fee: {feePercent}% per paid ticket
+              Spotra platform fee: {feePercent}% per paid ticket
             </p>
             <p className="mt-1 text-sm text-muted">
               Fans pay your listed ticket price. The {feePercent}% fee applies

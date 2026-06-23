@@ -88,7 +88,7 @@ export function OrganizerProfileView({ profile }: OrganizerProfileViewProps) {
       </div>
 
       {publicUrl && (
-        <DetailBlock title="Public Tonti page">
+        <DetailBlock title="Public Spotra page">
           <p className="font-mono text-sm text-foreground">{publicUrl}</p>
           <div className="flex flex-wrap gap-2 pt-1">
             <CopyLinkButton url={publicUrl} />

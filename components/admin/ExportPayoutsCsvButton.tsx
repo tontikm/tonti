@@ -66,7 +66,7 @@ export function ExportPayoutsCsvButton({
       const url = URL.createObjectURL(blob);
       const anchor = document.createElement("a");
       anchor.href = url;
-      anchor.download = `tonti-payouts-${new Date().toISOString().slice(0, 10)}.csv`;
+      anchor.download = `spotra-payouts-${new Date().toISOString().slice(0, 10)}.csv`;
       anchor.click();
       URL.revokeObjectURL(url);
     } finally {

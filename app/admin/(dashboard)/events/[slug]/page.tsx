@@ -70,7 +70,7 @@ export default async function AdminEventSalesPage({ params }: Props) {
           sub="Paid by fans (confirmed orders, after promos)"
         />
         <AdminReportStat
-          label="Tonti platform fee (3%)"
+          label="Spotra platform fee (3%)"
           value={formatPrice(report.serviceFee)}
           sub="Your share"
         />
@@ -161,7 +161,7 @@ export default async function AdminEventSalesPage({ params }: Props) {
                 <th className="px-4 py-3 font-medium">Buyer</th>
                 <th className="px-4 py-3 font-medium">Tickets</th>
                 <th className="px-4 py-3 font-medium">Gross</th>
-                <th className="px-4 py-3 font-medium">Tonti fee</th>
+                <th className="px-4 py-3 font-medium">Spotra fee</th>
                 <th className="px-4 py-3 font-medium">Organizer net</th>
                 <th className="px-4 py-3 font-medium">Status</th>
                 <th className="px-4 py-3 font-medium">Payment</th>
@@ -234,7 +234,7 @@ export default async function AdminEventSalesPage({ params }: Props) {
       <p className="mt-4 text-xs text-muted">
         Summary totals use confirmed orders only. Pending or failed orders
         appear in the list but do not affect revenue figures. Payouts to
-        organizers are handled outside Tonti (e.g. EFT after the event).
+        organizers are handled outside Spotra (e.g. EFT after the event).
       </p>
     </>
   );

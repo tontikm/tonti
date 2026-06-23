@@ -53,7 +53,7 @@ export default async function AdminOrdersPage({ searchParams }: Props) {
                 )}
                 <th className="px-4 py-3 font-medium">Tickets</th>
                 <th className="px-4 py-3 font-medium">Gross</th>
-                <th className="px-4 py-3 font-medium">Tonti fee</th>
+                <th className="px-4 py-3 font-medium">Spotra fee</th>
                 <th className="px-4 py-3 font-medium">Organizer net</th>
                 <th className="px-4 py-3 font-medium">Status</th>
                 <th className="px-4 py-3 font-medium">Payment</th>

@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { LEGAL_HUB_LINK, POLICY_LINKS } from "@/lib/site";
+import { LEGAL_HUB_LINK, POLICY_LINKS, BRAND_NAME } from "@/lib/site";
 import { SocialLinks } from "@/components/layout/SocialLinks";
 
 type LegalLayoutProps = {
@@ -33,12 +33,12 @@ export function LegalLayout({
         </p>
       </div>
 
-      <article className="prose-tonti mt-10 space-y-6 text-sm leading-relaxed text-muted [&_h2]:text-lg [&_h2]:font-semibold [&_h2]:text-foreground [&_h3]:text-base [&_h3]:font-semibold [&_h3]:text-foreground [&_li]:ml-5 [&_li]:list-disc [&_p]:text-muted [&_strong]:text-foreground [&_ul]:space-y-2">
+      <article className="prose-spotra mt-10 space-y-6 text-sm leading-relaxed text-muted [&_h2]:text-lg [&_h2]:font-semibold [&_h2]:text-foreground [&_h3]:text-base [&_h3]:font-semibold [&_h3]:text-foreground [&_li]:ml-5 [&_li]:list-disc [&_p]:text-muted [&_strong]:text-foreground [&_ul]:space-y-2">
         {children}
       </article>
 
       <div className="mt-12 border-t border-white/10 pt-8">
-        <p className="text-sm font-medium text-foreground">Follow Tonti</p>
+        <p className="text-sm font-medium text-foreground">Follow {BRAND_NAME}</p>
         <SocialLinks className="mt-4" />
         <div className="mt-6">
           <Link

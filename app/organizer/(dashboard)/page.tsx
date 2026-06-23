@@ -230,7 +230,7 @@ export default async function OrganizerDashboardPage() {
             <ul className="mt-3 space-y-2 text-sm text-muted">
               <li>{stats.orderCount} total orders</li>
               <li>{stats.pendingCheckIn} guests not yet checked in</li>
-              <li>{stats.eventCount} events on Tonti</li>
+              <li>{stats.eventCount} events on Spotra</li>
             </ul>
           </div>
         </section>

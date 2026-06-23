@@ -1,4 +1,4 @@
-import { SUPPORT_EMAIL } from "@/lib/site";
+import { SUPPORT_EMAIL, BRAND_NAME } from "@/lib/site";
 
 export function RefundsContent() {
   return (
@@ -7,7 +7,7 @@ export function RefundsContent() {
         <h2>1. General principle</h2>
         <p>
           Refund rules are primarily set by the event organizer and displayed on
-          the event page. Tonti facilitates ticketing but does not guarantee
+          the event page. {BRAND_NAME} facilitates ticketing but does not guarantee
           refunds unless stated for a specific event or required by law.
         </p>
       </section>
@@ -15,7 +15,7 @@ export function RefundsContent() {
       <section>
         <h2>2. Free RSVPs</h2>
         <p>
-          Free RSVP tickets can be cancelled by contacting the organizer or Tonti
+          Free RSVP tickets can be cancelled by contacting the organizer or {BRAND_NAME}
           support before the event. No payment is processed for free tiers.
         </p>
       </section>
@@ -35,7 +35,7 @@ export function RefundsContent() {
         <p>
           If an event is cancelled or materially changed, the organizer is
           responsible for communicating options (refund, credit, or transfer).
-          Tonti will assist with notifications where technically possible.
+          {BRAND_NAME} will assist with notifications where technically possible.
         </p>
       </section>
 

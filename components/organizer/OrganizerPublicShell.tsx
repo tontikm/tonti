@@ -1,6 +1,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import { Button } from "@/components/ui/Button";
+import { BRAND_LOGO_SRC, BRAND_NAME } from "@/lib/site";
 import { cn } from "@/lib/utils";
 
 type OrganizerPublicShellProps = {
@@ -21,8 +22,8 @@ export function OrganizerPublicShell({
         <div className="mx-auto flex h-16 max-w-[1440px] items-center justify-between gap-4 px-4 sm:px-6 lg:px-8">
           <Link href={logoHref} className="inline-flex shrink-0 items-center">
             <Image
-              src="/tonti-logo.png"
-              alt="Tonti"
+              src={BRAND_LOGO_SRC}
+              alt={BRAND_NAME}
               width={598}
               height={215}
               className="h-7 w-auto"

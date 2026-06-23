@@ -1,4 +1,4 @@
-const CACHE = "tonti-v1";
+const CACHE = "spotra-v1";
 const OFFLINE_URL = "/offline";
 
 // Pages that must keep working offline (tickets contain QR codes for door entry).

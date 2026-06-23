@@ -56,7 +56,7 @@ export default async function OrganizerEventsPage({ searchParams }: Props) {
     <>
       <OrganizerPageHeader
         title="Events"
-        description={`${events.length} event${events.length !== 1 ? "s" : ""} on Tonti`}
+        description={`${events.length} event${events.length !== 1 ? "s" : ""} on Spotra`}
         action={
           <Button href="/organizer/events/new" size="md" className="organizer-accent-btn">
             <Plus className="h-4 w-4" />

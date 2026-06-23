@@ -25,14 +25,14 @@ let loggedOrganizerMigrationHint = false;
 function logEventsSeedFallback(reason: string): void {
   if (loggedEventsSeedFallback) return;
   loggedEventsSeedFallback = true;
-  console.warn(`[Tonti] ${reason} Using local seed data from lib/data/events.ts.`);
+  console.warn(`[Spotra] ${reason} Using local seed data from lib/data/events.ts.`);
 }
 
 function logOrganizerMigrationHint(): void {
   if (loggedOrganizerMigrationHint) return;
   loggedOrganizerMigrationHint = true;
   console.warn(
-    "[Tonti] Organizer branding columns missing — run supabase/migrations/0004_event_organizer_branding.sql in the Supabase SQL editor.",
+    "[Spotra] Organizer branding columns missing. Run supabase/migrations/0004_event_organizer_branding.sql in the Supabase SQL editor.",
   );
 }
 

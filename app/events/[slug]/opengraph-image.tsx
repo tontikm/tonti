@@ -1,8 +1,9 @@
 import { ImageResponse } from "next/og";
 import { getPublicEventBySlug } from "@/lib/data/events";
 import { formatEventDate, getLowestPrice } from "@/lib/utils";
+import { BRAND_NAME } from "@/lib/site";
 
-export const alt = "Tonti event";
+export const alt = `${BRAND_NAME} event`;
 export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
 
@@ -30,7 +31,7 @@ export default async function Image({
             fontWeight: 700,
           }}
         >
-          Tonti
+          {BRAND_NAME}
         </div>
       ),
       size,
@@ -80,7 +81,7 @@ export default async function Image({
               color: "#c4f82a",
             }}
           >
-            Tonti
+            {BRAND_NAME}
           </div>
           <div style={{ fontSize: 24, color: "#a3a3a3" }}>
             {event.category}

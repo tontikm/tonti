@@ -19,7 +19,7 @@ export function computePaidSubtotal(lines: FeeLine[]): number {
   );
 }
 
-/** Tonti platform fee — 3% of paid subtotal. */
+/** Spotra platform fee — 3% of paid subtotal. */
 export function computeServiceFee(paidSubtotal: number): number {
   if (paidSubtotal <= 0) return 0;
   return roundCurrency(paidSubtotal * SERVICE_FEE_RATE);

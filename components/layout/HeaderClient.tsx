@@ -5,6 +5,7 @@ import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { useEventBrand, type EventBrand } from "@/components/layout/EventBrandProvider";
 import type { SearchItem } from "@/lib/search";
+import { BRAND_LOGO_SRC, BRAND_NAME } from "@/lib/site";
 import { HeaderSearch } from "./HeaderSearch";
 import { SiteNav } from "./SiteNav";
 
@@ -16,12 +17,12 @@ type HeaderClientProps = {
   searchItems: SearchItem[];
 };
 
-function TontiLogo({ className }: { className?: string }) {
+function BrandLogo({ className }: { className?: string }) {
   return (
-    <Link href="/" className="group flex items-center" aria-label="Tonti home">
+    <Link href="/" className="group flex items-center" aria-label={`${BRAND_NAME} home`}>
       <Image
-        src="/tonti-logo.png"
-        alt="Tonti"
+        src={BRAND_LOGO_SRC}
+        alt={BRAND_NAME}
         width={598}
         height={215}
         priority
@@ -60,7 +61,7 @@ function HeaderLogo({
     );
   }
 
-  return <TontiLogo className={className} />;
+  return <BrandLogo className={className} />;
 }
 
 export function HeaderClient({

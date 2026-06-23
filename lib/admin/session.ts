@@ -1,7 +1,7 @@
 import { createHmac, timingSafeEqual } from "crypto";
 import { cookies } from "next/headers";
 
-const COOKIE_NAME = "tonti_admin_session";
+const COOKIE_NAME = "spotra_admin_session";
 
 export type AdminSession = {
   id: string;
@@ -15,7 +15,7 @@ function getSessionSecret(): string | null {
     return process.env.ADMIN_SESSION_SECRET;
   }
   if (process.env.NODE_ENV === "development") {
-    return "tonti-dev-admin-session";
+    return "spotra-dev-admin-session";
   }
   return null;
 }

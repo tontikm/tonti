@@ -63,7 +63,7 @@ export default async function AdminOrganizerDetailPage({ params }: Props) {
 
       <div className="hidden print:mb-6 print:block">
         <h1 className="text-2xl font-bold">
-          Tonti organizer statement
+          Spotra organizer statement
         </h1>
         <p className="mt-1 text-lg font-medium">{summary.name ?? summary.email}</p>
         <p className="text-sm text-muted">
@@ -78,7 +78,7 @@ export default async function AdminOrganizerDetailPage({ params }: Props) {
           sub="Confirmed orders"
         />
         <AdminReportStat
-          label="Tonti fee (3%)"
+          label="Spotra fee (3%)"
           value={formatPrice(summary.platformFee)}
         />
         <AdminReportStat
@@ -124,7 +124,7 @@ export default async function AdminOrganizerDetailPage({ params }: Props) {
                 <th className="px-4 py-3 font-medium">Event</th>
                 <th className="px-4 py-3 font-medium">Tickets</th>
                 <th className="px-4 py-3 font-medium">Collected</th>
-                <th className="px-4 py-3 font-medium">Tonti (3%)</th>
+                <th className="px-4 py-3 font-medium">Spotra (3%)</th>
                 <th className="px-4 py-3 font-medium">Owed</th>
                 <th className="px-4 py-3 font-medium" />
               </tr>

@@ -2,6 +2,7 @@ import Image from "next/image";
 import type { EventCategory, EventTicket } from "@/lib/types";
 import { TicketQr } from "@/components/tickets/TicketQr";
 import { getSafeEventImageUrl } from "@/lib/images";
+import { BRAND_LOGO_SRC, BRAND_NAME } from "@/lib/site";
 
 const ACCENT_COLORS: Record<EventCategory, string> = {
   nightlife: "#a78bfa",
@@ -52,8 +53,8 @@ export function TicketPassCard({
 
       <div className="flex justify-center border-b border-white/10 px-6 py-3 pl-8">
         <Image
-          src="/tonti-logo.png"
-          alt="Tonti"
+          src={BRAND_LOGO_SRC}
+          alt={BRAND_NAME}
           width={120}
           height={32}
           className="h-7 w-auto object-contain"

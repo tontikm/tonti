@@ -16,7 +16,7 @@ export async function OrganizerPendingBanner() {
       <p className="font-medium text-amber-100">Account under review</p>
       <p className="mt-1 text-muted">
         You can set up events and tickets now, but they won&apos;t appear on
-        Tonti until your organizer account is approved.
+        Spotra until your organizer account is approved.
       </p>
     </div>
   );

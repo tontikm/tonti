@@ -1,6 +1,34 @@
-# Tonti launch checklist
+# Spotra launch checklist
 
 Use this after code is deployed to Vercel. Complete each section in order.
+
+## 1a. Supabase region (South Africa)
+
+Supabase **cannot change region** on an existing project, and **does not offer Africa (Cape Town)** as a primary region today. The full list is in the [Supabase regions docs](https://supabase.com/docs/guides/platform/regions).
+
+For a South African audience, pick the **closest available** primary region when creating a new project:
+
+| Priority | Region | Code |
+|----------|--------|------|
+| **Recommended** | South Asia (Mumbai) | `ap-south-1` |
+| Alternative | South America (São Paulo) | `sa-east-1` |
+| EU (if you prefer) | West EU (Ireland) | `eu-west-1` |
+
+Your app runs on **Vercel** (edge/serverless), so most page loads are fast; the Supabase region mainly affects database round-trips (checkout, login, organizer dashboard). Mumbai is usually the best Supabase choice for SA fans and organizers.
+
+**Fresh start checklist** (no data migration from an old project):
+
+1. Supabase Dashboard → **New project** → Region: **South Asia (Mumbai)** `ap-south-1` (or your chosen region above).
+2. Run all migrations in section 1 below (`0001` through `0023`) in the SQL editor.
+3. Copy **Project URL**, **anon key**, and **service role key** from Settings → API.
+4. Update **Vercel** env vars (`NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY`) and redeploy.
+5. Update **local** `.env.local` with the same keys.
+6. Create platform admin: `npx tsx --env-file=.env.local scripts/create-platform-admin.ts ...`
+7. **Authentication → URL configuration:** set Site URL and redirect URLs to your production domain.
+8. Organizers **re-register**; approve them in `/admin/organizers`.
+9. After smoke tests pass, **pause or delete** the old EU project to avoid double billing.
+
+Skip **`0022_backfill_service_fee.sql`** on a fresh database unless you import legacy orders later.
 
 ## 1. Supabase migrations
 
@@ -134,7 +162,7 @@ Run on phone and desktop against the live URL:
 - [ ] Organizer: login → create event → visible on `/events` **after admin approval**
 - [ ] Admin: sign in at `/admin/login` → approve organizer → event appears publicly
 - [ ] Admin: feature an event on homepage from `/admin/events`
-- [ ] Admin: open event **Sales** from `/admin/events` → verify gross, Tonti fee (3%), and organizer net
+- [ ] Admin: open event **Sales** from `/admin/events` → verify gross, Spotra fee (3%), and organizer net
 - [ ] Organizer: door scanner → check in → detail card → Dismiss / Scan next
 - [ ] Organizer: tap **Checked in** stat → filtered guest list → **Details** on a row
 - [ ] Organizer: export guest list CSV

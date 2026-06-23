@@ -44,7 +44,7 @@ export function CheckoutAuthGate({
   const title = organizerEmail ? "Sign in as a fan" : "Sign in to continue";
   const description = organizerEmail
     ? "Ticket orders need a fan account. Confirm your email if you just signed up."
-    : "Create a free Tonti account or sign in to complete your ticket order.";
+    : "Create a free Spotra account or sign in to complete your ticket order.";
 
   return (
     <FanAuthCard

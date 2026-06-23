@@ -19,6 +19,7 @@ import { useState } from "react";
 import type { OrganizerSession } from "@/lib/organizer/session";
 import { logoutOrganizer } from "@/app/organizer/actions";
 import { getSafeOrganizerLogoUrl } from "@/lib/images";
+import { BRAND_LOGO_SRC, BRAND_NAME } from "@/lib/site";
 import { cn } from "@/lib/utils";
 
 type OrganizerShellProps = {
@@ -48,8 +49,8 @@ export function OrganizerShell({ session, children }: OrganizerShellProps) {
     <div className="flex h-full flex-col">
       <Link href="/" className="block px-5 py-6">
         <Image
-          src="/tonti-logo.png"
-          alt="Tonti"
+          src={BRAND_LOGO_SRC}
+          alt={BRAND_NAME}
           width={598}
           height={215}
           className="h-7 w-auto"
@@ -109,8 +110,8 @@ export function OrganizerShell({ session, children }: OrganizerShellProps) {
           <div className="flex items-center justify-between border-b border-white/10 bg-black/80 px-4 py-4 backdrop-blur-sm lg:hidden">
             <Link href="/" className="flex flex-col">
               <Image
-                src="/tonti-logo.png"
-                alt="Tonti"
+                src={BRAND_LOGO_SRC}
+                alt={BRAND_NAME}
                 width={598}
                 height={215}
                 className="h-6 w-auto"

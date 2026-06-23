@@ -1,6 +1,6 @@
 import { Button } from "@/components/ui/Button";
 import { SERVICE_FEE_RATE } from "@/lib/payments/service-fee";
-import { CONTACT_EMAIL } from "@/lib/site";
+import { CONTACT_EMAIL, BRAND_NAME } from "@/lib/site";
 
 type TierCardProps = {
   label: string;
@@ -92,7 +92,7 @@ export function OrganizerFeeTiers() {
               "Free RSVPs excluded from fees",
               "Payfast checkout when enabled",
               "QR door scan and guest list",
-              "Listed on Tonti discovery",
+              "Listed on Spotra discovery",
             ]}
           />
 
@@ -142,7 +142,7 @@ export function OrganizerFeeTiers() {
             ]}
             footer={
               <Button
-                href={`mailto:${CONTACT_EMAIL}?subject=Tonti%20Enterprise%20pricing`}
+                href={`mailto:${CONTACT_EMAIL}?subject=${encodeURIComponent(`${BRAND_NAME} Enterprise pricing`)}`}
                 variant="secondary"
                 className="w-full justify-center"
               >
@@ -153,7 +153,7 @@ export function OrganizerFeeTiers() {
         </div>
 
         <p className="mt-8 text-center text-xs text-muted">
-          All fees excl. VAT. VAT charged on Tonti&apos;s commission, not on
+          All fees excl. VAT. VAT charged on {BRAND_NAME}&apos;s commission, not on
           ticket face value.
         </p>
       </div>

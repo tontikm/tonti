@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { POLICY_LINKS } from "@/lib/site";
+import { POLICY_LINKS, BRAND_NAME } from "@/lib/site";
 import { cn } from "@/lib/utils";
 
 type LegalHubLayoutProps = {
@@ -25,7 +25,7 @@ export function LegalHubLayout({
       <div className="mb-8">
         <h1 className="text-3xl font-bold sm:text-4xl">Legal</h1>
         <p className="mt-2 max-w-2xl text-muted">
-          Policies and terms for using Tonti as a fan, ticket buyer, or organizer.
+          Policies and terms for using {BRAND_NAME} as a fan, ticket buyer, or organizer.
         </p>
       </div>
 
@@ -57,7 +57,7 @@ export function LegalHubLayout({
           <h2 className="mt-2 text-2xl font-bold sm:text-3xl">{title}</h2>
           <p className="mt-4 text-muted">{description}</p>
 
-          <div className="prose-tonti mt-10 space-y-6 text-sm leading-relaxed text-muted [&_h2]:text-lg [&_h2]:font-semibold [&_h2]:text-foreground [&_h3]:text-base [&_h3]:font-semibold [&_h3]:text-foreground [&_li]:ml-5 [&_li]:list-disc [&_p]:text-muted [&_strong]:text-foreground [&_ul]:space-y-2">
+          <div className="prose-spotra mt-10 space-y-6 text-sm leading-relaxed text-muted [&_h2]:text-lg [&_h2]:font-semibold [&_h2]:text-foreground [&_h3]:text-base [&_h3]:font-semibold [&_h3]:text-foreground [&_li]:ml-5 [&_li]:list-disc [&_p]:text-muted [&_strong]:text-foreground [&_ul]:space-y-2">
             {children}
           </div>
         </article>

@@ -61,7 +61,7 @@ export default async function AdminPayoutsPage() {
                 <th className="px-4 py-3 font-medium">Organizer</th>
                 <th className="px-4 py-3 font-medium">Events</th>
                 <th className="px-4 py-3 font-medium">Collected</th>
-                <th className="px-4 py-3 font-medium">Tonti (3%)</th>
+                <th className="px-4 py-3 font-medium">Spotra (3%)</th>
                 <th className="px-4 py-3 font-medium">Owed</th>
                 <th className="px-4 py-3 font-medium">Paid</th>
                 <th className="px-4 py-3 font-medium">Outstanding</th>

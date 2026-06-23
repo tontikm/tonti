@@ -1,6 +1,6 @@
 # Security
 
-First security audit for Tonti (Phase 1). This document summarizes findings and fixes. Do not commit secrets to this file.
+First security audit for Spotra (Phase 1). This document summarizes findings and fixes. Do not commit secrets to this file.
 
 ## Phase 1 fixes (implemented)
 

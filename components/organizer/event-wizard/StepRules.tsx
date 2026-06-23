@@ -75,7 +75,7 @@ export function StepRules({ state, onChange }: StepRulesProps) {
           target="_blank"
           className="font-medium text-foreground underline-offset-4 hover:underline"
         >
-          Tonti&apos;s refund policy
+          Spotra&apos;s refund policy
         </Link>
         . You&apos;ll confirm this on the final step before publishing.
       </div>

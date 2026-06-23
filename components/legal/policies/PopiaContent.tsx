@@ -1,4 +1,4 @@
-import { COMPANY_NAME, POPIA_EMAIL } from "@/lib/site";
+import { COMPANY_NAME, POPIA_EMAIL, BRAND_NAME } from "@/lib/site";
 
 export function PopiaContent() {
   return (
@@ -6,7 +6,7 @@ export function PopiaContent() {
       <section>
         <h2>1. Purpose of processing</h2>
         <p>
-          Tonti processes personal information to facilitate live-music event
+          {BRAND_NAME} processes personal information to facilitate live-music event
           discovery, ticket RSVPs, QR check-in, and organizer tools. Processing
           is based on consent, contractual necessity, and legitimate interests
           where appropriate under POPIA.

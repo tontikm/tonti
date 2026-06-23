@@ -1,5 +1,5 @@
 /**
- * Seeds a Supabase project with the local Tonti seed data.
+ * Seeds a Supabase project with the local Spotra seed data.
  *
  * Usage:
  *   1. Create a Supabase project and run supabase/migrations/0001_init.sql
@@ -119,7 +119,7 @@ async function seed() {
   res = await supabase.from("event_artists").upsert(eventArtistRows);
   if (res.error) throw res.error;
 
-  console.log("Done. Tonti data is now in Supabase.");
+  console.log("Done. Spotra data is now in Supabase.");
 }
 
 seed().catch((err) => {

@@ -60,14 +60,14 @@ const PILLARS = [
 const SECTIONS = [
   {
     eyebrow: "Publish",
-    title: "Get your event live on Tonti",
+    title: "Get your event live on Spotra",
     preview: "publish" as const,
     border: "border-l-violet-500",
     bullets: [
       "Create events with dates, venues, and lineups",
       "Choose a category: nightlife, festival, music, or lifestyle",
       "Set ticket tiers with capacity and pricing",
-      "Appear in Tonti discovery: homepage, categories, and cities",
+      "Appear in Spotra discovery: homepage, categories, and cities",
     ],
   },
   {
@@ -123,10 +123,10 @@ export function OrganizerLanding({ heroEvents }: OrganizerLandingProps) {
         <div className="relative mx-auto grid max-w-[1440px] gap-12 px-4 py-16 sm:px-6 sm:py-24 lg:grid-cols-2 lg:items-center lg:gap-16 lg:px-8 lg:py-28">
           <div>
             <p className="inline-block rounded-full border border-violet-500/30 bg-violet-500/10 px-3 py-1 text-xs font-medium uppercase tracking-[0.2em] text-violet-200">
-              Tonti for Organizers
+              Spotra for Organizers
             </p>
             <h1 className="organizer-gradient-text mt-4 text-4xl font-bold tracking-tight sm:text-5xl lg:text-6xl">
-              Promote your show on Tonti
+              Promote your show on Spotra
             </h1>
             <p className="mt-6 max-w-xl text-lg leading-relaxed text-muted">
               Built for South African promoters, venues, and artists. List events,
@@ -147,7 +147,7 @@ export function OrganizerLanding({ heroEvents }: OrganizerLandingProps) {
             </h2>
             <p className="mt-4 text-muted">
               You should not need separate tools to publish a show, sell tickets,
-              and run check-in. Tonti brings the essentials together so you can
+              and run check-in. Spotra brings the essentials together so you can
               focus on the event.
             </p>
           </div>
@@ -187,7 +187,7 @@ export function OrganizerLanding({ heroEvents }: OrganizerLandingProps) {
         <div className="mx-auto max-w-[1440px] px-4 py-16 sm:px-6 lg:px-8">
           <div className="mb-12 flex items-center gap-3 text-sm text-muted">
             <Users className="h-4 w-4 text-violet-400" />
-            <span>Everything you need to run a show on Tonti</span>
+            <span>Everything you need to run a show on Spotra</span>
           </div>
           <div className="relative space-y-20">
             <div className="pointer-events-none absolute left-1/2 top-0 hidden h-full w-px -translate-x-1/2 bg-gradient-to-b from-violet-500/20 via-orange-500/10 to-transparent lg:block" />
@@ -244,7 +244,7 @@ export function OrganizerLanding({ heroEvents }: OrganizerLandingProps) {
               <OrganizerCtas className="mt-8 justify-center" />
               <p className="mt-8">
                 <Link href="/events" className="text-sm text-muted hover:text-foreground">
-                  Browse events on Tonti →
+                  Browse events on Spotra →
                 </Link>
               </p>
             </div>

@@ -15,6 +15,7 @@ import { PlatformFeeNotice } from "@/components/organizer/PlatformFeeNotice";
 import { getCategoryLabel } from "@/lib/data/categories";
 import { getSafeOrganizerLogoUrl } from "@/lib/images";
 import { formatAgeRange, formatPrice } from "@/lib/utils";
+import { BRAND_DOMAIN } from "@/lib/site";
 import type { EventWizardState, OrganizerWizardDefaults } from "./types";
 
 type StepReviewProps = {
@@ -49,7 +50,7 @@ export function StepReview({ state, defaults, onChange }: StepReviewProps) {
           <p className="mt-2 text-base text-muted">{state.subtitle}</p>
         )}
         <p className="mt-2 font-mono text-xs text-violet-200/70">
-          tonti.co.za/events/{state.slug || "your-event-slug"}
+          {BRAND_DOMAIN}/events/{state.slug || "your-event-slug"}
         </p>
       </div>
 
@@ -225,7 +226,7 @@ export function StepReview({ state, defaults, onChange }: StepReviewProps) {
         }}
       />
       <p className="text-xs text-muted">
-        Optional wide banner for the homepage carousel. Tonti features events
+        Optional wide banner for the homepage carousel. Spotra features events
         from the platform admin panel.
       </p>
 

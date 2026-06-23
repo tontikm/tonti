@@ -286,7 +286,7 @@ export default async function EventDetailPage({ params, searchParams }: Props) {
                         href="/legal/refunds"
                         className="font-medium text-foreground underline-offset-4 hover:underline"
                       >
-                        Read Tonti&apos;s refund policy
+                        Read Spotra&apos;s refund policy
                       </Link>
                     </p>
                   )}

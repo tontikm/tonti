@@ -16,6 +16,7 @@ import {
 import { useState } from "react";
 import type { AdminSession } from "@/lib/admin/session";
 import { logoutAdmin } from "@/app/admin/actions";
+import { BRAND_LOGO_SRC, BRAND_NAME } from "@/lib/site";
 import { cn } from "@/lib/utils";
 
 type AdminShellProps = {
@@ -44,8 +45,8 @@ export function AdminShell({ session, children }: AdminShellProps) {
     <div className="flex h-full flex-col">
       <Link href="/" className="block px-5 py-6">
         <Image
-          src="/tonti-logo.png"
-          alt="Tonti"
+          src={BRAND_LOGO_SRC}
+          alt={BRAND_NAME}
           width={598}
           height={215}
           className="h-7 w-auto"
@@ -108,8 +109,8 @@ export function AdminShell({ session, children }: AdminShellProps) {
           <div className="flex items-center justify-between border-b border-white/10 bg-black/80 px-4 py-4 backdrop-blur-sm lg:hidden">
             <Link href="/" className="flex flex-col">
               <Image
-                src="/tonti-logo.png"
-                alt="Tonti"
+                src={BRAND_LOGO_SRC}
+                alt={BRAND_NAME}
                 width={598}
                 height={215}
                 className="h-6 w-auto"

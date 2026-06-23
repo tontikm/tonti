@@ -1,7 +1,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import { EVENT_CATEGORIES } from "@/lib/data/categories";
-import { LEGAL_HUB_LINK } from "@/lib/site";
+import { BRAND_LOGO_SRC, BRAND_NAME, LEGAL_HUB_LINK } from "@/lib/site";
 import { SocialLinks } from "@/components/layout/SocialLinks";
 
 export function Footer() {
@@ -11,8 +11,8 @@ export function Footer() {
         <div className="grid gap-10 sm:grid-cols-2 lg:grid-cols-5">
           <div className="sm:col-span-2 lg:col-span-2">
             <Image
-              src="/tonti-logo.png"
-              alt="Tonti"
+              src={BRAND_LOGO_SRC}
+              alt={BRAND_NAME}
               width={598}
               height={215}
               className="h-8 w-auto"
@@ -111,7 +111,7 @@ export function Footer() {
 
         <div className="mt-10 flex flex-col items-center justify-between gap-4 border-t border-white/10 pt-8 sm:flex-row">
           <p className="text-xs text-muted">
-            © {new Date().getFullYear()} Tonti. Music events only.
+            © {new Date().getFullYear()} {BRAND_NAME}. Music events only.
           </p>
           <Link
             href={LEGAL_HUB_LINK.href}

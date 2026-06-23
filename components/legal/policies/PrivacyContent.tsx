@@ -1,4 +1,4 @@
-import { COMPANY_NAME, CONTACT_EMAIL, POPIA_EMAIL } from "@/lib/site";
+import { COMPANY_NAME, CONTACT_EMAIL, POPIA_EMAIL, BRAND_NAME } from "@/lib/site";
 
 export function PrivacyContent() {
   return (
@@ -6,7 +6,7 @@ export function PrivacyContent() {
       <section>
         <h2>1. Who we are</h2>
         <p>
-          {COMPANY_NAME} (&quot;Tonti&quot;) is the responsible party for personal
+          {COMPANY_NAME} (&quot;{BRAND_NAME}&quot;) is the responsible party for personal
           information processed through our website and ticketing services, in
           line with the Protection of Personal Information Act, 2013 (POPIA).
         </p>

@@ -5,6 +5,7 @@ import { Header } from "@/components/layout/Header";
 import { Footer } from "@/components/layout/Footer";
 import { EventBrandProvider } from "@/components/layout/EventBrandProvider";
 import { ServiceWorkerRegistrar } from "@/components/pwa/ServiceWorkerRegistrar";
+import { BRAND_NAME } from "@/lib/site";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -25,8 +26,8 @@ const pressStart = Press_Start_2P({
 
 export const metadata: Metadata = {
   title: {
-    default: "Tonti | Live Music Tickets in South Africa",
-    template: "%s | Tonti",
+    default: `${BRAND_NAME} | Live Music Tickets in South Africa`,
+    template: `%s | ${BRAND_NAME}`,
   },
   description:
     "Discover and book tickets to the best live music in South Africa. Concerts, festivals, and club nights. Music only.",
@@ -40,7 +41,7 @@ export const metadata: Metadata = {
   ],
   appleWebApp: {
     capable: true,
-    title: "Tonti",
+    title: BRAND_NAME,
     statusBarStyle: "black-translucent",
   },
 };

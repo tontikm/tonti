@@ -30,7 +30,7 @@ export function OrganizerTermsAcceptance({
           className="mt-0.5 h-4 w-4 rounded border-violet-500/40 accent-violet-500"
         />
         <span className="text-muted">
-          I agree to Tonti&apos;s{" "}
+          I agree to Spotra&apos;s{" "}
           <Link
             href="/legal/terms"
             target="_blank"
@@ -55,7 +55,7 @@ export function OrganizerTermsAcceptance({
             refund policy
           </Link>
           . I confirm I have authority to list this event and that the
-          information is accurate. I understand Tonti charges a 3% platform fee
+          information is accurate. I understand Spotra charges a 3% platform fee
           per paid ticket (free RSVPs excluded), deducted from my side, not
           added to the fan&apos;s price.
         </span>

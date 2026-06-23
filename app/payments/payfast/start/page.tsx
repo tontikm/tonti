@@ -39,7 +39,7 @@ export default async function PayfastStartPage({ searchParams }: Props) {
     orderId: order.id as string,
     eventSlug: order.event_slug as string,
     amount: Number(order.total_amount),
-    itemName: (event?.title as string) ?? "Tonti tickets",
+    itemName: (event?.title as string) ?? "Spotra tickets",
     buyerName: order.buyer_name as string,
     buyerEmail: order.buyer_email as string,
   });

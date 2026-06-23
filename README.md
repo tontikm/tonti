@@ -1,7 +1,7 @@
-# Tonti
+# Spotra
 
-South Africa's home for live music — discover gigs, festivals, and club nights.
-Black-and-white, Tixr-inspired interface built around the pixel TONTI logo.
+South Africa's home for live music. Discover gigs, festivals, and club nights.
+Black-and-white, Tixr-inspired interface.
 
 ## Stack
 
@@ -85,6 +85,8 @@ profiles only. **Cities** are in [`lib/data/cities.ts`](lib/data/cities.ts).
 
 ## Connecting Supabase
 
+Create the project in the region closest to your users. Supabase has **no Africa primary region**; for South Africa use **South Asia (Mumbai)** `ap-south-1` if creating a new project. Region cannot be changed later; see [`docs/LAUNCH.md`](docs/LAUNCH.md) section **1a** for a fresh-start cutover from an existing project.
+
 Run migrations **in order** in the Supabase SQL editor:
 
 | Migration | Purpose |
@@ -145,7 +147,7 @@ created automatically; new venues need a city selected in the inline form.
 Checkout requires a signed-in fan account when `NEXT_PUBLIC_SUPABASE_ANON_KEY` is set.
 
 1. In Supabase → **Authentication → Providers**, enable **Email** and **Google**.
-2. In [Google Cloud Console](https://console.cloud.google.com/) → APIs & Services → Credentials, create an **OAuth 2.0 Client ID** (Web application). Set the authorized redirect URI to your Supabase callback (not Tonti):
+2. In [Google Cloud Console](https://console.cloud.google.com/) → APIs & Services → Credentials, create an **OAuth 2.0 Client ID** (Web application). Set the authorized redirect URI to your Supabase callback (not Spotra):
    - `https://<YOUR-PROJECT-REF>.supabase.co/auth/v1/callback`
    - Project ref is in Supabase → Settings → API.
 3. Paste the Google **Client ID** and **Client Secret** into Supabase → Authentication → Providers → Google.
@@ -170,7 +172,7 @@ with no online charge.
 
 ## Platform fee
 
-Tonti charges a **3% platform fee on paid tickets** (free RSVPs are excluded). Fans
+Spotra charges a **3% platform fee on paid tickets** (free RSVPs are excluded). Fans
 pay the listed ticket price; the fee is absorbed by the organizer and stored on each
 order as `service_fee` (see migration `0010_orders_service_fee.sql`). Revenue
 breakdown appears on the organizer event tickets page.
@@ -181,7 +183,7 @@ breakdown appears on the organizer event tickets page.
 2. [vercel.com](https://vercel.com) → **Add New → Project** → import the repo (Next.js defaults are fine).
 3. Add environment variables from [`.env.example`](.env.example) under **Settings → Environment Variables**:
    - Copy Supabase keys from your Supabase project.
-   - Set `NEXT_PUBLIC_SITE_URL` to your Vercel URL (e.g. `https://tonti.vercel.app`).
+   - Set `NEXT_PUBLIC_SITE_URL` to your Vercel URL (e.g. `https://spotra.vercel.app`).
    - Set `ORGANIZER_SESSION_SECRET` to the same long random string as local (`openssl rand -hex 32`).
 4. Deploy, then in Supabase → **Authentication → URL configuration**:
    - **Site URL:** your Vercel URL

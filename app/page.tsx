@@ -58,7 +58,7 @@ export default async function HomePage() {
               Promoting a show?
             </h2>
             <p className="mt-3 text-muted">
-              List your music event on Tonti. Set tiers, track sales, and scan
+              List your music event on Spotra. Set tiers, track sales, and scan
               tickets at the door, built for SA promoters, venues, and artists.
             </p>
             <div className="mt-8">

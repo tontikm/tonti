@@ -199,7 +199,7 @@ export function CheckoutForm({
           className="mt-0.5 h-4 w-4 rounded border-border"
         />
         <span className="text-muted">
-          I agree to Tonti&apos;s{" "}
+          I agree to Spotra&apos;s{" "}
           <Link href="/legal/terms" className="text-foreground hover:underline">
             terms
           </Link>
