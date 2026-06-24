@@ -1,5 +1,11 @@
 import { createHmac, timingSafeEqual } from "crypto";
 import { cookies } from "next/headers";
+import {
+  getLastActivityAt,
+  IDLE_TIMEOUTS_MS,
+  isIdleExpired,
+  shouldTouchActivity,
+} from "@/lib/auth/idle-timeout";
 
 const COOKIE_NAME = "spotra_organizer_session";
 
@@ -9,6 +15,11 @@ export type OrganizerSession = {
   name?: string;
   slug?: string;
   loggedInAt: string;
+  lastActivityAt?: string;
+};
+
+type GetOrganizerSessionOptions = {
+  touch?: boolean;
 };
 
 function getSessionSecret(): string | null {
@@ -59,7 +70,10 @@ function decodeSignedSession(raw: string, secret: string): OrganizerSession | nu
   }
 }
 
-export async function getOrganizerSession(): Promise<OrganizerSession | null> {
+export async function getOrganizerSession(
+  options: GetOrganizerSessionOptions = {},
+): Promise<OrganizerSession | null> {
+  const { touch = true } = options;
   const cookieStore = await cookies();
   const raw = cookieStore.get(COOKIE_NAME)?.value;
   if (!raw) return null;
@@ -68,7 +82,25 @@ export async function getOrganizerSession(): Promise<OrganizerSession | null> {
   if (!secret) return null;
 
   const decoded = decodeURIComponent(raw);
-  return decodeSignedSession(decoded, secret);
+  const session = decodeSignedSession(decoded, secret);
+  if (!session) return null;
+
+  const lastActivity = getLastActivityAt(session);
+  if (isIdleExpired(lastActivity, IDLE_TIMEOUTS_MS.organizer)) {
+    await clearOrganizerSession();
+    return null;
+  }
+
+  if (touch && shouldTouchActivity(lastActivity)) {
+    const updated: OrganizerSession = {
+      ...session,
+      lastActivityAt: new Date().toISOString(),
+    };
+    await setOrganizerSession(updated);
+    return updated;
+  }
+
+  return session;
 }
 
 export async function setOrganizerSession(session: OrganizerSession): Promise<void> {
@@ -79,8 +111,15 @@ export async function setOrganizerSession(session: OrganizerSession): Promise<vo
     );
   }
 
+  const now = new Date().toISOString();
+  const payload: OrganizerSession = {
+    ...session,
+    loggedInAt: session.loggedInAt ?? now,
+    lastActivityAt: session.lastActivityAt ?? session.loggedInAt ?? now,
+  };
+
   const cookieStore = await cookies();
-  cookieStore.set(COOKIE_NAME, encodeURIComponent(encodeSignedSession(session, secret)), {
+  cookieStore.set(COOKIE_NAME, encodeURIComponent(encodeSignedSession(payload, secret)), {
     httpOnly: true,
     secure: process.env.NODE_ENV === "production",
     sameSite: "lax",

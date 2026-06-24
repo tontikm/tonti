@@ -6,11 +6,20 @@ export const metadata = {
   title: "Organizer login",
 };
 
-export default async function OrganizerLoginPage() {
-  const session = await getOrganizerSession();
+type OrganizerLoginPageProps = {
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
+};
+
+export default async function OrganizerLoginPage({
+  searchParams,
+}: OrganizerLoginPageProps) {
+  const session = await getOrganizerSession({ touch: false });
   if (session) {
     redirect("/organizer");
   }
 
-  return <OrganizerLoginForm />;
+  const query = await searchParams;
+  const idleLogout = query.reason === "idle";
+
+  return <OrganizerLoginForm idleLogout={idleLogout} />;
 }

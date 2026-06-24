@@ -7,6 +7,7 @@ import {
   type AuthState,
 } from "@/app/auth/actions";
 import { FanAuthCard } from "@/components/auth/FanAuthCard";
+import { SessionIdleNotice } from "@/components/auth/SessionIdleNotice";
 import { OrganizerFanAuthNotice } from "@/components/auth/OrganizerFanAuthNotice";
 import { Button } from "@/components/ui/Button";
 
@@ -16,6 +17,7 @@ type CheckoutAuthGateProps = {
   organizerEmail?: string | null;
   footer?: ReactNode;
   initialError?: string;
+  initialNotice?: string;
 };
 
 const inputClass =
@@ -27,6 +29,7 @@ export function CheckoutAuthGate({
   organizerEmail,
   footer,
   initialError,
+  initialNotice,
 }: CheckoutAuthGateProps) {
   const [mode, setMode] = useState<"login" | "signup">("login");
   const [loginState, loginAction, loginPending] = useActionState<
@@ -93,6 +96,8 @@ export function CheckoutAuthGate({
             Sign up
           </button>
         </div>
+
+        {initialNotice ? <SessionIdleNotice message={initialNotice} /> : null}
 
         {initialError ? (
           <div className="rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-100">

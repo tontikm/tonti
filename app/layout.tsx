@@ -6,6 +6,7 @@ import { Header } from "@/components/layout/Header";
 import { Footer } from "@/components/layout/Footer";
 import { EventBrandProvider } from "@/components/layout/EventBrandProvider";
 import { ServiceWorkerRegistrar } from "@/components/pwa/ServiceWorkerRegistrar";
+import { FanSessionIdleWatcher } from "@/components/auth/FanSessionIdleWatcher";
 import { BRAND_NAME } from "@/lib/site";
 import "./globals.css";
 
@@ -70,6 +71,7 @@ export default function RootLayout({
           </BasketProvider>
         </EventBrandProvider>
         <ServiceWorkerRegistrar />
+        <FanSessionIdleWatcher />
       </body>
     </html>
   );

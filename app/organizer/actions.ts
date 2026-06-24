@@ -100,12 +100,14 @@ export async function loginOrganizer(
       };
     }
 
+    const now = new Date().toISOString();
     await setOrganizerSession({
       id: organizer.id as string,
       email: organizer.email as string,
       name: (organizer.name as string) ?? undefined,
       slug: (organizer.slug as string) ?? undefined,
-      loggedInAt: new Date().toISOString(),
+      loggedInAt: now,
+      lastActivityAt: now,
     });
 
     redirect("/organizer");
@@ -122,9 +124,11 @@ export async function loginOrganizer(
     return { error: "Incorrect password." };
   }
 
+  const now = new Date().toISOString();
   await setOrganizerSession({
     email,
-    loggedInAt: new Date().toISOString(),
+    loggedInAt: now,
+    lastActivityAt: now,
   });
 
   redirect("/organizer");
@@ -189,12 +193,14 @@ export async function registerOrganizer(
     return { error: error.message };
   }
 
+  const now = new Date().toISOString();
   await setOrganizerSession({
     id: created.id as string,
     email,
     name: name ?? undefined,
     slug: (created.slug as string) ?? slug,
-    loggedInAt: new Date().toISOString(),
+    loggedInAt: now,
+    lastActivityAt: now,
   });
 
   redirect("/organizer");
@@ -207,6 +213,11 @@ export async function logoutOrganizer(formData: FormData): Promise<void> {
     redirect(sanitizeReturnTo(raw));
   }
   redirect("/organizer/login");
+}
+
+export async function logoutOrganizerOnIdle(): Promise<void> {
+  await clearOrganizerSession();
+  redirect("/organizer/login?reason=idle");
 }
 
 type ParsedTier = {

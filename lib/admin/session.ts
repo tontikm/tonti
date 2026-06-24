@@ -2,6 +2,12 @@ import { createHmac, timingSafeEqual } from "crypto";
 import { cookies } from "next/headers";
 
 import { ADMIN_SESSION_COOKIE_NAME } from "@/lib/admin/constants";
+import {
+  getLastActivityAt,
+  IDLE_TIMEOUTS_MS,
+  isIdleExpired,
+  shouldTouchActivity,
+} from "@/lib/auth/idle-timeout";
 
 export { ADMIN_SESSION_COOKIE_NAME };
 
@@ -10,6 +16,11 @@ export type AdminSession = {
   email: string;
   name?: string;
   loggedInAt: string;
+  lastActivityAt?: string;
+};
+
+type GetAdminSessionOptions = {
+  touch?: boolean;
 };
 
 function getSessionSecret(): string | null {
@@ -60,7 +71,10 @@ function decodeSignedSession(raw: string, secret: string): AdminSession | null {
   }
 }
 
-export async function getAdminSession(): Promise<AdminSession | null> {
+export async function getAdminSession(
+  options: GetAdminSessionOptions = {},
+): Promise<AdminSession | null> {
+  const { touch = true } = options;
   const cookieStore = await cookies();
   const raw = cookieStore.get(ADMIN_SESSION_COOKIE_NAME)?.value;
   if (!raw) return null;
@@ -69,7 +83,25 @@ export async function getAdminSession(): Promise<AdminSession | null> {
   if (!secret) return null;
 
   const decoded = decodeURIComponent(raw);
-  return decodeSignedSession(decoded, secret);
+  const session = decodeSignedSession(decoded, secret);
+  if (!session) return null;
+
+  const lastActivity = getLastActivityAt(session);
+  if (isIdleExpired(lastActivity, IDLE_TIMEOUTS_MS.admin)) {
+    await clearAdminSession();
+    return null;
+  }
+
+  if (touch && shouldTouchActivity(lastActivity)) {
+    const updated: AdminSession = {
+      ...session,
+      lastActivityAt: new Date().toISOString(),
+    };
+    await setAdminSession(updated);
+    return updated;
+  }
+
+  return session;
 }
 
 export async function setAdminSession(session: AdminSession): Promise<void> {
@@ -80,8 +112,15 @@ export async function setAdminSession(session: AdminSession): Promise<void> {
     );
   }
 
+  const now = new Date().toISOString();
+  const payload: AdminSession = {
+    ...session,
+    loggedInAt: session.loggedInAt ?? now,
+    lastActivityAt: session.lastActivityAt ?? session.loggedInAt ?? now,
+  };
+
   const cookieStore = await cookies();
-  cookieStore.set(ADMIN_SESSION_COOKIE_NAME, encodeURIComponent(encodeSignedSession(session, secret)), {
+  cookieStore.set(ADMIN_SESSION_COOKIE_NAME, encodeURIComponent(encodeSignedSession(payload, secret)), {
     httpOnly: true,
     secure: process.env.NODE_ENV === "production",
     sameSite: "lax",

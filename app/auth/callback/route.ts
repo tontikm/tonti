@@ -4,6 +4,7 @@ import {
   createRouteHandlerClient,
   isFanAuthConfigured,
 } from "@/lib/supabase/server-auth";
+import { writeFanActivityCookie } from "@/lib/auth/fan-activity";
 import { getSiteOrigin } from "@/lib/site";
 
 function resolveRedirectOrigin(request: NextRequest, fallbackOrigin: string): string {
@@ -53,6 +54,8 @@ export async function GET(request: NextRequest) {
       `${redirectOrigin}/login?error=auth&next=${encodeURIComponent(safeNext)}`,
     );
   }
+
+  writeFanActivityCookie(response);
 
   return response;
 }

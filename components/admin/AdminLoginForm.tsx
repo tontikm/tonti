@@ -3,13 +3,14 @@
 import { useActionState } from "react";
 import Image from "next/image";
 import { loginAdmin, type AdminLoginState } from "@/app/admin/actions";
+import { SessionIdleNotice } from "@/components/auth/SessionIdleNotice";
 import { Button } from "@/components/ui/Button";
 import { BRAND_LOGO_HEIGHT, BRAND_LOGO_SRC, BRAND_LOGO_WIDTH, BRAND_NAME } from "@/lib/site";
 
 const inputClass =
   "w-full rounded-xl border border-white/15 bg-white/5 px-4 py-3 text-sm text-foreground placeholder:text-muted focus:border-white/40 focus:outline-none";
 
-export function AdminLoginForm() {
+export function AdminLoginForm({ idleLogout = false }: { idleLogout?: boolean }) {
   const [state, formAction, pending] = useActionState<AdminLoginState, FormData>(
     loginAdmin,
     {},
@@ -34,6 +35,9 @@ export function AdminLoginForm() {
         </p>
 
         <form action={formAction} className="mt-8 space-y-4">
+          {idleLogout ? (
+            <SessionIdleNotice message="You were signed out after 20 minutes of inactivity." />
+          ) : null}
           {state.error && (
             <p className="rounded-xl border border-red-500/30 bg-red-950/30 px-4 py-3 text-sm text-red-200">
               {state.error}

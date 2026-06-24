@@ -7,11 +7,18 @@ export const metadata = {
   robots: { index: false, follow: false },
 };
 
-export default async function AdminLoginPage() {
-  const session = await getAdminSession();
+type AdminLoginPageProps = {
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
+};
+
+export default async function AdminLoginPage({ searchParams }: AdminLoginPageProps) {
+  const session = await getAdminSession({ touch: false });
   if (session) {
     redirect("/admin");
   }
 
-  return <AdminLoginForm />;
+  const query = await searchParams;
+  const idleLogout = query.reason === "idle";
+
+  return <AdminLoginForm idleLogout={idleLogout} />;
 }

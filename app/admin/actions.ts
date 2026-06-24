@@ -87,11 +87,13 @@ export async function loginAdmin(
     return { error: "Incorrect password." };
   }
 
+  const now = new Date().toISOString();
   await setAdminSession({
     id: admin.id as string,
     email: admin.email as string,
     name: (admin.name as string) ?? undefined,
-    loggedInAt: new Date().toISOString(),
+    loggedInAt: now,
+    lastActivityAt: now,
   });
 
   redirect("/admin");
@@ -100,6 +102,11 @@ export async function loginAdmin(
 export async function logoutAdmin(): Promise<void> {
   await clearAdminSession();
   redirect("/admin/login");
+}
+
+export async function logoutAdminOnIdle(): Promise<void> {
+  await clearAdminSession();
+  redirect("/admin/login?reason=idle");
 }
 
 export async function updateOrganizerStatus(

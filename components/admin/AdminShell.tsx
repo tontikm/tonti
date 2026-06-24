@@ -16,7 +16,9 @@ import {
 } from "lucide-react";
 import { useState } from "react";
 import type { AdminSession } from "@/lib/admin/session";
-import { logoutAdmin } from "@/app/admin/actions";
+import { logoutAdmin, logoutAdminOnIdle } from "@/app/admin/actions";
+import { SessionIdleWatcher } from "@/components/auth/SessionIdleWatcher";
+import { IDLE_TIMEOUTS_MS } from "@/lib/auth/idle-timeout";
 import { BRAND_LOGO_HEIGHT, BRAND_LOGO_SRC, BRAND_LOGO_WIDTH, BRAND_NAME } from "@/lib/site";
 import { cn } from "@/lib/utils";
 
@@ -98,6 +100,12 @@ export function AdminShell({ session, children }: AdminShellProps) {
 
   return (
     <div className="min-h-screen bg-black">
+      <SessionIdleWatcher
+        idleMs={IDLE_TIMEOUTS_MS.admin}
+        onExpire={() => {
+          void logoutAdminOnIdle();
+        }}
+      />
       <div className="mx-auto flex min-h-screen max-w-[1440px]">
         <aside className="hidden w-64 shrink-0 border-r border-amber-500/10 bg-gradient-to-b from-amber-950/20 to-black lg:flex lg:min-h-screen lg:flex-col">
           {sidebar}

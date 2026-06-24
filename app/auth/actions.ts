@@ -2,6 +2,7 @@
 
 import { redirect } from "next/navigation";
 import { sanitizeReturnTo } from "@/lib/auth/sanitize-return-to";
+import { clearFanLastActivity, setFanLastActivity } from "@/lib/auth/fan-activity";
 import { createAuthClient } from "@/lib/supabase/server-auth";
 import { getRequestOrigin } from "@/lib/site";
 
@@ -36,6 +37,8 @@ export async function signInWithEmail(
 
   const { error } = await supabase.auth.signInWithPassword({ email, password });
   if (error) return { error: error.message };
+
+  await setFanLastActivity();
 
   redirect(returnTo);
 }
@@ -73,6 +76,7 @@ export async function signUpWithEmail(
   if (error) return { error: error.message };
 
   if (data.session) {
+    await setFanLastActivity();
     redirect(returnTo);
   }
 
@@ -87,5 +91,6 @@ export async function signOut(returnTo = "/"): Promise<void> {
   if (supabase) {
     await supabase.auth.signOut();
   }
+  await clearFanLastActivity();
   redirect(sanitizeReturnTo(returnTo));
 }

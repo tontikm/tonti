@@ -17,7 +17,9 @@ import {
 } from "lucide-react";
 import { useState } from "react";
 import type { OrganizerSession } from "@/lib/organizer/session";
-import { logoutOrganizer } from "@/app/organizer/actions";
+import { logoutOrganizer, logoutOrganizerOnIdle } from "@/app/organizer/actions";
+import { SessionIdleWatcher } from "@/components/auth/SessionIdleWatcher";
+import { IDLE_TIMEOUTS_MS } from "@/lib/auth/idle-timeout";
 import { getSafeOrganizerLogoUrl } from "@/lib/images";
 import { BRAND_LOGO_HEIGHT, BRAND_LOGO_SRC, BRAND_LOGO_WIDTH, BRAND_NAME } from "@/lib/site";
 import { cn } from "@/lib/utils";
@@ -101,6 +103,12 @@ export function OrganizerShell({ session, children }: OrganizerShellProps) {
 
   return (
     <div className="organizer-theme min-h-screen bg-black">
+      <SessionIdleWatcher
+        idleMs={IDLE_TIMEOUTS_MS.organizer}
+        onExpire={() => {
+          void logoutOrganizerOnIdle();
+        }}
+      />
       <div className="mx-auto flex min-h-screen max-w-[1440px]">
         <aside className="hidden w-64 shrink-0 border-r border-violet-500/10 bg-gradient-to-b from-violet-950/20 to-black lg:flex lg:min-h-screen lg:flex-col">
           {sidebar}

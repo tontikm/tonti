@@ -3,6 +3,7 @@
 import { useActionState } from "react";
 import Link from "next/link";
 import { loginOrganizer, type LoginState } from "@/app/organizer/actions";
+import { SessionIdleNotice } from "@/components/auth/SessionIdleNotice";
 import { OrganizerAuthCard } from "@/components/organizer/OrganizerAuthCard";
 import { OrganizerPublicShell } from "@/components/organizer/OrganizerPublicShell";
 import { Button } from "@/components/ui/Button";
@@ -11,7 +12,7 @@ import { LEGAL_HUB_LINK } from "@/lib/site";
 const inputClass =
   "w-full rounded-xl border border-white/15 bg-white/5 px-4 py-3 text-sm text-foreground placeholder:text-muted focus:border-white/40 focus:outline-none";
 
-export function OrganizerLoginForm() {
+export function OrganizerLoginForm({ idleLogout = false }: { idleLogout?: boolean }) {
   const [state, formAction, pending] = useActionState<LoginState, FormData>(
     loginOrganizer,
     {},
@@ -47,6 +48,9 @@ export function OrganizerLoginForm() {
         }
       >
         <form action={formAction} className="space-y-4">
+          {idleLogout ? (
+            <SessionIdleNotice message="You were signed out after 1 hour of inactivity." />
+          ) : null}
           {state.error && (
             <div className="rounded-xl border border-white/20 bg-white/5 px-4 py-3 text-sm">
               {state.error}
