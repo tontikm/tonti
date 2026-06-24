@@ -22,7 +22,7 @@ export default async function OrganizerArtistsPage({ searchParams }: Props) {
     <>
       <OrganizerPageHeader
         title="Artists"
-        description={`${artists.length} artist${artists.length !== 1 ? "s" : ""} available for event lineups`}
+        description="Browse the shared artist catalog. You can also add artist names while creating an event — no need to add them here first."
         action={
           <Button href="/organizer/artists/new" size="md">
             <Plus className="h-4 w-4" />
@@ -33,7 +33,8 @@ export default async function OrganizerArtistsPage({ searchParams }: Props) {
 
       {created === "1" && (
         <div className="mb-6 rounded-xl border border-white/20 bg-white/5 px-4 py-3 text-sm">
-          Artist added. Select them when creating an event lineup.
+          Artist added. You can select them when building an event lineup, or add
+          names directly on the event form.
         </div>
       )}
 

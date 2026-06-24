@@ -1444,6 +1444,56 @@ export async function createArtist(
   redirect("/organizer/artists?created=1");
 }
 
+export type QuickCreateArtistResult =
+  | { slug: string; name: string }
+  | { error: string };
+
+export async function quickCreateArtist(
+  nameInput: string,
+): Promise<QuickCreateArtistResult> {
+  const auth = await requireOrganizerSession();
+  if ("error" in auth) return auth;
+
+  const supabase = getSupabaseAdmin();
+  if (!supabase) {
+    return { error: "Supabase is not configured." };
+  }
+
+  const name = nameInput.trim();
+  if (!name) return { error: "Artist name is required." };
+
+  const { data: matches, error: lookupError } = await supabase
+    .from("artists")
+    .select("slug, name")
+    .ilike("name", name);
+
+  if (lookupError) return { error: lookupError.message };
+
+  const exact = (matches ?? []).find(
+    (artist) => (artist.name as string).toLowerCase() === name.toLowerCase(),
+  );
+  if (exact) {
+    return { slug: exact.slug as string, name: exact.name as string };
+  }
+
+  const slug = slugify(name);
+  const { error: insertError } = await supabase.from("artists").upsert({
+    slug,
+    name,
+    genre: "pop" satisfies Genre,
+    image: DEFAULT_ARTIST_IMAGE,
+  });
+
+  if (insertError) return { error: insertError.message };
+
+  revalidatePath("/organizer/artists");
+  revalidatePath("/artists");
+  revalidatePath(`/artists/${slug}`);
+  revalidatePath("/organizer/events/new");
+
+  return { slug, name };
+}
+
 function validateOptionalLogoFile(file: File): string | null {
   if (!file.size) return null;
   return validateOrganizerLogoFile(file);

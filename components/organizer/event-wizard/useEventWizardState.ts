@@ -33,7 +33,7 @@ export function useEventWizardState(defaults: OrganizerWizardDefaults) {
     venueCitySlug: "",
     venueAddress: "",
     venueCapacity: "500",
-    lineup: [{ key: "lineup-0", name: "", slug: "" }],
+    lineup: [],
     ageLimit: "",
     ageMax: "",
     prohibitedItems: [],

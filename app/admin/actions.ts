@@ -15,6 +15,11 @@ import {
 import type { CarouselImageSource } from "@/lib/carousel/slides";
 import { getNextCarouselSortOrder } from "@/lib/carousel/slides";
 import { uploadCarouselImage } from "@/lib/supabase/upload-carousel";
+import { uploadArtistImage } from "@/lib/supabase/upload-artist";
+import { DEFAULT_ARTIST_IMAGE } from "@/lib/images";
+import { GENRES } from "@/lib/data/genres";
+import type { Genre } from "@/lib/types";
+import { slugify } from "@/lib/utils";
 
 export type AdminLoginState = {
   error?: string;
@@ -30,10 +35,12 @@ function revalidateAdminPaths() {
   revalidatePath("/admin/organizers");
   revalidatePath("/admin/events", "layout");
   revalidatePath("/admin/carousel");
+  revalidatePath("/admin/artists");
   revalidatePath("/admin/orders");
   revalidatePath("/admin/payouts");
   revalidatePath("/");
   revalidatePath("/events");
+  revalidatePath("/artists");
 }
 
 function isMissingCarouselTable(error: { message?: string }): boolean {
@@ -579,4 +586,177 @@ export async function reorderCarouselSlide(
 
   revalidateAdminPaths();
   return { success: "Slide order updated." };
+}
+
+function isValidHttpsUrl(url: string): boolean {
+  try {
+    const parsed = new URL(url);
+    return parsed.protocol === "https:" || parsed.protocol === "http:";
+  } catch {
+    return false;
+  }
+}
+
+function revalidateArtistPaths(slug: string) {
+  revalidatePath("/admin/artists");
+  revalidatePath(`/admin/artists/${slug}/edit`);
+  revalidatePath("/artists");
+  revalidatePath(`/artists/${slug}`);
+  revalidatePath("/organizer/artists");
+  revalidatePath("/organizer/events/new");
+}
+
+export async function createAdminArtist(
+  _prev: AdminActionState,
+  formData: FormData,
+): Promise<AdminActionState> {
+  const session = await requireAdminSession();
+  if ("error" in session) return session;
+
+  const supabase = getSupabaseAdmin();
+  if (!supabase) return { error: "Supabase is not configured." };
+
+  const name = String(formData.get("name") ?? "").trim();
+  const slugInput = String(formData.get("slug") ?? "").trim();
+  const slug = slugInput || slugify(name);
+  const genre = String(formData.get("genre") ?? "") as Genre;
+  const bio = String(formData.get("bio") ?? "").trim() || null;
+  const imageUrlInput = String(formData.get("imageUrl") ?? "").trim();
+  const imageFile = formData.get("imageFile");
+
+  if (!name) return { error: "Artist name is required." };
+  if (!slug) return { error: "URL slug is required." };
+  if (!GENRES.some((item) => item.id === genre)) {
+    return { error: "Select a genre." };
+  }
+  if (imageUrlInput && !isValidHttpsUrl(imageUrlInput)) {
+    return { error: "Image URL must be a valid http(s) URL." };
+  }
+
+  const { data: existing } = await supabase
+    .from("artists")
+    .select("slug")
+    .eq("slug", slug)
+    .maybeSingle();
+
+  if (existing) {
+    return { error: `An artist with slug "${slug}" already exists.` };
+  }
+
+  let image = imageUrlInput || DEFAULT_ARTIST_IMAGE;
+  if (imageFile instanceof File && imageFile.size > 0) {
+    try {
+      image = await uploadArtistImage(supabase, slug, imageFile);
+    } catch (error) {
+      return {
+        error: error instanceof Error ? error.message : "Image upload failed.",
+      };
+    }
+  }
+
+  const { error } = await supabase.from("artists").insert({
+    slug,
+    name,
+    genre,
+    bio,
+    image,
+  });
+
+  if (error) return { error: error.message };
+
+  revalidateArtistPaths(slug);
+  revalidateAdminPaths();
+  redirect("/admin/artists?created=1");
+}
+
+export async function updateAdminArtist(
+  slug: string,
+  _prev: AdminActionState,
+  formData: FormData,
+): Promise<AdminActionState> {
+  const session = await requireAdminSession();
+  if ("error" in session) return session;
+
+  const supabase = getSupabaseAdmin();
+  if (!supabase) return { error: "Supabase is not configured." };
+
+  const name = String(formData.get("name") ?? "").trim();
+  const genre = String(formData.get("genre") ?? "") as Genre;
+  const bio = String(formData.get("bio") ?? "").trim() || null;
+  const imageUrlInput = String(formData.get("imageUrl") ?? "").trim();
+  const imageFile = formData.get("imageFile");
+  const clearImage = formData.get("clearImage") === "on";
+
+  if (!name) return { error: "Artist name is required." };
+  if (!GENRES.some((item) => item.id === genre)) {
+    return { error: "Select a genre." };
+  }
+  if (imageUrlInput && !isValidHttpsUrl(imageUrlInput)) {
+    return { error: "Image URL must be a valid http(s) URL." };
+  }
+
+  const { data: current, error: fetchError } = await supabase
+    .from("artists")
+    .select("image")
+    .eq("slug", slug)
+    .maybeSingle();
+
+  if (fetchError) return { error: fetchError.message };
+  if (!current) return { error: "Artist not found." };
+
+  let image = (current.image as string) || DEFAULT_ARTIST_IMAGE;
+
+  if (clearImage) {
+    image = DEFAULT_ARTIST_IMAGE;
+  } else if (imageUrlInput) {
+    image = imageUrlInput;
+  }
+
+  if (imageFile instanceof File && imageFile.size > 0) {
+    try {
+      image = await uploadArtistImage(supabase, slug, imageFile);
+    } catch (error) {
+      return {
+        error: error instanceof Error ? error.message : "Image upload failed.",
+      };
+    }
+  }
+
+  const { error } = await supabase
+    .from("artists")
+    .update({ name, genre, bio, image })
+    .eq("slug", slug);
+
+  if (error) return { error: error.message };
+
+  revalidateArtistPaths(slug);
+  revalidateAdminPaths();
+  return { success: "Artist updated." };
+}
+
+export async function deleteAdminArtist(slug: string): Promise<AdminActionState> {
+  const session = await requireAdminSession();
+  if ("error" in session) return session;
+
+  const supabase = getSupabaseAdmin();
+  if (!supabase) return { error: "Supabase is not configured." };
+
+  const { count, error: countError } = await supabase
+    .from("event_artists")
+    .select("*", { count: "exact", head: true })
+    .eq("artist_slug", slug);
+
+  if (countError) return { error: countError.message };
+  if ((count ?? 0) > 0) {
+    return {
+      error: `Cannot delete — this artist is on ${count} event${count === 1 ? "" : "s"}.`,
+    };
+  }
+
+  const { error } = await supabase.from("artists").delete().eq("slug", slug);
+  if (error) return { error: error.message };
+
+  revalidateArtistPaths(slug);
+  revalidateAdminPaths();
+  return { success: "Artist deleted." };
 }

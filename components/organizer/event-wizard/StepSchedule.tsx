@@ -1,10 +1,15 @@
 "use client";
 
-import { Plus, X } from "lucide-react";
+import { useMemo, useState } from "react";
 import type { Artist, EventCategory, Venue } from "@/lib/types";
 import { EVENT_CATEGORIES } from "@/lib/data/categories";
+import { getGenreLabel } from "@/lib/data/genres";
 import { EventDateTimeFields } from "@/components/organizer/EventDateTimeFields";
 import { EntityTypeahead } from "@/components/organizer/EntityTypeahead";
+import {
+  ArtistLineupPicker,
+  type ArtistPickerOption,
+} from "@/components/organizer/ArtistLineupPicker";
 import { NewVenueFields } from "@/components/organizer/NewVenueFields";
 import { inputClass, labelClass } from "./shared";
 import type { EventWizardState } from "./types";
@@ -16,47 +21,37 @@ type StepScheduleProps = {
   onChange: (patch: Partial<EventWizardState>) => void;
 };
 
+function toArtistOptions(artists: Artist[]): ArtistPickerOption[] {
+  return artists.map((artist) => ({
+    slug: artist.slug,
+    label: artist.name,
+    sublabel: getGenreLabel(artist.genre),
+  }));
+}
+
 export function StepSchedule({
   state,
   venues,
   artists,
   onChange,
 }: StepScheduleProps) {
+  const [artistOptions, setArtistOptions] = useState<ArtistPickerOption[]>(() =>
+    toArtistOptions(artists),
+  );
+
   const venueOptions = venues.map((venue) => ({
     slug: venue.slug,
     label: venue.name,
     sublabel: `${venue.city}, ${venue.province}`,
   }));
 
-  const artistOptions = artists.map((artist) => ({
-    slug: artist.slug,
-    label: artist.name,
-  }));
-
-  function updateLineup(
-    key: string,
-    updates: Partial<{ name: string; slug: string }>,
-  ) {
-    onChange({
-      lineup: state.lineup.map((entry) =>
-        entry.key === key ? { ...entry, ...updates } : entry,
-      ),
-    });
-  }
-
-  function addLineupEntry() {
-    onChange({
-      lineup: [
-        ...state.lineup,
-        { key: `lineup-${Date.now()}`, name: "", slug: "" },
-      ],
-    });
-  }
-
-  function removeLineupEntry(key: string) {
-    if (state.lineup.length <= 1) return;
-    onChange({ lineup: state.lineup.filter((entry) => entry.key !== key) });
-  }
+  const selectedLineup = useMemo(
+    () =>
+      state.lineup
+        .filter((entry) => entry.slug && entry.name.trim())
+        .map((entry) => ({ slug: entry.slug, name: entry.name })),
+    [state.lineup],
+  );
 
   return (
     <section className="space-y-4">
@@ -134,62 +129,20 @@ export function StepSchedule({
         />
       )}
 
-      <div className="space-y-4">
-        <div className="flex items-center justify-between">
-          <div>
-            <p className="text-sm font-medium text-foreground">Lineup</p>
-            <p className="mt-1 text-xs text-muted">
-              Type artist names. We&apos;ll match saved artists when possible.
-            </p>
-          </div>
-          <button
-            type="button"
-            onClick={addLineupEntry}
-            className="inline-flex items-center gap-1.5 text-sm text-muted hover:text-foreground"
-          >
-            <Plus className="h-4 w-4" />
-            Add artist
-          </button>
-        </div>
-
-        {state.lineup.map((entry, index) => (
-          <div key={entry.key} className="flex items-start gap-3">
-            <div className="flex-1">
-              <EntityTypeahead
-                id={`lineup-${index}`}
-                label={index === 0 ? "Artist" : `Artist ${index + 1}`}
-                placeholder="Start typing an artist name"
-                options={artistOptions}
-                value={entry.name}
-                selectedSlug={entry.slug}
-                onValueChange={(name) =>
-                  updateLineup(entry.key, { name, slug: "" })
-                }
-                onSelect={(option) => {
-                  if (option) {
-                    updateLineup(entry.key, {
-                      name: option.label,
-                      slug: option.slug,
-                    });
-                  } else {
-                    updateLineup(entry.key, { slug: "" });
-                  }
-                }}
-              />
-            </div>
-            {state.lineup.length > 1 && (
-              <button
-                type="button"
-                onClick={() => removeLineupEntry(entry.key)}
-                className="mt-8 rounded-full border border-border p-2 text-muted hover:text-foreground"
-                aria-label="Remove artist"
-              >
-                <X className="h-4 w-4" />
-              </button>
-            )}
-          </div>
-        ))}
-      </div>
+      <ArtistLineupPicker
+        artists={artistOptions}
+        selected={selectedLineup}
+        onSelectedChange={(next) =>
+          onChange({
+            lineup: next.map((item, index) => ({
+              key: `${item.slug}-${index}`,
+              name: item.name,
+              slug: item.slug,
+            })),
+          })
+        }
+        onArtistsChange={setArtistOptions}
+      />
     </section>
   );
 }

@@ -10,6 +10,8 @@ import {
 export type { AdminEventSalesSummary };
 
 import type { EventPublicationStatus } from "@/lib/types";
+import type { Genre } from "@/lib/types";
+import { DEFAULT_ARTIST_IMAGE } from "@/lib/images";
 
 export type OrganizerStatus = "pending" | "approved" | "suspended";
 
@@ -243,4 +245,63 @@ export async function listAdminOrders(
     ticketCount: Number(row.ticket_count ?? 0),
     createdAt: row.created_at as string,
   }));
+}
+
+export type AdminArtistRow = {
+  slug: string;
+  name: string;
+  genre: Genre;
+  image: string;
+  bio: string | null;
+  eventCount: number;
+  isStub: boolean;
+};
+
+export async function listAdminArtists(): Promise<AdminArtistRow[]> {
+  const supabase = getSupabaseAdmin();
+  if (!supabase) return [];
+
+  const { data, error } = await supabase
+    .from("artists")
+    .select("slug, name, genre, image, bio")
+    .order("name", { ascending: true });
+
+  if (error || !data) return [];
+
+  const slugs = data.map((row) => row.slug as string);
+  const eventCounts = new Map<string, number>();
+
+  if (slugs.length > 0) {
+    const { data: links } = await supabase
+      .from("event_artists")
+      .select("artist_slug")
+      .in("artist_slug", slugs);
+
+    for (const row of links ?? []) {
+      const slug = row.artist_slug as string;
+      eventCounts.set(slug, (eventCounts.get(slug) ?? 0) + 1);
+    }
+  }
+
+  return data.map((row) => {
+    const slug = row.slug as string;
+    const image = (row.image as string) ?? DEFAULT_ARTIST_IMAGE;
+    const bio = (row.bio as string | null) ?? null;
+    return {
+      slug,
+      name: row.name as string,
+      genre: row.genre as Genre,
+      image,
+      bio,
+      eventCount: eventCounts.get(slug) ?? 0,
+      isStub: !bio?.trim() && image === DEFAULT_ARTIST_IMAGE,
+    };
+  });
+}
+
+export async function getAdminArtist(
+  slug: string,
+): Promise<AdminArtistRow | null> {
+  const artists = await listAdminArtists();
+  return artists.find((artist) => artist.slug === slug) ?? null;
 }
