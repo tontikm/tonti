@@ -1,14 +1,6 @@
 import { createAuthClient, isFanAuthConfigured } from "@/lib/supabase/server-auth";
-import {
-  clearFanLastActivity,
-  getFanLastActivity,
-  setFanLastActivity,
-} from "@/lib/auth/fan-activity";
-import {
-  IDLE_TIMEOUTS_MS,
-  isIdleExpired,
-  shouldTouchActivity,
-} from "@/lib/auth/idle-timeout";
+import { getFanLastActivity } from "@/lib/auth/fan-activity";
+import { IDLE_TIMEOUTS_MS, isIdleExpired } from "@/lib/auth/idle-timeout";
 
 export type FanUser = {
   id: string;
@@ -27,20 +19,11 @@ export async function getFanUser(): Promise<FanUser | null> {
     data: { user },
   } = await supabase.auth.getUser();
 
-  if (!user?.email) {
-    await clearFanLastActivity();
-    return null;
-  }
+  if (!user?.email) return null;
 
   const lastActivity = await getFanLastActivity();
-  if (!lastActivity) {
-    await setFanLastActivity();
-  } else if (isIdleExpired(lastActivity, IDLE_TIMEOUTS_MS.fan)) {
-    await supabase.auth.signOut();
-    await clearFanLastActivity();
+  if (lastActivity && isIdleExpired(lastActivity, IDLE_TIMEOUTS_MS.fan)) {
     return null;
-  } else if (shouldTouchActivity(lastActivity)) {
-    await setFanLastActivity();
   }
 
   const metadataName = user.user_metadata?.full_name;

@@ -1,13 +1,13 @@
 import { createHmac, timingSafeEqual } from "crypto";
 import { cookies } from "next/headers";
+import { ORGANIZER_ACTIVITY_COOKIE } from "@/lib/auth/organizer-activity";
 import {
   getLastActivityAt,
   IDLE_TIMEOUTS_MS,
   isIdleExpired,
-  shouldTouchActivity,
 } from "@/lib/auth/idle-timeout";
 
-const COOKIE_NAME = "spotra_organizer_session";
+export const ORGANIZER_SESSION_COOKIE_NAME = "spotra_organizer_session";
 
 export type OrganizerSession = {
   id?: string;
@@ -18,9 +18,15 @@ export type OrganizerSession = {
   lastActivityAt?: string;
 };
 
-type GetOrganizerSessionOptions = {
-  touch?: boolean;
-};
+function sessionCookieOptions() {
+  return {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production",
+    sameSite: "lax" as const,
+    path: "/",
+    maxAge: 60 * 60 * 24 * 30,
+  };
+}
 
 function getSessionSecret(): string | null {
   if (process.env.ORGANIZER_SESSION_SECRET) {
@@ -70,12 +76,9 @@ function decodeSignedSession(raw: string, secret: string): OrganizerSession | nu
   }
 }
 
-export async function getOrganizerSession(
-  options: GetOrganizerSessionOptions = {},
-): Promise<OrganizerSession | null> {
-  const { touch = true } = options;
+export async function getOrganizerSession(): Promise<OrganizerSession | null> {
   const cookieStore = await cookies();
-  const raw = cookieStore.get(COOKIE_NAME)?.value;
+  const raw = cookieStore.get(ORGANIZER_SESSION_COOKIE_NAME)?.value;
   if (!raw) return null;
 
   const secret = getSessionSecret();
@@ -85,19 +88,10 @@ export async function getOrganizerSession(
   const session = decodeSignedSession(decoded, secret);
   if (!session) return null;
 
-  const lastActivity = getLastActivityAt(session);
+  const activityCookie = cookieStore.get(ORGANIZER_ACTIVITY_COOKIE)?.value;
+  const lastActivity = activityCookie ?? getLastActivityAt(session);
   if (isIdleExpired(lastActivity, IDLE_TIMEOUTS_MS.organizer)) {
-    await clearOrganizerSession();
     return null;
-  }
-
-  if (touch && shouldTouchActivity(lastActivity)) {
-    const updated: OrganizerSession = {
-      ...session,
-      lastActivityAt: new Date().toISOString(),
-    };
-    await setOrganizerSession(updated);
-    return updated;
   }
 
   return session;
@@ -119,16 +113,16 @@ export async function setOrganizerSession(session: OrganizerSession): Promise<vo
   };
 
   const cookieStore = await cookies();
-  cookieStore.set(COOKIE_NAME, encodeURIComponent(encodeSignedSession(payload, secret)), {
-    httpOnly: true,
-    secure: process.env.NODE_ENV === "production",
-    sameSite: "lax",
-    path: "/",
-    maxAge: 60 * 60 * 24 * 30,
-  });
+  cookieStore.set(
+    ORGANIZER_SESSION_COOKIE_NAME,
+    encodeURIComponent(encodeSignedSession(payload, secret)),
+    sessionCookieOptions(),
+  );
+  cookieStore.set(ORGANIZER_ACTIVITY_COOKIE, now, sessionCookieOptions());
 }
 
 export async function clearOrganizerSession(): Promise<void> {
   const cookieStore = await cookies();
-  cookieStore.delete(COOKIE_NAME);
+  cookieStore.delete(ORGANIZER_SESSION_COOKIE_NAME);
+  cookieStore.delete(ORGANIZER_ACTIVITY_COOKIE);
 }

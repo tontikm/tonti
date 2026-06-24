@@ -13,7 +13,7 @@ type OrganizerLoginPageProps = {
 export default async function OrganizerLoginPage({
   searchParams,
 }: OrganizerLoginPageProps) {
-  const session = await getOrganizerSession({ touch: false });
+  const session = await getOrganizerSession();
   if (session) {
     redirect("/organizer");
   }

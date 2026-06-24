@@ -12,7 +12,7 @@ type AdminLoginPageProps = {
 };
 
 export default async function AdminLoginPage({ searchParams }: AdminLoginPageProps) {
-  const session = await getAdminSession({ touch: false });
+  const session = await getAdminSession();
   if (session) {
     redirect("/admin");
   }
