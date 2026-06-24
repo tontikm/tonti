@@ -4,38 +4,19 @@ import { useCallback, useEffect, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { ChevronLeft, ChevronRight } from "lucide-react";
-import type { Event } from "@/lib/types";
-import { getSafeEventImageUrl } from "@/lib/images";
-import {
-  formatDateRange,
-  formatEventTime,
-  getTicketsRemaining,
-} from "@/lib/utils";
+import type { CarouselSlide } from "@/lib/carousel/slides";
 
 type FeaturedCarouselProps = {
-  events: Event[];
+  slides: CarouselSlide[];
 };
 
 const AUTOPLAY_MS = 6000;
 
-function getCarouselSlide(event: Event) {
-  if (event.heroImage) {
-    return {
-      mode: "hero" as const,
-      src: getSafeEventImageUrl(event.heroImage),
-    };
-  }
-  return {
-    mode: "poster" as const,
-    src: getSafeEventImageUrl(event.image),
-  };
-}
-
-export function FeaturedCarousel({ events }: FeaturedCarouselProps) {
+export function FeaturedCarousel({ slides }: FeaturedCarouselProps) {
   const [active, setActive] = useState(0);
   const [paused, setPaused] = useState(false);
 
-  const count = events.length;
+  const count = slides.length;
 
   const goTo = useCallback(
     (index: number) => {
@@ -77,46 +58,47 @@ export function FeaturedCarousel({ events }: FeaturedCarouselProps) {
     >
       <div className="mx-auto max-w-[1440px] px-4 sm:px-6 lg:px-8">
         <div className="relative aspect-[16/10] max-h-[min(70vh,720px)] min-h-[320px] w-full overflow-hidden rounded-[28px] bg-black sm:aspect-[16/9] sm:rounded-[32px]">
-          {events.map((event, index) => {
+          {slides.map((slide, index) => {
             const isActive = index === active;
-            const slide = getCarouselSlide(event);
-            const soldOut = event.tiers.every(
-              (t) => getTicketsRemaining(t) === 0,
-            );
-            const dateLine = event.endDate
-              ? formatDateRange(event.date, event.endDate)
-              : `${formatDateRange(event.date)} · ${formatEventTime(event.showTime)} SAST`;
+            const ctaLabel =
+              slide.soldOut && slide.href.startsWith("/events/")
+                ? "View event"
+                : slide.ctaLabel;
 
             const copyBlock = (
               <>
-                {event.subtitle && (
+                {slide.subtitle && (
                   <p className="mb-2 text-sm font-medium uppercase tracking-[0.18em] text-white/70 sm:text-base">
-                    {event.subtitle}
+                    {slide.subtitle}
                   </p>
                 )}
 
                 <h2 className="text-3xl font-bold leading-[1.05] tracking-tight text-white sm:text-4xl lg:text-5xl">
-                  {event.title}
+                  {slide.title}
                 </h2>
 
-                <p className="mt-3 max-w-2xl text-sm leading-relaxed text-white/75 sm:text-base">
-                  {event.venue.name}, {event.venue.city} · {dateLine}
-                </p>
+                {slide.metaLine && (
+                  <p className="mt-3 max-w-2xl text-sm leading-relaxed text-white/75 sm:text-base">
+                    {slide.metaLine}
+                  </p>
+                )}
 
-                <div className="mt-6">
-                  <Link
-                    href={`/events/${event.slug}`}
-                    className="inline-flex rounded-full bg-white px-6 py-3 text-sm font-semibold text-black transition-opacity hover:opacity-90"
-                  >
-                    {soldOut ? "View event" : "Get tickets"}
-                  </Link>
-                </div>
+                {slide.href !== "#" && (
+                  <div className="mt-6">
+                    <Link
+                      href={slide.href}
+                      className="inline-flex rounded-full bg-white px-6 py-3 text-sm font-semibold text-black transition-opacity hover:opacity-90"
+                    >
+                      {ctaLabel}
+                    </Link>
+                  </div>
+                )}
               </>
             );
 
             return (
               <div
-                key={event.slug}
+                key={slide.id}
                 aria-hidden={!isActive}
                 className={`absolute inset-0 transition-opacity duration-700 ease-in-out ${
                   isActive
@@ -127,7 +109,7 @@ export function FeaturedCarousel({ events }: FeaturedCarouselProps) {
                 {slide.mode === "hero" ? (
                   <>
                     <Image
-                      src={slide.src}
+                      src={slide.imageUrl}
                       alt=""
                       fill
                       priority={index === 0}
@@ -143,7 +125,7 @@ export function FeaturedCarousel({ events }: FeaturedCarouselProps) {
                 ) : (
                   <>
                     <Image
-                      src={slide.src}
+                      src={slide.imageUrl}
                       alt=""
                       fill
                       aria-hidden
@@ -151,7 +133,7 @@ export function FeaturedCarousel({ events }: FeaturedCarouselProps) {
                       sizes="(max-width: 1440px) 100vw, 1440px"
                     />
                     <Image
-                      src={slide.src}
+                      src={slide.imageUrl}
                       alt=""
                       fill
                       priority={index === 0}
@@ -172,11 +154,11 @@ export function FeaturedCarousel({ events }: FeaturedCarouselProps) {
           {count > 1 && (
             <>
               <div className="absolute bottom-5 left-0 right-0 z-20 flex justify-center gap-2 sm:bottom-6">
-                {events.map((event, index) => (
+                {slides.map((slide, index) => (
                   <button
-                    key={event.slug}
+                    key={slide.id}
                     type="button"
-                    aria-label={`Go to slide ${index + 1}: ${event.title}`}
+                    aria-label={`Go to slide ${index + 1}: ${slide.title}`}
                     aria-current={index === active ? "true" : undefined}
                     onClick={() => goTo(index)}
                     className={`rounded-full transition-all ${

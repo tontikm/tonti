@@ -8,20 +8,20 @@ import { Button } from "@/components/ui/Button";
 import { Reveal } from "@/components/ui/Reveal";
 import {
   getPublicEvents,
-  getFeaturedEvents,
 } from "@/lib/data/events";
+import { getHomepageCarouselSlides } from "@/lib/carousel/slides";
 import { getFanUser } from "@/lib/auth/session";
 import { getRecommendedEvents } from "@/lib/fan/recommendations";
 
 export default async function HomePage() {
-  const featured = await getFeaturedEvents();
+  const slides = await getHomepageCarouselSlides();
   const allEvents = await getPublicEvents();
   const fanUser = await getFanUser();
   const recommended = await getRecommendedEvents(fanUser);
 
   return (
     <>
-      <FeaturedCarousel events={featured} />
+      <FeaturedCarousel slides={slides} />
 
       {recommended.length > 0 && (
         <EventRail

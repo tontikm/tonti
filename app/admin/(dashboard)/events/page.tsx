@@ -1,5 +1,4 @@
 import Link from "next/link";
-import { AdminFeaturedToggle } from "@/components/admin/AdminFeaturedToggle";
 import { EventPublicationActions } from "@/components/admin/EventPublicationActions";
 import { EventPublicationBadge } from "@/components/admin/EventPublicationBadge";
 import { AdminPageHeader } from "@/components/admin/AdminShell";
@@ -20,7 +19,7 @@ export default async function AdminEventsPage() {
     <>
       <AdminPageHeader
         title="Events"
-        description="Review new events before they go live, feature homepage picks, and monitor sales."
+        description="Review new events before they go live, manage the homepage carousel, and monitor sales."
       />
 
       {events.length === 0 ? (
@@ -39,7 +38,6 @@ export default async function AdminEventsPage() {
                   <th className="px-4 py-3 font-medium">Spotra (3%)</th>
                   <th className="px-4 py-3 font-medium">Organizer net</th>
                   <th className="px-4 py-3 font-medium">Public</th>
-                  <th className="px-4 py-3 font-medium">Featured</th>
                   <th className="px-4 py-3 font-medium">Date</th>
                   <th className="px-4 py-3 font-medium" />
                 </tr>
@@ -107,12 +105,6 @@ export default async function AdminEventsPage() {
                       >
                         {event.isPubliclyVisible ? "Visible" : "Hidden"}
                       </span>
-                    </td>
-                    <td className="px-4 py-4">
-                      <AdminFeaturedToggle
-                        slug={event.slug}
-                        featured={event.featured}
-                      />
                     </td>
                     <td className="px-4 py-4 text-muted">
                       {formatDateRange(event.date.slice(0, 10))}
