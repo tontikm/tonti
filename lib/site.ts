@@ -44,6 +44,18 @@ export function getSiteOrigin(): string {
   return "http://localhost:3000";
 }
 
+/** Prefer the live request host (Vercel/custom domain) over env fallbacks. */
+export async function getRequestOrigin(): Promise<string> {
+  const { headers } = await import("next/headers");
+  const h = await headers();
+  const host = h.get("x-forwarded-host") ?? h.get("host");
+  const proto = h.get("x-forwarded-proto") ?? "https";
+  if (host && !host.includes("localhost") && !host.includes("127.0.0.1")) {
+    return `${proto}://${host}`;
+  }
+  return getSiteOrigin();
+}
+
 export const SOCIAL_LINKS: SocialLink[] = [
   {
     platform: "instagram",

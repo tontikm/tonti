@@ -27,30 +27,30 @@ export async function GET(request: NextRequest) {
   const next = searchParams.get("next") ?? "/";
   const safeNext = sanitizeReturnTo(next);
   const siteOrigin = getSiteOrigin();
+  const redirectOrigin = resolveRedirectOrigin(request, siteOrigin);
 
   if (!code) {
     return NextResponse.redirect(
-      `${siteOrigin}/login?error=auth&next=${encodeURIComponent(safeNext)}`,
+      `${redirectOrigin}/login?error=auth&next=${encodeURIComponent(safeNext)}`,
     );
   }
 
   if (!isFanAuthConfigured()) {
-    return NextResponse.redirect(`${siteOrigin}/login?error=config`);
+    return NextResponse.redirect(`${redirectOrigin}/login?error=config`);
   }
 
-  const redirectOrigin = resolveRedirectOrigin(request, siteOrigin);
   const redirectUrl = `${redirectOrigin}${safeNext}`;
   const response = NextResponse.redirect(redirectUrl);
 
   const supabase = createRouteHandlerClient(request, response);
   if (!supabase) {
-    return NextResponse.redirect(`${siteOrigin}/login?error=config`);
+    return NextResponse.redirect(`${redirectOrigin}/login?error=config`);
   }
 
   const { error } = await supabase.auth.exchangeCodeForSession(code);
   if (error) {
     return NextResponse.redirect(
-      `${siteOrigin}/login?error=auth&next=${encodeURIComponent(safeNext)}`,
+      `${redirectOrigin}/login?error=auth&next=${encodeURIComponent(safeNext)}`,
     );
   }
 

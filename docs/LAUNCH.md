@@ -55,7 +55,9 @@ Copy from [`.env.example`](../.env.example). **Required for production:**
 | `SUPABASE_SERVICE_ROLE_KEY` | Server-only; never expose to client |
 | `ORGANIZER_SESSION_SECRET` | `openssl rand -hex 32` |
 | `ADMIN_SESSION_SECRET` | `openssl rand -hex 32` (different from organizer secret) |
-| `NEXT_PUBLIC_SITE_URL` | Production origin, no trailing slash |
+| `NEXT_PUBLIC_SITE_URL` | Production origin, no trailing slash — e.g. `https://tonti-hm5i.vercel.app` |
+
+**Important:** After changing `NEXT_PUBLIC_SITE_URL`, trigger a **new production deploy** (Vercel → Deployments → Redeploy). The value is embedded at build time.
 
 **Recommended:** `NEXT_PUBLIC_CONTACT_EMAIL`, support/legal emails, social URLs.
 
@@ -137,10 +139,14 @@ Use this to test paid checkout before going live with real money.
 
 Supabase → **Authentication → Providers:** enable Email (and Google if desired).
 
-**URL configuration:**
+**URL configuration** (example for `https://tonti-hm5i.vercel.app`):
 
-- **Site URL:** `https://your-production-domain`
-- **Redirect URLs:** `https://your-production-domain/auth/callback`
+- **Site URL:** `https://tonti-hm5i.vercel.app`
+- **Redirect URLs:**
+  - `https://tonti-hm5i.vercel.app/auth/callback`
+  - `http://localhost:3000/auth/callback` (local dev)
+
+Replace with your custom domain when you add one (see section 4).
 
 Google OAuth redirect URI (in Google Cloud Console):  
 `https://<project-ref>.supabase.co/auth/v1/callback`
@@ -173,3 +179,22 @@ Run on phone and desktop against the live URL:
 - [ ] Phase 2 security migration `0017` applied (tighter orders/tickets RLS)
 - [ ] Pilot with one trusted organizer first
 - [ ] Confirm demo/seed events removed from production (`0016`)
+
+## Troubleshooting
+
+### Confirmation email opens `localhost` on phone
+
+**Symptom:** After email signup, the Supabase confirmation link points to `http://localhost:3000/...` and does not open on a phone.
+
+**Cause:** `NEXT_PUBLIC_SITE_URL` is missing or set to localhost in Vercel, and/or Supabase Auth **Site URL** still points at localhost. Email signup uses the site origin for `emailRedirectTo`.
+
+**Fix:**
+
+1. Vercel → **Settings → Environment Variables** (Production): set `NEXT_PUBLIC_SITE_URL` to your live origin (e.g. `https://tonti-hm5i.vercel.app`, no trailing slash).
+2. **Redeploy** — `NEXT_PUBLIC_*` values are applied at build time.
+3. Supabase → **Authentication → URL Configuration**:
+   - **Site URL:** same production origin
+   - **Redirect URLs:** `https://<your-domain>/auth/callback` (keep `http://localhost:3000/auth/callback` for local dev)
+4. Sign up again or resend confirmation from Supabase → Authentication → Users.
+
+Old emails with localhost links will not work after the fix; use a fresh confirmation email.

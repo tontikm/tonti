@@ -3,7 +3,7 @@
 import { redirect } from "next/navigation";
 import { sanitizeReturnTo } from "@/lib/auth/sanitize-return-to";
 import { createAuthClient } from "@/lib/supabase/server-auth";
-import { getSiteOrigin } from "@/lib/site";
+import { getRequestOrigin } from "@/lib/site";
 
 export type AuthState = {
   error?: string;
@@ -60,7 +60,7 @@ export async function signUpWithEmail(
     return { error: "Password must be at least 8 characters." };
   }
 
-  const origin = getSiteOrigin();
+  const origin = await getRequestOrigin();
   const { data, error } = await supabase.auth.signUp({
     email,
     password,
