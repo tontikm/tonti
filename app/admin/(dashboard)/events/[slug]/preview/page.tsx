@@ -1,7 +1,7 @@
 import Image from "next/image";
-import Link from "next/link";
 import { notFound } from "next/navigation";
-import { ArrowLeft, Calendar, Clock, MapPin } from "lucide-react";
+import { Calendar, Clock, MapPin } from "lucide-react";
+import { AdminBackLink } from "@/components/admin/AdminBackLink";
 import { AdminPageHeader } from "@/components/admin/AdminShell";
 import { EventPublicationActions } from "@/components/admin/EventPublicationActions";
 import { EventPublicationBadge } from "@/components/admin/EventPublicationBadge";
@@ -45,27 +45,11 @@ export default async function AdminEventPreviewPage({ params }: Props) {
 
   return (
     <>
-      <Link
-        href="/admin/events"
-        className="mb-4 inline-flex items-center gap-2 text-sm text-muted transition-colors hover:text-foreground"
-      >
-        <ArrowLeft className="h-4 w-4" />
-        Back to events
-      </Link>
+      <AdminBackLink href="/admin/events" label="Back to events" />
 
       <AdminPageHeader
         title={event.title}
         description="Review this event before approving it for the public site."
-        action={
-          isPubliclyVisible ? (
-            <Link
-              href={`/events/${slug}`}
-              className="rounded-full border border-white/15 px-4 py-2 text-sm text-muted transition-colors hover:text-foreground"
-            >
-              View live page
-            </Link>
-          ) : null
-        }
       />
 
       <div className="mb-8 rounded-2xl border border-white/10 bg-surface/40 p-5">

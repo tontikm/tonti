@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { ArrowLeft } from "lucide-react";
+import { AdminBackLink } from "@/components/admin/AdminBackLink";
 import { AdminPageHeader } from "@/components/admin/AdminShell";
 import { AdminReportStat } from "@/components/admin/AdminReportStat";
 import { OrganizerStatusBadge } from "@/components/admin/OrganizerStatusBadge";
@@ -46,13 +46,7 @@ export default async function AdminOrganizerDetailPage({ params }: Props) {
   return (
     <>
       <div className="print:hidden">
-        <Link
-          href="/admin/payouts"
-          className="mb-4 inline-flex items-center gap-2 text-sm text-muted transition-colors hover:text-foreground"
-        >
-          <ArrowLeft className="h-4 w-4" />
-          Back to payouts
-        </Link>
+        <AdminBackLink href="/admin/payouts" label="Back to payouts" />
 
         <AdminPageHeader
           title={summary.name ?? summary.email}

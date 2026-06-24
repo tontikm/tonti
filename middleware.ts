@@ -1,7 +1,18 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
+import { ADMIN_SESSION_COOKIE_NAME } from "@/lib/admin/constants";
+import { shouldRedirectAdminFromPublicSite } from "@/lib/admin/public-route-guard";
 
 export async function middleware(request: NextRequest) {
+  const { pathname } = request.nextUrl;
+  const hasAdminSession = Boolean(
+    request.cookies.get(ADMIN_SESSION_COOKIE_NAME)?.value,
+  );
+
+  if (shouldRedirectAdminFromPublicSite(pathname, hasAdminSession)) {
+    return NextResponse.redirect(new URL("/admin", request.url));
+  }
+
   let response = NextResponse.next({ request });
 
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;

@@ -60,21 +60,12 @@ export default async function AdminEventsPage() {
                           Fee incomplete
                         </Link>
                       )}
-                      {event.isPubliclyVisible ? (
-                        <Link
-                          href={`/events/${event.slug}`}
-                          className="text-xs text-muted underline-offset-4 hover:underline"
-                        >
-                          View live page
-                        </Link>
-                      ) : (
-                        <Link
-                          href={`/admin/events/${event.slug}/preview`}
-                          className="text-xs text-amber-200 underline-offset-4 hover:underline"
-                        >
-                          Preview event
-                        </Link>
-                      )}
+                      <Link
+                        href={`/admin/events/${event.slug}/preview`}
+                        className="text-xs text-amber-200 underline-offset-4 hover:underline"
+                      >
+                        Preview event
+                      </Link>
                     </td>
                     <td className="px-4 py-4">
                       <EventPublicationBadge status={event.publicationStatus} />

@@ -1,7 +1,9 @@
 import { createHmac, timingSafeEqual } from "crypto";
 import { cookies } from "next/headers";
 
-const COOKIE_NAME = "spotra_admin_session";
+import { ADMIN_SESSION_COOKIE_NAME } from "@/lib/admin/constants";
+
+export { ADMIN_SESSION_COOKIE_NAME };
 
 export type AdminSession = {
   id: string;
@@ -60,7 +62,7 @@ function decodeSignedSession(raw: string, secret: string): AdminSession | null {
 
 export async function getAdminSession(): Promise<AdminSession | null> {
   const cookieStore = await cookies();
-  const raw = cookieStore.get(COOKIE_NAME)?.value;
+  const raw = cookieStore.get(ADMIN_SESSION_COOKIE_NAME)?.value;
   if (!raw) return null;
 
   const secret = getSessionSecret();
@@ -79,7 +81,7 @@ export async function setAdminSession(session: AdminSession): Promise<void> {
   }
 
   const cookieStore = await cookies();
-  cookieStore.set(COOKIE_NAME, encodeURIComponent(encodeSignedSession(session, secret)), {
+  cookieStore.set(ADMIN_SESSION_COOKIE_NAME, encodeURIComponent(encodeSignedSession(session, secret)), {
     httpOnly: true,
     secure: process.env.NODE_ENV === "production",
     sameSite: "lax",
@@ -90,5 +92,5 @@ export async function setAdminSession(session: AdminSession): Promise<void> {
 
 export async function clearAdminSession(): Promise<void> {
   const cookieStore = await cookies();
-  cookieStore.delete(COOKIE_NAME);
+  cookieStore.delete(ADMIN_SESSION_COOKIE_NAME);
 }
