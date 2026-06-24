@@ -10,6 +10,8 @@ export function BasketButton() {
   const { ticketCount } = useBasket();
   const [open, setOpen] = useState(false);
 
+  if (ticketCount === 0) return null;
+
   return (
     <>
       <button

@@ -15,8 +15,12 @@ type BasketDrawerProps = {
   onClose: () => void;
 };
 
+function confirmClearBasket(): boolean {
+  return window.confirm("Remove all tickets from your basket?");
+}
+
 export function BasketDrawer({ open, onClose }: BasketDrawerProps) {
-  const { basket } = useBasket();
+  const { basket, clear } = useBasket();
   const [warning, setWarning] = useState<string | null>(null);
   const [cart, setCart] = useState<ReturnType<typeof buildCheckoutCartFromBasket>>(null);
   const [loading, setLoading] = useState(false);
@@ -104,6 +108,11 @@ export function BasketDrawer({ open, onClose }: BasketDrawerProps) {
               warning={warning}
               onCheckout={onClose}
               onViewBasket={onClose}
+              onClear={() => {
+                if (!confirmClearBasket()) return;
+                clear();
+                onClose();
+              }}
             />
           ) : (
             <div className="space-y-4">

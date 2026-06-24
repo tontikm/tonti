@@ -57,6 +57,8 @@ export function TicketTierSelector({
   useEffect(() => {
     if (isForEvent(eventSlug) && basket) {
       setQuantities(basket.quantities);
+    } else if (!basket) {
+      setQuantities({});
     }
     setHydrated(true);
   }, [basket, eventSlug, isForEvent]);

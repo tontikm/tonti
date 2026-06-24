@@ -88,6 +88,11 @@ export default function BasketPage() {
     };
   }, [basket, replaceEvent]);
 
+  function handleClearBasket() {
+    if (!window.confirm("Remove all tickets from your basket?")) return;
+    clear();
+  }
+
   function handleQuantityChange(tierId: string, quantity: number) {
     if (!basket) return;
 
@@ -159,6 +164,7 @@ export default function BasketPage() {
             editable
             warning={warning}
             onQuantityChange={handleQuantityChange}
+            onClear={handleClearBasket}
           />
         ) : (
           <BasketEmptyState />

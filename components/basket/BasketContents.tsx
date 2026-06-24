@@ -19,6 +19,7 @@ type BasketContentsProps = {
   onQuantityChange?: (tierId: string, quantity: number) => void;
   onCheckout?: () => void;
   onViewBasket?: () => void;
+  onClear?: () => void;
 };
 
 export function BasketContents({
@@ -30,6 +31,7 @@ export function BasketContents({
   onQuantityChange,
   onCheckout,
   onViewBasket,
+  onClear,
 }: BasketContentsProps) {
   const totalLabel = cart.isFree ? "Free" : formatPrice(cart.totalAmount);
   const checkoutUrl = buildCheckoutUrl(basket.eventSlug, basket.quantities);
@@ -118,33 +120,48 @@ export function BasketContents({
         <span className="text-lg font-bold text-emerald-400">{totalLabel}</span>
       </div>
 
-      <div className={compact ? "flex flex-col gap-2" : "flex flex-col gap-3 sm:flex-row"}>
-        {!compact ? (
-          <Button
-            href="/basket"
-            variant="secondary"
-            className="w-full sm:flex-1"
-            onClick={onViewBasket}
-          >
-            View basket
-          </Button>
-        ) : (
-          <Button
-            href="/basket"
-            variant="secondary"
-            className="w-full"
-            onClick={onViewBasket}
-          >
-            View basket
-          </Button>
-        )}
-        <Button
-          href={checkoutUrl}
-          className="w-full sm:flex-1"
-          onClick={onCheckout}
+      <div className={compact ? "flex flex-col gap-2" : "flex flex-col gap-3"}>
+        <div
+          className={
+            compact ? "flex flex-col gap-2" : "flex flex-col gap-3 sm:flex-row"
+          }
         >
-          Checkout
-        </Button>
+          {!compact ? (
+            <Button
+              href="/basket"
+              variant="secondary"
+              className="w-full sm:flex-1"
+              onClick={onViewBasket}
+            >
+              View basket
+            </Button>
+          ) : (
+            <Button
+              href="/basket"
+              variant="secondary"
+              className="w-full"
+              onClick={onViewBasket}
+            >
+              View basket
+            </Button>
+          )}
+          <Button
+            href={checkoutUrl}
+            className="w-full sm:flex-1"
+            onClick={onCheckout}
+          >
+            Checkout
+          </Button>
+        </div>
+        {onClear ? (
+          <button
+            type="button"
+            onClick={onClear}
+            className="text-center text-sm text-muted transition-colors hover:text-red-300"
+          >
+            Empty basket
+          </button>
+        ) : null}
       </div>
     </div>
   );
