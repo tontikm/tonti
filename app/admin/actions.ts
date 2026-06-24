@@ -180,6 +180,7 @@ export async function updateEventPublicationStatus(
 
   revalidateAdminPaths();
   revalidatePath(`/events/${slug}`);
+  revalidatePath(`/admin/events/${slug}/preview`);
   revalidatePath(`/organizer/events/${slug}`);
 
   const labels: Record<EventPublicationStatus, string> = {

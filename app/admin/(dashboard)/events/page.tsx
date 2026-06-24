@@ -65,11 +65,11 @@ export default async function AdminEventsPage() {
                           href={`/events/${event.slug}`}
                           className="text-xs text-muted underline-offset-4 hover:underline"
                         >
-                          View public page
+                          View live page
                         </Link>
                       ) : (
                         <Link
-                          href={`/events/${event.slug}`}
+                          href={`/admin/events/${event.slug}/preview`}
                           className="text-xs text-amber-200 underline-offset-4 hover:underline"
                         >
                           Preview event

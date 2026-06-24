@@ -61,11 +61,19 @@ export default async function AdminEventSalesPage({ params }: Props) {
         action={
           <div className="flex flex-wrap items-center gap-3">
             <Link
-              href={`/events/${slug}`}
+              href={`/admin/events/${slug}/preview`}
               className="rounded-full border border-white/15 px-4 py-2 text-sm text-muted transition-colors hover:text-foreground"
             >
               Preview event
             </Link>
+            {adminEvent?.isPubliclyVisible && (
+              <Link
+                href={`/events/${slug}`}
+                className="rounded-full border border-white/15 px-4 py-2 text-sm text-muted transition-colors hover:text-foreground"
+              >
+                View live page
+              </Link>
+            )}
             <Link
               href={`/admin/orders?event=${slug}`}
               className="rounded-full border border-white/15 px-4 py-2 text-sm text-muted transition-colors hover:text-foreground"

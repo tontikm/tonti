@@ -43,7 +43,8 @@ export function isMissingColumnError(error: unknown): boolean {
     formatted.includes("schema cache") ||
     formatted.includes("does not exist") ||
     formatted.includes("organizer_name") ||
-    formatted.includes("organizer_logo")
+    formatted.includes("organizer_logo") ||
+    formatted.includes("publication_status")
   );
 }
 
