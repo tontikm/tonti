@@ -8,6 +8,7 @@ import {
   BasketEmptyState,
 } from "@/components/basket/BasketContents";
 import { loadBasketEvent } from "@/app/basket/actions";
+import { BasketTimer } from "@/components/basket/BasketTimer";
 import { buildCheckoutCartFromBasket } from "@/lib/basket/storage";
 
 type BasketDrawerProps = {
@@ -93,6 +94,10 @@ export function BasketDrawer({ open, onClose }: BasketDrawerProps) {
           >
             <X className="h-5 w-5" />
           </button>
+        </div>
+
+        <div className="border-b border-white/10 px-5 py-3">
+          <BasketTimer />
         </div>
 
         <div className="min-h-0 flex-1 overflow-y-auto p-5">

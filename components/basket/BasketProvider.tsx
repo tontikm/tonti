@@ -12,6 +12,7 @@ import {
 import {
   BASKET_CHANGED_EVENT,
   clearBasket as clearStoredBasket,
+  getBasketSecondsRemaining,
   getBasketTicketCount,
   readBasket,
   writeBasket,
@@ -22,6 +23,8 @@ import {
 type BasketContextValue = {
   basket: BasketSnapshot | null;
   ticketCount: number;
+  secondsRemaining: number | null;
+  isReady: boolean;
   setItems: (event: BasketEventMeta, quantities: Record<string, number>) => void;
   replaceEvent: (event: BasketEventMeta, quantities: Record<string, number>) => void;
   updateQuantities: (quantities: Record<string, number>) => void;
@@ -31,12 +34,26 @@ type BasketContextValue = {
 
 const BasketContext = createContext<BasketContextValue | null>(null);
 
+function computeSecondsRemaining(basket: BasketSnapshot | null): number | null {
+  if (!basket) return null;
+  return getBasketSecondsRemaining(basket);
+}
+
 export function BasketProvider({ children }: { children: ReactNode }) {
   const [basket, setBasket] = useState<BasketSnapshot | null>(null);
+  const [secondsRemaining, setSecondsRemaining] = useState<number | null>(null);
   const [hydrated, setHydrated] = useState(false);
 
   const refresh = useCallback(() => {
-    setBasket(readBasket());
+    const next = readBasket();
+    setBasket(next);
+    setSecondsRemaining(computeSecondsRemaining(next));
+  }, []);
+
+  const clear = useCallback(() => {
+    clearStoredBasket();
+    setBasket(null);
+    setSecondsRemaining(null);
   }, []);
 
   useEffect(() => {
@@ -61,19 +78,39 @@ export function BasketProvider({ children }: { children: ReactNode }) {
     };
   }, [refresh]);
 
+  useEffect(() => {
+    if (!basket) return;
+
+    const tick = () => {
+      const current = readBasket();
+      if (!current) {
+        clear();
+        return;
+      }
+      const remaining = getBasketSecondsRemaining(current);
+      if (remaining <= 0) {
+        clear();
+        return;
+      }
+      setSecondsRemaining(remaining);
+    };
+
+    tick();
+    const id = window.setInterval(tick, 1000);
+    return () => window.clearInterval(id);
+  }, [basket, clear]);
+
   const setItems = useCallback(
     (event: BasketEventMeta, quantities: Record<string, number>) => {
-      const snapshot: BasketSnapshot = {
+      writeBasket({
         eventSlug: event.slug,
         eventTitle: event.title,
         eventImage: event.image,
         quantities,
-        updatedAt: new Date().toISOString(),
-      };
-      writeBasket(snapshot);
-      setBasket(readBasket());
+      });
+      refresh();
     },
-    [],
+    [refresh],
   );
 
   const replaceEvent = useCallback(
@@ -83,17 +120,15 @@ export function BasketProvider({ children }: { children: ReactNode }) {
     [setItems],
   );
 
-  const updateQuantities = useCallback((quantities: Record<string, number>) => {
-    const current = readBasket();
-    if (!current) return;
-    writeBasket({ ...current, quantities });
-    setBasket(readBasket());
-  }, []);
-
-  const clear = useCallback(() => {
-    clearStoredBasket();
-    setBasket(null);
-  }, []);
+  const updateQuantities = useCallback(
+    (quantities: Record<string, number>) => {
+      const current = readBasket();
+      if (!current) return;
+      writeBasket({ ...current, quantities });
+      refresh();
+    },
+    [refresh],
+  );
 
   const isForEvent = useCallback(
     (eventSlug: string) => hydrated && basket?.eventSlug === eventSlug,
@@ -104,6 +139,8 @@ export function BasketProvider({ children }: { children: ReactNode }) {
     () => ({
       basket: hydrated ? basket : null,
       ticketCount: getBasketTicketCount(hydrated ? basket : null),
+      secondsRemaining: hydrated ? secondsRemaining : null,
+      isReady: hydrated,
       setItems,
       replaceEvent,
       updateQuantities,
@@ -116,6 +153,7 @@ export function BasketProvider({ children }: { children: ReactNode }) {
       hydrated,
       isForEvent,
       replaceEvent,
+      secondsRemaining,
       setItems,
       updateQuantities,
     ],

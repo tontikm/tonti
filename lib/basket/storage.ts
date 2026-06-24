@@ -3,6 +3,11 @@ import {
   buildCartFromQuantities,
   type CheckoutCart,
 } from "@/lib/checkout";
+import {
+  getBasketExpiresAt,
+  getBasketSecondsRemaining,
+  isBasketExpired,
+} from "@/lib/basket/timer";
 
 export const BASKET_STORAGE_KEY = "spotra:basket";
 export const BASKET_CHANGED_EVENT = "spotra:basket-changed";
@@ -13,6 +18,7 @@ export type BasketSnapshot = {
   eventImage?: string;
   quantities: Record<string, number>;
   updatedAt: string;
+  expiresAt: string;
 };
 
 export type BasketEventMeta = {
@@ -37,28 +43,43 @@ function sanitizeQuantities(
   return next;
 }
 
+function normalizeSnapshot(parsed: BasketSnapshot): BasketSnapshot | null {
+  if (!parsed?.eventSlug || typeof parsed.quantities !== "object") return null;
+  const quantities = sanitizeQuantities(parsed.quantities);
+  if (Object.keys(quantities).length === 0) return null;
+  if (!parsed.expiresAt) return null;
+  return {
+    eventSlug: parsed.eventSlug,
+    eventTitle: parsed.eventTitle,
+    eventImage: parsed.eventImage,
+    quantities,
+    updatedAt: parsed.updatedAt ?? new Date().toISOString(),
+    expiresAt: parsed.expiresAt,
+  };
+}
+
 export function readBasket(): BasketSnapshot | null {
   if (typeof window === "undefined") return null;
   try {
     const raw = window.localStorage.getItem(BASKET_STORAGE_KEY);
     if (!raw) return null;
     const parsed = JSON.parse(raw) as BasketSnapshot;
-    if (!parsed?.eventSlug || typeof parsed.quantities !== "object") return null;
-    const quantities = sanitizeQuantities(parsed.quantities);
-    if (Object.keys(quantities).length === 0) return null;
-    return {
-      eventSlug: parsed.eventSlug,
-      eventTitle: parsed.eventTitle,
-      eventImage: parsed.eventImage,
-      quantities,
-      updatedAt: parsed.updatedAt ?? new Date().toISOString(),
-    };
+    const snapshot = normalizeSnapshot(parsed);
+    if (!snapshot) {
+      clearBasket();
+      return null;
+    }
+    if (isBasketExpired(snapshot)) {
+      clearBasket();
+      return null;
+    }
+    return snapshot;
   } catch {
     return null;
   }
 }
 
-export function writeBasket(snapshot: BasketSnapshot): void {
+export function writeBasket(snapshot: Omit<BasketSnapshot, "expiresAt" | "updatedAt"> & Partial<Pick<BasketSnapshot, "expiresAt" | "updatedAt">>): void {
   if (typeof window === "undefined") return;
   const quantities = sanitizeQuantities(snapshot.quantities);
   if (Object.keys(quantities).length === 0) {
@@ -69,9 +90,12 @@ export function writeBasket(snapshot: BasketSnapshot): void {
     window.localStorage.setItem(
       BASKET_STORAGE_KEY,
       JSON.stringify({
-        ...snapshot,
+        eventSlug: snapshot.eventSlug,
+        eventTitle: snapshot.eventTitle,
+        eventImage: snapshot.eventImage,
         quantities,
         updatedAt: new Date().toISOString(),
+        expiresAt: getBasketExpiresAt(),
       }),
     );
     notifyBasketChanged();
@@ -94,6 +118,8 @@ export function getBasketTicketCount(snapshot: BasketSnapshot | null): number {
   if (!snapshot) return 0;
   return Object.values(snapshot.quantities).reduce((sum, qty) => sum + qty, 0);
 }
+
+export { getBasketSecondsRemaining, isBasketExpired };
 
 export function buildCheckoutCartFromBasket(
   basket: BasketSnapshot,
@@ -128,6 +154,7 @@ export function clampBasketToTiers(
     ...basket,
     quantities: nextQuantities,
     updatedAt: new Date().toISOString(),
+    expiresAt: getBasketExpiresAt(),
   };
   return { basket: nextBasket, cart, changed: true };
 }

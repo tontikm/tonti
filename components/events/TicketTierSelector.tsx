@@ -10,7 +10,10 @@ import {
   MAX_CHECKOUT_TICKETS_PER_TIER,
 } from "@/lib/checkout";
 import { useBasket } from "@/components/basket/BasketProvider";
+import { useBasketCheckout } from "@/components/basket/useBasketCheckout";
+import { BasketExpiredNotice } from "@/components/events/BasketExpiredNotice";
 import { OrganizerFanAuthNotice } from "@/components/auth/OrganizerFanAuthNotice";
+import { formatBasketCountdown } from "@/lib/basket/timer";
 import { Button } from "@/components/ui/Button";
 import { StickyPurchaseBar } from "@/components/tickets/StickyPurchaseBar";
 import {
@@ -49,8 +52,9 @@ export function TicketTierSelector({
   organizerEmail,
 }: TicketTierSelectorProps) {
   const reduceMotion = useReducedMotion();
-  const { basket, setItems, replaceEvent, isForEvent, clear, ticketCount } =
+  const { basket, setItems, replaceEvent, isForEvent, clear, ticketCount, secondsRemaining } =
     useBasket();
+  const { goToCheckout } = useBasketCheckout(eventSlug);
   const [quantities, setQuantities] = useState<Record<string, number>>({});
   const [hydrated, setHydrated] = useState(false);
 
@@ -115,10 +119,6 @@ export function TicketTierSelector({
     const qty = quantities[tier.id] ?? 0;
     return sum + tier.price * qty;
   }, 0);
-  const checkoutUrl = useMemo(
-    () => buildCheckoutUrl(eventSlug, quantities),
-    [eventSlug, quantities],
-  );
   const allSoldOut = tiers.every(
     (tier) => getTierAvailability(tier) === "sold-out",
   );
@@ -131,9 +131,14 @@ export function TicketTierSelector({
       : "Pay at the door. Online payment coming soon";
   const basketHasThisEvent =
     hydrated && isForEvent(eventSlug) && ticketCount > 0;
+  const stickySubtitle =
+    basketHasThisEvent && secondsRemaining !== null
+      ? `${purchaseSubtitle} · Reserved ${formatBasketCountdown(secondsRemaining)}`
+      : purchaseSubtitle;
 
   return (
     <>
+      <BasketExpiredNotice />
       <div className="rounded-2xl border border-border bg-surface p-4 lg:p-6">
         <div className="flex items-center gap-2">
           <Ticket className="h-4 w-4 text-accent lg:h-5 lg:w-5" />
@@ -260,7 +265,7 @@ export function TicketTierSelector({
         visible={showPurchaseBar}
         ticketCount={totalTickets}
         totalLabel={totalLabel}
-        subtitle={purchaseSubtitle}
+        subtitle={stickySubtitle}
         action={
           <div className="flex items-center gap-2">
             {basketHasThisEvent ? (
@@ -274,9 +279,10 @@ export function TicketTierSelector({
               </Button>
             ) : null}
             <Button
-              href={checkoutUrl}
+              type="button"
               size="lg"
               className="whitespace-nowrap px-4 py-2.5 text-sm sm:px-6 sm:py-3 sm:text-base"
+              onClick={() => goToCheckout(quantities)}
             >
               Checkout
             </Button>

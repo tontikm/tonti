@@ -4,10 +4,11 @@ import Link from "next/link";
 import Image from "next/image";
 import { Minus, Plus } from "lucide-react";
 import type { CheckoutCart } from "@/lib/checkout";
-import { buildCheckoutUrl } from "@/lib/checkout";
 import type { BasketSnapshot } from "@/lib/basket/storage";
 import { getSafeEventImageUrl } from "@/lib/images";
 import { Button } from "@/components/ui/Button";
+import { BasketTimer } from "@/components/basket/BasketTimer";
+import { useBasketCheckout } from "@/components/basket/useBasketCheckout";
 import { formatPrice } from "@/lib/utils";
 
 type BasketContentsProps = {
@@ -33,8 +34,8 @@ export function BasketContents({
   onViewBasket,
   onClear,
 }: BasketContentsProps) {
+  const { goToCheckout } = useBasketCheckout(basket.eventSlug);
   const totalLabel = cart.isFree ? "Free" : formatPrice(cart.totalAmount);
-  const checkoutUrl = buildCheckoutUrl(basket.eventSlug, basket.quantities);
 
   return (
     <div className={compact ? "space-y-4" : "space-y-6"}>
@@ -115,6 +116,8 @@ export function BasketContents({
         ))}
       </ul>
 
+      <BasketTimer className="w-full" />
+
       <div className="flex items-center justify-between border-t border-white/10 pt-4">
         <span className="font-medium">Total</span>
         <span className="text-lg font-bold text-emerald-400">{totalLabel}</span>
@@ -146,9 +149,11 @@ export function BasketContents({
             </Button>
           )}
           <Button
-            href={checkoutUrl}
+            type="button"
             className="w-full sm:flex-1"
-            onClick={onCheckout}
+            onClick={() => {
+              goToCheckout(basket.quantities, onCheckout);
+            }}
           >
             Checkout
           </Button>

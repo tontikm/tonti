@@ -1,4 +1,5 @@
 import { notFound, redirect } from "next/navigation";
+import { CheckoutBasketGuard } from "@/components/basket/CheckoutBasketGuard";
 import { CheckoutExperience } from "@/components/checkout/CheckoutExperience";
 import { getFanUser } from "@/lib/auth/session";
 import { getOrganizerSession } from "@/lib/organizer/session";
@@ -48,18 +49,20 @@ export default async function EventCheckoutPage({ params, searchParams }: Props)
 
   return (
     <div className="mx-auto max-w-6xl px-4 py-10 pb-24 sm:px-6 lg:px-8">
-      <CheckoutExperience
-        event={event}
-        cart={cart}
-        user={user}
-        organizerEmail={
-          organizerSession && !user ? organizerSession.email : null
-        }
-        authConfigured={authConfigured}
-        payfastEnabled={payfastEnabled}
-        paymentCancelled={paymentCancelled}
-        returnTo={returnTo}
-      />
+      <CheckoutBasketGuard eventSlug={slug}>
+        <CheckoutExperience
+          event={event}
+          cart={cart}
+          user={user}
+          organizerEmail={
+            organizerSession && !user ? organizerSession.email : null
+          }
+          authConfigured={authConfigured}
+          payfastEnabled={payfastEnabled}
+          paymentCancelled={paymentCancelled}
+          returnTo={returnTo}
+        />
+      </CheckoutBasketGuard>
     </div>
   );
 }

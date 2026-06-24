@@ -19,6 +19,7 @@ import {
 } from "@/lib/checkout";
 import type { TicketTier } from "@/lib/types";
 import { Button } from "@/components/ui/Button";
+import { BasketTimer } from "@/components/basket/BasketTimer";
 import { getTicketsRemaining } from "@/lib/utils";
 
 export default function BasketPage() {
@@ -141,6 +142,10 @@ export default function BasketPage() {
       <p className="mt-2 text-sm text-muted">
         Tickets for one event at a time. Checkout when you&apos;re ready.
       </p>
+
+      <div className="mt-4">
+        <BasketTimer variant="prominent" />
+      </div>
 
       <div className="mt-8 rounded-2xl border border-white/10 bg-white/[0.02] p-6">
         {loading ? (
