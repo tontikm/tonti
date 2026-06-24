@@ -42,8 +42,8 @@ export function AdminShell({ session, children }: AdminShellProps) {
   }
 
   const sidebar = (
-    <div className="flex h-full flex-col">
-      <Link href="/" className="block px-5 py-6">
+    <div className="flex min-h-0 flex-1 flex-col">
+      <Link href="/" className="block shrink-0 px-5 py-6">
         <Image
           src={BRAND_LOGO_SRC}
           alt={BRAND_NAME}
@@ -56,7 +56,7 @@ export function AdminShell({ session, children }: AdminShellProps) {
         </p>
       </Link>
 
-      <nav className="flex-1 space-y-1 px-3 pt-2">
+      <nav className="min-h-0 flex-1 space-y-1 overflow-y-auto px-3 pt-2">
         {NAV.map((item) => (
           <Link
             key={item.href}
@@ -75,7 +75,7 @@ export function AdminShell({ session, children }: AdminShellProps) {
         ))}
       </nav>
 
-      <div className="border-t border-white/10 p-3">
+      <div className="shrink-0 border-t border-white/10 p-3">
         <p className="mb-2 truncate px-3 text-xs text-muted">
           {session.name ?? session.email}
         </p>
@@ -101,7 +101,7 @@ export function AdminShell({ session, children }: AdminShellProps) {
   return (
     <div className="min-h-screen bg-black">
       <div className="mx-auto flex min-h-screen max-w-[1440px]">
-        <aside className="hidden w-64 shrink-0 border-r border-amber-500/10 bg-gradient-to-b from-amber-950/20 to-black lg:block">
+        <aside className="hidden w-64 shrink-0 border-r border-amber-500/10 bg-gradient-to-b from-amber-950/20 to-black lg:flex lg:min-h-screen lg:flex-col">
           {sidebar}
         </aside>
 
@@ -137,8 +137,8 @@ export function AdminShell({ session, children }: AdminShellProps) {
                 onClick={() => setMobileOpen(false)}
                 className="absolute inset-0 bg-black/80 backdrop-blur-sm"
               />
-              <aside className="absolute left-0 top-0 h-full w-72 border-r border-amber-500/10 bg-gradient-to-b from-amber-950/20 to-black shadow-2xl">
-                <div className="flex justify-end p-3">
+              <aside className="absolute left-0 top-0 flex h-full w-72 flex-col border-r border-amber-500/10 bg-gradient-to-b from-amber-950/20 to-black shadow-2xl">
+                <div className="flex shrink-0 justify-end p-3">
                   <button
                     type="button"
                     onClick={() => setMobileOpen(false)}

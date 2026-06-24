@@ -46,8 +46,8 @@ export function OrganizerShell({ session, children }: OrganizerShellProps) {
   }
 
   const sidebar = (
-    <div className="flex h-full flex-col">
-      <Link href="/" className="block px-5 py-6">
+    <div className="flex min-h-0 flex-1 flex-col">
+      <Link href="/" className="block shrink-0 px-5 py-6">
         <Image
           src={BRAND_LOGO_SRC}
           alt={BRAND_NAME}
@@ -60,7 +60,7 @@ export function OrganizerShell({ session, children }: OrganizerShellProps) {
         </p>
       </Link>
 
-      <nav className="flex-1 space-y-1 px-3 pt-2">
+      <nav className="min-h-0 flex-1 space-y-1 overflow-y-auto px-3 pt-2">
         {NAV.map((item) => (
           <Link
             key={item.href}
@@ -79,7 +79,7 @@ export function OrganizerShell({ session, children }: OrganizerShellProps) {
         ))}
       </nav>
 
-      <div className="border-t border-white/10 p-3">
+      <div className="shrink-0 border-t border-white/10 p-3">
         <Link
           href="/"
           className="mb-2 flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm text-muted transition-colors hover:bg-white/5 hover:text-foreground"
@@ -102,7 +102,7 @@ export function OrganizerShell({ session, children }: OrganizerShellProps) {
   return (
     <div className="organizer-theme min-h-screen bg-black">
       <div className="mx-auto flex min-h-screen max-w-[1440px]">
-        <aside className="hidden w-64 shrink-0 border-r border-violet-500/10 bg-gradient-to-b from-violet-950/20 to-black lg:block">
+        <aside className="hidden w-64 shrink-0 border-r border-violet-500/10 bg-gradient-to-b from-violet-950/20 to-black lg:flex lg:min-h-screen lg:flex-col">
           {sidebar}
         </aside>
 
@@ -138,8 +138,8 @@ export function OrganizerShell({ session, children }: OrganizerShellProps) {
                 onClick={() => setMobileOpen(false)}
                 className="absolute inset-0 bg-black/80 backdrop-blur-sm"
               />
-              <aside className="absolute left-0 top-0 h-full w-72 border-r border-violet-500/10 bg-gradient-to-b from-violet-950/20 to-black shadow-2xl">
-                <div className="flex justify-end p-3">
+              <aside className="absolute left-0 top-0 flex h-full w-72 flex-col border-r border-violet-500/10 bg-gradient-to-b from-violet-950/20 to-black shadow-2xl">
+                <div className="flex shrink-0 justify-end p-3">
                   <button
                     type="button"
                     onClick={() => setMobileOpen(false)}
