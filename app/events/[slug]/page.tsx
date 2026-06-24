@@ -386,6 +386,7 @@ export default async function EventDetailPage({ params, searchParams }: Props) {
                     eventSlug={event.slug}
                     tiers={event.tiers}
                     eventTitle={event.title}
+                    eventImage={event.image}
                     organizerEmail={organizerEmailForTickets}
                   />
                 )}

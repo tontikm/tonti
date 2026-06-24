@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import { Minus, Plus, Ticket } from "lucide-react";
 import type { TicketTier } from "@/lib/types";
@@ -9,6 +9,7 @@ import {
   MAX_CHECKOUT_TICKETS,
   MAX_CHECKOUT_TICKETS_PER_TIER,
 } from "@/lib/checkout";
+import { useBasket } from "@/components/basket/BasketProvider";
 import { OrganizerFanAuthNotice } from "@/components/auth/OrganizerFanAuthNotice";
 import { Button } from "@/components/ui/Button";
 import { StickyPurchaseBar } from "@/components/tickets/StickyPurchaseBar";
@@ -22,6 +23,7 @@ import {
 type TicketTierSelectorProps = {
   eventSlug: string;
   eventTitle: string;
+  eventImage?: string;
   tiers: TicketTier[];
   organizerEmail?: string | null;
 };
@@ -42,11 +44,27 @@ function availabilityClassName(
 export function TicketTierSelector({
   eventSlug,
   eventTitle,
+  eventImage,
   tiers,
   organizerEmail,
 }: TicketTierSelectorProps) {
   const reduceMotion = useReducedMotion();
+  const { basket, setItems, replaceEvent, isForEvent, clear, ticketCount } =
+    useBasket();
   const [quantities, setQuantities] = useState<Record<string, number>>({});
+  const [hydrated, setHydrated] = useState(false);
+
+  useEffect(() => {
+    if (isForEvent(eventSlug) && basket) {
+      setQuantities(basket.quantities);
+    }
+    setHydrated(true);
+  }, [basket, eventSlug, isForEvent]);
+
+  const eventMeta = useMemo(
+    () => ({ slug: eventSlug, title: eventTitle, image: eventImage }),
+    [eventSlug, eventTitle, eventImage],
+  );
 
   const updateQty = (tierId: string, delta: number, tierRemaining: number) => {
     setQuantities((prev) => {
@@ -60,8 +78,33 @@ export function TicketTierSelector({
         tierRemaining,
         Math.max(0, MAX_CHECKOUT_TICKETS - otherTotal),
       );
-      const next = Math.max(0, Math.min(maxQty, current + delta));
-      return { ...prev, [tierId]: next };
+      const nextQty = Math.max(0, Math.min(maxQty, current + delta));
+      const next = { ...prev, [tierId]: nextQty };
+      if (nextQty === 0) {
+        delete next[tierId];
+      }
+
+      if (!purchaseDisabled) {
+        const hasItems = Object.values(next).some((qty) => qty > 0);
+        if (hasItems) {
+          if (basket && basket.eventSlug !== eventSlug) {
+            const confirmed = window.confirm(
+              `Your basket has tickets for ${basket.eventTitle}. Replace with ${eventTitle}?`,
+            );
+            if (confirmed) {
+              replaceEvent(eventMeta, next);
+            } else {
+              return prev;
+            }
+          } else {
+            setItems(eventMeta, next);
+          }
+        } else if (isForEvent(eventSlug)) {
+          clear();
+        }
+      }
+
+      return next;
     });
   };
 
@@ -84,6 +127,8 @@ export function TicketTierSelector({
     totalPrice === 0
       ? "Free RSVP. No payment required"
       : "Pay at the door. Online payment coming soon";
+  const basketHasThisEvent =
+    hydrated && isForEvent(eventSlug) && ticketCount > 0;
 
   return (
     <>
@@ -128,7 +173,9 @@ export function TicketTierSelector({
                 <div className="flex items-start justify-between gap-3 lg:gap-4">
                   <div className="min-w-0 flex-1">
                     <div className="flex flex-wrap items-center gap-1.5 lg:gap-2">
-                      <h3 className="text-sm font-medium lg:text-base">{tier.name}</h3>
+                      <h3 className="text-sm font-medium lg:text-base">
+                        {tier.name}
+                      </h3>
                       <span
                         className={`text-xs font-medium ${availabilityClassName(availability)}`}
                       >
@@ -213,13 +260,25 @@ export function TicketTierSelector({
         totalLabel={totalLabel}
         subtitle={purchaseSubtitle}
         action={
-          <Button
-            href={checkoutUrl}
-            size="lg"
-            className="whitespace-nowrap px-4 py-2.5 text-sm sm:px-6 sm:py-3 sm:text-base"
-          >
-            Continue to checkout
-          </Button>
+          <div className="flex items-center gap-2">
+            {basketHasThisEvent ? (
+              <Button
+                href="/basket"
+                variant="secondary"
+                size="lg"
+                className="whitespace-nowrap px-4 py-2.5 text-sm sm:px-5 sm:py-3 sm:text-base"
+              >
+                View basket
+              </Button>
+            ) : null}
+            <Button
+              href={checkoutUrl}
+              size="lg"
+              className="whitespace-nowrap px-4 py-2.5 text-sm sm:px-6 sm:py-3 sm:text-base"
+            >
+              Checkout
+            </Button>
+          </div>
         }
       />
     </>

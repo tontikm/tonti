@@ -8,6 +8,7 @@ import type { SearchItem } from "@/lib/search";
 import { BRAND_LOGO_HEIGHT, BRAND_LOGO_SRC, BRAND_LOGO_WIDTH, BRAND_NAME } from "@/lib/site";
 import { HeaderSearch } from "./HeaderSearch";
 import { SiteNav } from "./SiteNav";
+import { BasketButton } from "@/components/basket/BasketButton";
 
 type HeaderClientProps = {
   organizerLink: React.ReactNode;
@@ -87,6 +88,7 @@ export function HeaderClient({
             <HeaderLogo className="h-8 w-auto sm:h-9" brand={brand} />
           </div>
           <div className="flex items-center justify-end gap-1 sm:gap-2">
+            <BasketButton />
             {fanLink}
             {organizerLink}
             <SiteNav fanNavLink={fanNavLink} fanSignedIn={fanSignedIn} />
@@ -102,6 +104,7 @@ export function HeaderClient({
         <HeaderLogo brand={brand} />
         <div className="flex items-center gap-1 sm:gap-2">
           <HeaderSearch searchItems={searchItems} />
+          <BasketButton />
           {fanLink}
           {organizerLink}
           <SiteNav fanNavLink={fanNavLink} fanSignedIn={fanSignedIn} />

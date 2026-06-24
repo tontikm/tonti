@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono, Press_Start_2P } from "next/font/google";
 import { ConditionalSiteChrome } from "@/components/layout/ConditionalSiteChrome";
+import { BasketProvider } from "@/components/basket/BasketProvider";
 import { Header } from "@/components/layout/Header";
 import { Footer } from "@/components/layout/Footer";
 import { EventBrandProvider } from "@/components/layout/EventBrandProvider";
@@ -62,9 +63,11 @@ export default function RootLayout({
     >
       <body className="flex min-h-full flex-col bg-background text-foreground">
         <EventBrandProvider>
-          <ConditionalSiteChrome header={<Header />} footer={<Footer />}>
-            {children}
-          </ConditionalSiteChrome>
+          <BasketProvider>
+            <ConditionalSiteChrome header={<Header />} footer={<Footer />}>
+              {children}
+            </ConditionalSiteChrome>
+          </BasketProvider>
         </EventBrandProvider>
         <ServiceWorkerRegistrar />
       </body>

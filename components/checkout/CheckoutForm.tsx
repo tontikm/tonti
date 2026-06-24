@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useBasket } from "@/components/basket/BasketProvider";
 import { useActionState } from "react";
 import Link from "next/link";
 import type { CheckoutCart } from "@/lib/checkout";
@@ -37,6 +38,7 @@ export function CheckoutForm({
   onPromoChange,
   displayTotal,
 }: CheckoutFormProps) {
+  const { clear } = useBasket();
   const [whatsappOptIn, setWhatsappOptIn] = useState(false);
   const [state, formAction, pending] = useActionState<ClaimState, FormData>(
     claimTickets,
@@ -60,7 +62,12 @@ export function CheckoutForm({
       : "No charge online today";
 
   return (
-    <form id="checkout-form" action={formAction} className="space-y-6">
+    <form
+      id="checkout-form"
+      action={formAction}
+      className="space-y-6"
+      onSubmit={() => clear()}
+    >
       <input type="hidden" name="eventSlug" value={eventSlug} />
       <input
         type="hidden"

@@ -5,6 +5,7 @@ import { TicketEventHero } from "@/components/tickets/TicketEventHero";
 import { TicketPassCard } from "@/components/tickets/TicketPassCard";
 import { TicketWhatsAppActions } from "@/components/tickets/TicketWhatsAppActions";
 import { SuccessConfetti } from "@/components/tickets/SuccessConfetti";
+import { ClearBasketOnOrder } from "@/components/basket/ClearBasketOnOrder";
 import { Button } from "@/components/ui/Button";
 import { getFanUser } from "@/lib/auth/session";
 import { canUserAccessOrder } from "@/lib/fan/orders";
@@ -61,6 +62,7 @@ export default async function TicketConfirmationPage({ params }: Props) {
 
   return (
     <div className="mx-auto max-w-3xl px-4 py-12 sm:px-6">
+      <ClearBasketOnOrder />
       <SuccessConfetti />
       <div className="rounded-2xl border border-emerald-500/40 bg-emerald-500/10 p-6 shadow-[0_0_40px_-12px_rgba(52,211,153,0.35)]">
         <div className="flex items-start gap-4">

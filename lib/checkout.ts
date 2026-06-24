@@ -1,4 +1,4 @@
-import type { Event, TicketTier } from "@/lib/types";
+import type { TicketTier } from "@/lib/types";
 import { getTicketsRemaining } from "@/lib/utils";
 
 export const MAX_CHECKOUT_TICKETS = 10;
@@ -19,19 +19,18 @@ export type CheckoutCart = {
   isFree: boolean;
 };
 
-export function parseCartFromSearchParams(
-  searchParams: Record<string, string | string[] | undefined>,
+export function buildCartFromQuantities(
+  quantities: Record<string, number>,
   tiers: TicketTier[],
 ): CheckoutCart | null {
   const tierMap = new Map(tiers.map((tier) => [tier.id, tier]));
   const lines: CartLine[] = [];
 
-  for (const [key, rawValue] of Object.entries(searchParams)) {
-    if (key === "error") continue;
-    const tier = tierMap.get(key);
+  for (const [tierId, rawQty] of Object.entries(quantities)) {
+    const tier = tierMap.get(tierId);
     if (!tier) continue;
 
-    const qty = Number(Array.isArray(rawValue) ? rawValue[0] : rawValue);
+    const qty = Number(rawQty);
     if (!Number.isFinite(qty) || qty <= 0) continue;
 
     const remaining = getTicketsRemaining(tier);
@@ -54,9 +53,9 @@ export function parseCartFromSearchParams(
   if (lines.length === 0) return null;
 
   const totalTickets = lines.reduce((sum, line) => sum + line.quantity, 0);
-  const totalAmount = lines.reduce((sum, line) => sum + line.lineTotal, 0);
-
   if (totalTickets > MAX_CHECKOUT_TICKETS) return null;
+
+  const totalAmount = lines.reduce((sum, line) => sum + line.lineTotal, 0);
 
   return {
     lines,
@@ -66,11 +65,30 @@ export function parseCartFromSearchParams(
   };
 }
 
+export function parseCartFromSearchParams(
+  searchParams: Record<string, string | string[] | undefined>,
+  tiers: TicketTier[],
+): CheckoutCart | null {
+  const quantities: Record<string, number> = {};
+
+  for (const [key, rawValue] of Object.entries(searchParams)) {
+    if (key === "error" || key === "payment" || key === "next") continue;
+    const qty = Number(Array.isArray(rawValue) ? rawValue[0] : rawValue);
+    if (!Number.isFinite(qty) || qty <= 0) continue;
+    quantities[key] = qty;
+  }
+
+  return buildCartFromQuantities(quantities, tiers);
+}
+
 export function cartToSelections(cart: CheckoutCart): Record<string, number> {
   return Object.fromEntries(cart.lines.map((line) => [line.tierId, line.quantity]));
 }
 
-export function buildCheckoutUrl(eventSlug: string, quantities: Record<string, number>): string {
+export function buildCheckoutUrl(
+  eventSlug: string,
+  quantities: Record<string, number>,
+): string {
   const params = new URLSearchParams();
   for (const [tierId, qty] of Object.entries(quantities)) {
     if (qty > 0) params.set(tierId, String(qty));
