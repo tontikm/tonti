@@ -9,7 +9,11 @@ import {
 
 export type { AdminEventSalesSummary };
 
+import type { EventPublicationStatus } from "@/lib/types";
+
 export type OrganizerStatus = "pending" | "approved" | "suspended";
+
+export type { EventPublicationStatus };
 
 export type AdminOrganizerRow = {
   id: string;
@@ -44,6 +48,7 @@ export type AdminEventRow = {
   organizerId: string | null;
   organizerName: string | null;
   organizerStatus: OrganizerStatus | null;
+  publicationStatus: EventPublicationStatus;
   isPubliclyVisible: boolean;
   sales: AdminEventSalesSummary;
 };
@@ -70,9 +75,14 @@ export async function getApprovedOrganizerIds(): Promise<Set<string>> {
 }
 
 export function isEventPubliclyVisible(
-  event: { organizerId?: string | null },
+  event: {
+    organizerId?: string | null;
+    publicationStatus?: EventPublicationStatus | null;
+  },
   approvedOrganizerIds: Set<string>,
 ): boolean {
+  const publicationStatus = event.publicationStatus ?? "approved";
+  if (publicationStatus !== "approved") return false;
   if (!event.organizerId) return true;
   return approvedOrganizerIds.has(event.organizerId);
 }
@@ -133,7 +143,9 @@ export async function listAdminEvents(): Promise<AdminEventRow[]> {
 
   const { data: events, error } = await supabase
     .from("events")
-    .select("slug, title, date, featured, organizer_id, organizer_name")
+    .select(
+      "slug, title, date, featured, organizer_id, organizer_name, publication_status",
+    )
     .order("date", { ascending: true });
 
   if (error || !events) return [];
@@ -161,27 +173,36 @@ export async function listAdminEvents(): Promise<AdminEventRow[]> {
     }
   }
 
-  return events.map((row) => {
-    const organizerId = (row.organizer_id as string) ?? null;
-    const organizerStatus = organizerId
-      ? (statusByOrganizerId.get(organizerId) ?? null)
-      : null;
-    const slug = row.slug as string;
+  return events
+    .map((row) => {
+      const organizerId = (row.organizer_id as string) ?? null;
+      const organizerStatus = organizerId
+        ? (statusByOrganizerId.get(organizerId) ?? null)
+        : null;
+      const slug = row.slug as string;
+      const publicationStatus =
+        (row.publication_status as EventPublicationStatus | null) ?? "approved";
 
-    return {
-      slug,
-      title: row.title as string,
-      date: row.date as string,
-      featured: Boolean(row.featured),
-      organizerId,
-      organizerName: (row.organizer_name as string) ?? null,
-      organizerStatus,
-      isPubliclyVisible: isEventPubliclyVisible(
-        { organizerId },
-        approvedIds,
-      ),
-      sales: salesBySlug.get(slug) ?? { ...EMPTY_EVENT_SALES },
-    };
+      return {
+        slug,
+        title: row.title as string,
+        date: row.date as string,
+        featured: Boolean(row.featured),
+        organizerId,
+        organizerName: (row.organizer_name as string) ?? null,
+        organizerStatus,
+        publicationStatus,
+        isPubliclyVisible: isEventPubliclyVisible(
+          { organizerId, publicationStatus },
+          approvedIds,
+        ),
+        sales: salesBySlug.get(slug) ?? { ...EMPTY_EVENT_SALES },
+      };
+    }).sort((a, b) => {
+    const pendingA = a.publicationStatus === "pending" ? 0 : 1;
+    const pendingB = b.publicationStatus === "pending" ? 0 : 1;
+    if (pendingA !== pendingB) return pendingA - pendingB;
+    return new Date(a.date).getTime() - new Date(b.date).getTime();
   });
 }
 

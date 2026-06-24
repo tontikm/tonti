@@ -108,6 +108,8 @@ export type Venue = {
 
 export type OrganizerStatus = "pending" | "approved" | "suspended";
 
+export type EventPublicationStatus = "pending" | "approved" | "rejected";
+
 export type OrganizerProfile = {
   id: string;
   email: string;
@@ -143,6 +145,8 @@ export type Event = {
   showTime: string;
   category: EventCategory;
   featured: boolean;
+  /** Admin moderation — events are hidden until approved. */
+  publicationStatus?: EventPublicationStatus;
   artists: Artist[];
   venue: Venue;
   tiers: TicketTier[];

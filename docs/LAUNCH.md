@@ -34,7 +34,7 @@ Skip **`0022_backfill_service_fee.sql`** on a fresh database unless you import l
 
 Run every file in [`supabase/migrations/`](../supabase/migrations/) **in numeric order** in the Supabase SQL editor:
 
-`0001` through `0023` (includes demo event cleanup `0016`–`0018`, orders/tickets RLS `0017`, homepage hero image `0019`, platform admins `0020`, organizer approval `0021`, service fee backfill `0022`, and organizer payouts `0023`).
+`0001` through `0024` (includes demo event cleanup `0016`–`0018`, orders/tickets RLS `0017`, homepage hero image `0019`, platform admins `0020`, organizer approval `0021`, service fee backfill `0022`, organizer payouts `0023`, and per-event publication `0024`).
 
 After deploying, run **`0022_backfill_service_fee.sql`** once to fix legacy orders with `service_fee = 0`. Optionally run **`0023_organizer_payouts.sql`** to track manual EFT payouts in `/admin/payouts`.
 

@@ -32,6 +32,12 @@ export default async function AdminOverviewPage() {
       href: "/admin/organizers?status=approved",
     },
     {
+      label: "Pending events",
+      value: stats.pendingEventCount,
+      href: "/admin/events",
+      highlight: stats.pendingEventCount > 0,
+    },
+    {
       label: "Events",
       value: stats.eventCount,
       href: "/admin/events",
@@ -77,7 +83,7 @@ export default async function AdminOverviewPage() {
     <>
       <AdminPageHeader
         title="Platform overview"
-        description="Approve organizers, curate the homepage, and monitor ticket sales."
+        description="Approve organizers and review each event before it goes live on Spotra."
       />
 
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
@@ -106,13 +112,32 @@ export default async function AdminOverviewPage() {
             {stats.pendingOrganizerCount === 1 ? "" : "s"} awaiting approval
           </p>
           <p className="mt-1 text-sm text-muted">
-            Their events are hidden from the public site until you approve them.
+            Their events stay hidden until you approve the organizer and each
+            event.
           </p>
           <Link
             href="/admin/organizers?status=pending"
             className="mt-3 inline-block text-sm text-amber-200 underline-offset-4 hover:underline"
           >
             Review pending organizers →
+          </Link>
+        </div>
+      )}
+
+      {stats.pendingEventCount > 0 && (
+        <div className="mt-8 rounded-2xl border border-amber-500/30 bg-amber-950/20 px-5 py-4">
+          <p className="font-medium text-amber-100">
+            {stats.pendingEventCount} event
+            {stats.pendingEventCount === 1 ? "" : "s"} awaiting review
+          </p>
+          <p className="mt-1 text-sm text-muted">
+            Preview each event, then approve it to publish on the public site.
+          </p>
+          <Link
+            href="/admin/events"
+            className="mt-3 inline-block text-sm text-amber-200 underline-offset-4 hover:underline"
+          >
+            Review pending events →
           </Link>
         </div>
       )}

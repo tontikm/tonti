@@ -3,7 +3,9 @@ import { notFound } from "next/navigation";
 import { ArrowLeft } from "lucide-react";
 import { AdminPageHeader } from "@/components/admin/AdminShell";
 import { AdminReportStat } from "@/components/admin/AdminReportStat";
-import { listAdminOrders } from "@/lib/admin/data";
+import { EventPublicationActions } from "@/components/admin/EventPublicationActions";
+import { EventPublicationBadge } from "@/components/admin/EventPublicationBadge";
+import { listAdminEvents, listAdminOrders } from "@/lib/admin/data";
 import { getEventBySlug } from "@/lib/data/events";
 import { organizerNetFromOrder } from "@/lib/payments/order-revenue";
 import { getEventSalesReport } from "@/lib/tickets";
@@ -32,6 +34,9 @@ export default async function AdminEventSalesPage({ params }: Props) {
   const event = await getEventBySlug(slug);
   if (!event) notFound();
 
+  const adminEvent = (await listAdminEvents()).find((row) => row.slug === slug);
+  const publicationStatus = adminEvent?.publicationStatus ?? event.publicationStatus ?? "approved";
+
   const [report, orders] = await Promise.all([
     getEventSalesReport(slug, event.tiers),
     listAdminOrders(50, slug),
@@ -54,14 +59,41 @@ export default async function AdminEventSalesPage({ params }: Props) {
         title={`${event.title} · sales`}
         description={`${formatDateRange(event.date, event.endDate)} · Show ${formatEventTime(event.showTime)} · ${status === "ended" ? "Final" : "Live"}${event.organizerName ? ` · ${event.organizerName}` : ""}`}
         action={
-          <Link
-            href={`/admin/orders?event=${slug}`}
-            className="rounded-full border border-white/15 px-4 py-2 text-sm text-muted transition-colors hover:text-foreground"
-          >
-            All orders
-          </Link>
+          <div className="flex flex-wrap items-center gap-3">
+            <Link
+              href={`/events/${slug}`}
+              className="rounded-full border border-white/15 px-4 py-2 text-sm text-muted transition-colors hover:text-foreground"
+            >
+              Preview event
+            </Link>
+            <Link
+              href={`/admin/orders?event=${slug}`}
+              className="rounded-full border border-white/15 px-4 py-2 text-sm text-muted transition-colors hover:text-foreground"
+            >
+              All orders
+            </Link>
+          </div>
         }
       />
+
+      <div className="mb-8 rounded-2xl border border-white/10 bg-surface/40 p-5">
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <p className="text-xs font-medium uppercase tracking-wider text-muted">
+              Publication
+            </p>
+            <div className="mt-2 flex flex-wrap items-center gap-2">
+              <EventPublicationBadge status={publicationStatus} />
+              {!adminEvent?.isPubliclyVisible && (
+                <span className="text-sm text-muted">
+                  Hidden from fans until organizer and event are approved.
+                </span>
+              )}
+            </div>
+          </div>
+          <EventPublicationActions slug={slug} status={publicationStatus} />
+        </div>
+      </div>
 
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
         <AdminReportStat

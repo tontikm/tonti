@@ -574,6 +574,7 @@ function eventRowWithoutOrganizer(
     show_time: showTime,
     genre: parsed.category,
     featured: false,
+    publication_status: "pending",
     venue_slug: parsed.venueSlug,
     age_limit: parsed.ageLimit,
     age_max: parsed.ageMax,

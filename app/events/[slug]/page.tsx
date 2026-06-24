@@ -18,6 +18,7 @@ import { EventFollowButton } from "@/components/events/EventFollowButton";
 import { EventOrganizerProfile } from "@/components/events/EventOrganizerProfile";
 import { Badge } from "@/components/ui/Badge";
 import { getEventBySlug, getAllEvents, getPublicEventBySlug } from "@/lib/data/events";
+import { getAdminSession } from "@/lib/admin/session";
 import { isEventPubliclyVisible, getApprovedOrganizerIds } from "@/lib/admin/data";
 import { isEventFollowed, followEvent } from "@/lib/fan/follows";
 import { getOrganizerByEmail, getOrganizerById } from "@/lib/organizer/profile";
@@ -66,6 +67,7 @@ export default async function EventDetailPage({ params, searchParams }: Props) {
   if (!event) notFound();
 
   const organizerSession = await getOrganizerSession();
+  const adminSession = await getAdminSession();
   const fanUser = await getFanUser();
   const organizerProfile = organizerSession
     ? await getOrganizerByEmail(organizerSession.email)
@@ -79,12 +81,16 @@ export default async function EventDetailPage({ params, searchParams }: Props) {
     },
   );
 
-  if (!isOwnEvent) {
+  if (!isOwnEvent && !adminSession) {
     const approvedIds = await getApprovedOrganizerIds();
     if (!isEventPubliclyVisible(event, approvedIds)) {
       notFound();
     }
   }
+
+  const approvedIds = await getApprovedOrganizerIds();
+  const isPubliclyVisible = isEventPubliclyVisible(event, approvedIds);
+  const isAdminPreview = Boolean(adminSession) && !isPubliclyVisible;
   const organizerEmailForTickets =
     organizerSession && !fanUser && !isOwnEvent
       ? organizerSession.email
@@ -116,6 +122,18 @@ export default async function EventDetailPage({ params, searchParams }: Props) {
 
   return (
     <div className={!isOwnEvent && !ended ? "pb-24" : undefined}>
+      {isAdminPreview && (
+        <div className="border-b border-amber-500/30 bg-amber-950/40 px-4 py-3 text-center text-sm text-amber-100">
+          Admin preview — this event is not public yet. Approve it from{" "}
+          <Link
+            href="/admin/events"
+            className="font-medium underline underline-offset-4"
+          >
+            Admin → Events
+          </Link>
+          .
+        </div>
+      )}
       <div className="relative">
         <div className="relative h-[40vh] min-h-[280px] max-h-[480px] w-full overflow-hidden">
           <Image

@@ -8,6 +8,10 @@ function isOrganizerRoute(pathname: string): boolean {
   );
 }
 
+function isAdminRoute(pathname: string): boolean {
+  return pathname.startsWith("/admin");
+}
+
 type ConditionalSiteChromeProps = {
   header: React.ReactNode;
   footer: React.ReactNode;
@@ -21,7 +25,7 @@ export function ConditionalSiteChrome({
 }: ConditionalSiteChromeProps) {
   const pathname = usePathname();
 
-  if (isOrganizerRoute(pathname)) {
+  if (isOrganizerRoute(pathname) || isAdminRoute(pathname)) {
     return <>{children}</>;
   }
 

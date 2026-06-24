@@ -1,5 +1,5 @@
 import { cache } from "react";
-import type { Event, EventCategory, Genre, Artist, Venue, TicketTier } from "@/lib/types";
+import type { Event, EventCategory, Genre, Artist, Venue, TicketTier, EventPublicationStatus } from "@/lib/types";
 import {
   isEventCategory,
   legacyGenreToCategory,
@@ -111,6 +111,9 @@ function mapEventRow(row: EventRow): Event {
     showTime: row.show_time as string,
     category: mapEventCategory(row),
     featured: Boolean(row.featured),
+    publicationStatus:
+      (row.publication_status as EventPublicationStatus | undefined) ??
+      "approved",
     artists,
     venue: row.venue ? mapVenueRow(row.venue) : VENUES[0],
     tiers,
@@ -135,7 +138,7 @@ const EVENTS_RELATIONS = `
 
 const EVENTS_CORE_COLUMNS = `
   slug, title, subtitle, description, image, hero_image, date, end_date, doors_time,
-  show_time, genre, featured, age_limit, tags`;
+  show_time, genre, featured, publication_status, age_limit, tags`;
 
 const EVENTS_ORGANIZER_COLUMNS = `
   organizer_name, organizer_logo, organizer_id, prohibited_items, contact_email,

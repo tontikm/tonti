@@ -8,7 +8,7 @@ import {
   clearAdminSession,
   setAdminSession,
 } from "@/lib/admin/session";
-import type { OrganizerStatus } from "@/lib/admin/data";
+import type { OrganizerStatus, EventPublicationStatus } from "@/lib/admin/data";
 import {
   verifyOrganizerPassword,
 } from "@/lib/auth/organizer-password";
@@ -151,6 +151,50 @@ export async function toggleEventFeatured(
       ? "Event featured on homepage."
       : "Removed from homepage carousel.",
   };
+}
+
+export async function updateEventPublicationStatus(
+  slug: string,
+  publicationStatus: EventPublicationStatus,
+): Promise<AdminActionState> {
+  const session = await requireAdminSession();
+  if ("error" in session) return session;
+
+  const supabase = getSupabaseAdmin();
+  if (!supabase) return { error: "Supabase is not configured." };
+
+  const { error } = await supabase
+    .from("events")
+    .update({ publication_status: publicationStatus })
+    .eq("slug", slug);
+
+  if (error) {
+    if (isMissingPublicationColumn(error)) {
+      return {
+        error:
+          "Run supabase/migrations/0024_event_publication.sql in the Supabase SQL editor.",
+      };
+    }
+    return { error: error.message };
+  }
+
+  revalidateAdminPaths();
+  revalidatePath(`/events/${slug}`);
+  revalidatePath(`/organizer/events/${slug}`);
+
+  const labels: Record<EventPublicationStatus, string> = {
+    pending: "moved to pending review",
+    approved: "approved and published",
+    rejected: "rejected",
+  };
+  return { success: `Event ${labels[publicationStatus]}.` };
+}
+
+function isMissingPublicationColumn(error: { message?: string }): boolean {
+  return Boolean(
+    error.message?.includes("publication_status") &&
+      error.message?.includes("column"),
+  );
 }
 
 function isMissingStatusColumn(error: { message?: string }): boolean {

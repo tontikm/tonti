@@ -43,18 +43,20 @@ export function AdminShell({ session, children }: AdminShellProps) {
 
   const sidebar = (
     <div className="flex min-h-0 flex-1 flex-col">
-      <Link href="/" className="block shrink-0 px-5 py-6">
-        <Image
-          src={BRAND_LOGO_SRC}
-          alt={BRAND_NAME}
-          width={BRAND_LOGO_WIDTH}
-          height={BRAND_LOGO_HEIGHT}
-          className="h-7 w-auto"
-        />
+      <div className="block shrink-0 px-5 py-6">
+        <Link href="/admin" className="inline-block">
+          <Image
+            src={BRAND_LOGO_SRC}
+            alt={BRAND_NAME}
+            width={BRAND_LOGO_WIDTH}
+            height={BRAND_LOGO_HEIGHT}
+            className="h-7 w-auto"
+          />
+        </Link>
         <p className="mt-2 text-[10px] font-medium uppercase tracking-[0.25em] text-amber-300/80">
           Platform admin
         </p>
-      </Link>
+      </div>
 
       <nav className="min-h-0 flex-1 space-y-1 overflow-y-auto px-3 pt-2">
         {NAV.map((item) => (
@@ -79,12 +81,6 @@ export function AdminShell({ session, children }: AdminShellProps) {
         <p className="mb-2 truncate px-3 text-xs text-muted">
           {session.name ?? session.email}
         </p>
-        <Link
-          href="/"
-          className="mb-2 flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm text-muted transition-colors hover:bg-white/5 hover:text-foreground"
-        >
-          View site
-        </Link>
         <form action={logoutAdmin}>
           <button
             type="submit"
@@ -107,7 +103,7 @@ export function AdminShell({ session, children }: AdminShellProps) {
 
         <div className="flex min-w-0 flex-1 flex-col">
           <div className="flex items-center justify-between border-b border-white/10 bg-black/80 px-4 py-4 backdrop-blur-sm lg:hidden">
-            <Link href="/" className="flex flex-col">
+            <Link href="/admin" className="flex flex-col">
               <Image
                 src={BRAND_LOGO_SRC}
                 alt={BRAND_NAME}

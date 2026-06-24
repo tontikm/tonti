@@ -7,6 +7,7 @@ export type PlatformDashboardStats = {
   approvedOrganizerCount: number;
   suspendedOrganizerCount: number;
   eventCount: number;
+  pendingEventCount: number;
   featuredEventCount: number;
   orderCount: number;
   confirmedOrderCount: number;
@@ -22,6 +23,7 @@ export async function getPlatformDashboardStats(): Promise<PlatformDashboardStat
     approvedOrganizerCount: 0,
     suspendedOrganizerCount: 0,
     eventCount: 0,
+    pendingEventCount: 0,
     featuredEventCount: 0,
     orderCount: 0,
     confirmedOrderCount: 0,
@@ -34,14 +36,19 @@ export async function getPlatformDashboardStats(): Promise<PlatformDashboardStat
   if (!supabase) return empty;
 
   const [
-  organizersRes,
-  eventsRes,
-  featuredRes,
-  ordersRes,
-  confirmedOrdersRes,
+    organizersRes,
+    eventsRes,
+    pendingEventsRes,
+    featuredRes,
+    ordersRes,
+    confirmedOrdersRes,
   ] = await Promise.all([
     supabase.from("organizers").select("status"),
     supabase.from("events").select("*", { count: "exact", head: true }),
+    supabase
+      .from("events")
+      .select("*", { count: "exact", head: true })
+      .eq("publication_status", "pending"),
     supabase
       .from("events")
       .select("*", { count: "exact", head: true })
@@ -72,6 +79,7 @@ export async function getPlatformDashboardStats(): Promise<PlatformDashboardStat
     approvedOrganizerCount: organizers.filter((o) => o.status === "approved").length,
     suspendedOrganizerCount: organizers.filter((o) => o.status === "suspended").length,
     eventCount: eventsRes.count ?? 0,
+    pendingEventCount: pendingEventsRes.count ?? 0,
     featuredEventCount: featuredRes.count ?? 0,
     orderCount: ordersRes.count ?? 0,
     confirmedOrderCount: confirmedOrders.length,

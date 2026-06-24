@@ -1,5 +1,7 @@
 import Link from "next/link";
 import { AdminFeaturedToggle } from "@/components/admin/AdminFeaturedToggle";
+import { EventPublicationActions } from "@/components/admin/EventPublicationActions";
+import { EventPublicationBadge } from "@/components/admin/EventPublicationBadge";
 import { AdminPageHeader } from "@/components/admin/AdminShell";
 import { OrganizerStatusBadge } from "@/components/admin/OrganizerStatusBadge";
 import { listAdminEvents } from "@/lib/admin/data";
@@ -18,7 +20,7 @@ export default async function AdminEventsPage() {
     <>
       <AdminPageHeader
         title="Events"
-        description="Feature events on the homepage and review ticket sales per event."
+        description="Review new events before they go live, feature homepage picks, and monitor sales."
       />
 
       {events.length === 0 ? (
@@ -30,11 +32,12 @@ export default async function AdminEventsPage() {
               <thead className="border-b border-white/10 bg-white/5 text-xs uppercase tracking-wider text-muted">
                 <tr>
                   <th className="px-4 py-3 font-medium">Event</th>
+                  <th className="px-4 py-3 font-medium">Review</th>
                   <th className="px-4 py-3 font-medium">Organizer</th>
                   <th className="px-4 py-3 font-medium">Tickets</th>
                   <th className="px-4 py-3 font-medium">Collected</th>
                   <th className="px-4 py-3 font-medium">Spotra (3%)</th>
-                  <th className="px-4 py-3 font-medium">Organizer</th>
+                  <th className="px-4 py-3 font-medium">Organizer net</th>
                   <th className="px-4 py-3 font-medium">Public</th>
                   <th className="px-4 py-3 font-medium">Featured</th>
                   <th className="px-4 py-3 font-medium">Date</th>
@@ -65,10 +68,22 @@ export default async function AdminEventsPage() {
                           View public page
                         </Link>
                       ) : (
-                        <p className="text-xs text-amber-200/80">
-                          Hidden from public
-                        </p>
+                        <Link
+                          href={`/events/${event.slug}`}
+                          className="text-xs text-amber-200 underline-offset-4 hover:underline"
+                        >
+                          Preview event
+                        </Link>
                       )}
+                    </td>
+                    <td className="px-4 py-4">
+                      <EventPublicationBadge status={event.publicationStatus} />
+                      <div className="mt-2">
+                        <EventPublicationActions
+                          slug={event.slug}
+                          status={event.publicationStatus}
+                        />
+                      </div>
                     </td>
                     <td className="px-4 py-4">
                       <p>{event.organizerName ?? "—"}</p>
