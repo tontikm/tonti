@@ -17,7 +17,7 @@ export function OrganizerRegisterForm() {
   );
 
   return (
-    <OrganizerPublicShell activeAuth="register">
+    <OrganizerPublicShell>
       <OrganizerAuthCard
         backLink={
           <Link

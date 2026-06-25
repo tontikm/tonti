@@ -26,7 +26,7 @@ export function OrganizerResetPasswordForm({
   );
 
   return (
-    <OrganizerPublicShell activeAuth="login">
+    <OrganizerPublicShell>
       <OrganizerAuthCard
         backLink={
           <Link

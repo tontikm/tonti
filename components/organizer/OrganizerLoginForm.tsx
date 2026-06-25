@@ -25,7 +25,7 @@ export function OrganizerLoginForm({
   );
 
   return (
-    <OrganizerPublicShell activeAuth="login">
+    <OrganizerPublicShell>
       <OrganizerAuthCard
         backLink={
           <Link

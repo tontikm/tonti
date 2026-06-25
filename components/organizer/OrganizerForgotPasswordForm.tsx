@@ -20,7 +20,7 @@ export function OrganizerForgotPasswordForm() {
   );
 
   return (
-    <OrganizerPublicShell activeAuth="login">
+    <OrganizerPublicShell>
       <OrganizerAuthCard
         backLink={
           <Link
