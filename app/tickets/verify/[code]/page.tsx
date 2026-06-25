@@ -8,6 +8,7 @@ import { getOrganizerByEmail } from "@/lib/organizer/profile";
 import { isOwnOrganizerEvent } from "@/lib/organizer/ownership";
 import { getOrganizerSession } from "@/lib/organizer/session";
 import { getTicketByCode } from "@/lib/tickets";
+import { enforceTicketVerifyRateLimit } from "@/lib/auth/rate-limit";
 import { formatEventDate, formatEventTime } from "@/lib/utils";
 
 type Props = {
@@ -24,6 +25,19 @@ export async function generateMetadata({ params }: Props) {
 
 export default async function TicketVerifyPage({ params }: Props) {
   const { code } = await params;
+
+  const rateLimit = await enforceTicketVerifyRateLimit(code);
+  if (!rateLimit.ok) {
+    return (
+      <div className="mx-auto max-w-lg px-4 py-12 sm:px-6">
+        <div className="rounded-2xl border border-amber-500/30 bg-amber-500/10 p-6">
+          <h1 className="text-xl font-bold">Too many attempts</h1>
+          <p className="mt-2 text-sm text-muted">{rateLimit.error}</p>
+        </div>
+      </div>
+    );
+  }
+
   const ticket = await getTicketByCode(code);
   if (!ticket) notFound();
 

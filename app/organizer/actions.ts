@@ -42,6 +42,7 @@ import {
   validateOrganizerPassword,
   verifyOrganizerPassword,
 } from "@/lib/auth/organizer-password";
+import { enforceLoginRateLimit, enforceCheckInRateLimit } from "@/lib/auth/rate-limit";
 import {
   isMissingColumnError,
   ORGANIZER_BRANDING_MIGRATION_HINT,
@@ -66,6 +67,9 @@ export async function loginOrganizer(
   if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
     return { error: "Enter a valid email address." };
   }
+
+  const rateLimit = await enforceLoginRateLimit(email);
+  if (!rateLimit.ok) return { error: rateLimit.error };
 
   const supabase = getSupabaseAdmin();
 
@@ -1252,6 +1256,11 @@ export async function checkInEventTicket(
   const ownEvent = await requireOwnEvent(eventSlug);
   if ("error" in ownEvent) {
     return { ok: false, error: ownEvent.error };
+  }
+
+  const rateLimit = await enforceCheckInRateLimit(ownEvent.session.email);
+  if (!rateLimit.ok) {
+    return { ok: false, error: rateLimit.error };
   }
 
   const supabase = getSupabaseAdmin();

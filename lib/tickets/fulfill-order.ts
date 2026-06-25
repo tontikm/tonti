@@ -1,6 +1,5 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { generateTicketCode } from "@/lib/tickets";
-import { getTicketsRemaining } from "@/lib/utils";
 
 type LineItem = {
   tierId: string;
@@ -9,13 +8,43 @@ type LineItem = {
   price: number;
 };
 
-type TierRow = {
-  id: string;
-  name: string;
-  price: number;
-  capacity: number;
-  sold: number;
+type FulfillRpcResult = {
+  ok: boolean;
+  error?: string;
 };
+
+function buildLineItemsPayload(
+  lineItems: LineItem[],
+): { payload: Record<string, unknown>[] } | { error: string } {
+  const payload: Record<string, unknown>[] = [];
+
+  for (const item of lineItems) {
+    if (item.qty < 1) {
+      return { error: "Invalid ticket selection." };
+    }
+
+    const codes: string[] = [];
+    const usedCodes = new Set<string>();
+
+    for (let i = 0; i < item.qty; i += 1) {
+      let code = generateTicketCode();
+      while (usedCodes.has(code)) {
+        code = generateTicketCode();
+      }
+      usedCodes.add(code);
+      codes.push(code);
+    }
+
+    payload.push({
+      tierId: item.tierId,
+      tierName: item.tierName,
+      qty: item.qty,
+      codes,
+    });
+  }
+
+  return { payload };
+}
 
 export async function fulfillTicketOrder(
   supabase: SupabaseClient,
@@ -23,87 +52,40 @@ export async function fulfillTicketOrder(
   eventSlug: string,
   buyerName: string,
   lineItems: LineItem[],
+  options?: { confirmOrder?: boolean },
 ): Promise<{ ok: true } | { ok: false; error: string }> {
-  const { data: tierRows } = await supabase
-    .from("ticket_tiers")
-    .select("id, name, price, capacity, sold")
-    .eq("event_slug", eventSlug);
-
-  if (!tierRows?.length) {
-    return { ok: false, error: "No ticket tiers available." };
+  const built = buildLineItemsPayload(lineItems);
+  if ("error" in built) {
+    return { ok: false, error: built.error };
   }
 
-  const tierMap = new Map(
-    tierRows.map((tier) => [tier.id as string, tier as TierRow]),
-  );
+  const confirmOrder = options?.confirmOrder ?? true;
 
-  for (const item of lineItems) {
-    const tier = tierMap.get(item.tierId);
-    if (!tier) return { ok: false, error: "Invalid ticket tier." };
-    const remaining = getTicketsRemaining(tier);
-    if (item.qty > remaining) {
+  const { data, error } = await supabase.rpc("fulfill_ticket_order", {
+    p_order_id: orderId,
+    p_event_slug: eventSlug,
+    p_buyer_name: buyerName,
+    p_line_items: built.payload,
+    p_confirm_order: confirmOrder,
+  });
+
+  if (error) {
+    if (
+      error.message.includes("fulfill_ticket_order") ||
+      error.message.includes("Could not find the function")
+    ) {
       return {
         ok: false,
-        error: `Only ${remaining} "${tier.name}" ticket${remaining === 1 ? "" : "s"} left.`,
+        error:
+          "Run migration 0026_security_hardening.sql in the Supabase SQL editor.",
       };
     }
+    return { ok: false, error: error.message };
   }
 
-  const ticketRows: {
-    order_id: string;
-    event_slug: string;
-    tier_id: string;
-    tier_name: string;
-    code: string;
-    holder_name: string;
-  }[] = [];
-
-  const usedCodes = new Set<string>();
-
-  for (const item of lineItems) {
-    for (let i = 0; i < item.qty; i += 1) {
-      let code = generateTicketCode();
-      while (usedCodes.has(code)) {
-        code = generateTicketCode();
-      }
-      usedCodes.add(code);
-      ticketRows.push({
-        order_id: orderId,
-        event_slug: eventSlug,
-        tier_id: item.tierId,
-        tier_name: item.tierName,
-        code,
-        holder_name: buyerName,
-      });
-    }
-  }
-
-  const { error: ticketsError } = await supabase.from("tickets").insert(ticketRows);
-
-  if (ticketsError) {
-    return { ok: false, error: ticketsError.message };
-  }
-
-  for (const item of lineItems) {
-    const tier = tierMap.get(item.tierId)!;
-    const { error: soldError } = await supabase
-      .from("ticket_tiers")
-      .update({ sold: tier.sold + item.qty })
-      .eq("event_slug", eventSlug)
-      .eq("id", item.tierId);
-
-    if (soldError) {
-      return { ok: false, error: soldError.message };
-    }
-  }
-
-  const { error: orderError } = await supabase
-    .from("orders")
-    .update({ status: "confirmed" })
-    .eq("id", orderId);
-
-  if (orderError) {
-    return { ok: false, error: orderError.message };
+  const result = data as FulfillRpcResult | null;
+  if (!result?.ok) {
+    return { ok: false, error: result?.error ?? "Could not issue tickets." };
   }
 
   return { ok: true };

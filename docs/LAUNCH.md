@@ -34,7 +34,7 @@ Skip **`0022_backfill_service_fee.sql`** on a fresh database unless you import l
 
 Run every file in [`supabase/migrations/`](../supabase/migrations/) **in numeric order** in the Supabase SQL editor:
 
-`0001` through `0024` (includes demo event cleanup `0016`–`0018`, orders/tickets RLS `0017`, homepage hero image `0019`, platform admins `0020`, organizer approval `0021`, service fee backfill `0022`, organizer payouts `0023`, and per-event publication `0024`).
+`0001` through `0026` (includes demo event cleanup `0016`–`0018`, orders/tickets RLS `0017`, homepage hero image `0019`, platform admins `0020`, organizer approval `0021`, service fee backfill `0022`, organizer payouts `0023`, per-event publication `0024`, homepage carousel `0025`, and security hardening `0026`).
 
 After deploying, run **`0022_backfill_service_fee.sql`** once to fix legacy orders with `service_fee = 0`. Optionally run **`0023_organizer_payouts.sql`** to track manual EFT payouts in `/admin/payouts`.
 
@@ -176,9 +176,22 @@ Run on phone and desktop against the live URL:
 
 ## 6. Before broad marketing
 
-- [ ] Phase 2 security migration `0017` applied (tighter orders/tickets RLS)
-- [ ] Pilot with one trusted organizer first
-- [ ] Confirm demo/seed events removed from production (`0016`)
+See [`docs/PRE_LAUNCH_AUDIT.md`](./PRE_LAUNCH_AUDIT.md) for the full security audit.
+
+**Blockers**
+
+- [ ] Migrations `0001`–`0026` applied (especially `0017`, `0025`, and `0026` security hardening)
+- [ ] Verify RLS in Supabase: `orders` / `tickets` have `users read own *` policies, not `public read *`
+- [ ] Verify `events` policy is `public read visible events` (migration `0026`)
+- [ ] `ORGANIZER_SESSION_SECRET` and `ADMIN_SESSION_SECRET` set in Vercel (not dev defaults)
+- [ ] `ORGANIZER_DEV_PASSWORD` **not** set in production
+- [ ] Pilot with one trusted organizer first; approve organizer and events in `/admin`
+- [ ] Confirm demo/seed events removed from production (`0016` / `0018`)
+
+**Post-launch hardening (optional)**
+
+- [ ] Payfast server-to-server confirmation POST
+- [ ] Supabase Auth rate limits tuned in dashboard
 
 ## Troubleshooting
 

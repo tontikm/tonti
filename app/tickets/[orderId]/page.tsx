@@ -10,7 +10,7 @@ import { Button } from "@/components/ui/Button";
 import { getFanUser } from "@/lib/auth/session";
 import { canUserAccessOrder } from "@/lib/fan/orders";
 import { getEventBySlug } from "@/lib/data/events";
-import { isFanAuthConfigured } from "@/lib/supabase/server-auth";
+import { isSupabaseConfigured } from "@/lib/supabase/server";
 import { getOrderById, getTicketsByOrderId } from "@/lib/tickets";
 import {
   buildTicketWhatsAppMessage,
@@ -35,7 +35,7 @@ export default async function TicketConfirmationPage({ params }: Props) {
   const order = await getOrderById(orderId);
   if (!order) notFound();
 
-  if (isFanAuthConfigured()) {
+  if (isSupabaseConfigured()) {
     const user = await getFanUser();
     if (!user) {
       redirect(`/login?next=/tickets/${orderId}`);

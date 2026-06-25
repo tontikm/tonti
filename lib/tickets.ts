@@ -18,8 +18,7 @@ export function getSiteUrl(): string {
 }
 
 export function generateTicketCode(): string {
-  const segment = () => randomBytes(3).toString("hex").toUpperCase();
-  return `TNTI-${segment()}-${segment()}`;
+  return `TNTI-${randomBytes(8).toString("hex").toUpperCase()}`;
 }
 
 export function getTicketVerifyUrl(code: string): string {

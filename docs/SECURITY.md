@@ -2,6 +2,8 @@
 
 First security audit for Spotra (Phase 1). This document summarizes findings and fixes. Do not commit secrets to this file.
 
+**Pre-launch:** see [`PRE_LAUNCH_AUDIT.md`](./PRE_LAUNCH_AUDIT.md) for the full RLS matrix, blockers, and launch checklist.
+
 ## Phase 1 fixes (implemented)
 
 | Area | Fix |
@@ -44,9 +46,12 @@ Existing unsigned organizer cookies are invalidated after Phase 1 deploy — org
 
 - ~~Tighten Supabase RLS: remove public read on `orders` and `tickets`; add `user_id`-scoped policies~~ (migration `0017`)
 - ~~Ownership checks on organizer dashboard pages (edit, tickets, scan, promos)~~ (implemented)
-- Transactional ticket fulfillment to prevent overselling
-- Stronger ticket code entropy
-- Login rate limiting (middleware or Supabase Auth settings)
+- ~~RLS: restrict public `events` read to approved/public organizers~~ (migration `0026`)
+- ~~RLS: remove public read on `promo_codes`~~ (migration `0026`)
+- ~~RLS: enable policies on `homepage_carousel_slides`~~ (migration `0026`)
+- ~~Transactional ticket fulfillment~~ (migration `0026` + `fulfill_ticket_order` RPC)
+- ~~Stronger ticket code entropy~~ (16 hex chars)
+- ~~Login / verify / check-in rate limiting~~ (migration `0026` + `lib/auth/rate-limit.ts`)
 - Payfast server-to-server confirmation POST (optional hardening)
 
 ## Reporting

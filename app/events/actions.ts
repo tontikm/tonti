@@ -4,6 +4,7 @@ import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import type { TicketTier } from "@/lib/types";
 import { getFanUser } from "@/lib/auth/session";
+import { enforceCheckInRateLimit } from "@/lib/auth/rate-limit";
 import { followEvent, unfollowEvent } from "@/lib/fan/follows";
 import { getSupabaseAdmin } from "@/lib/supabase/admin";
 import { getOrganizerSession } from "@/lib/organizer/session";
@@ -456,6 +457,11 @@ export async function checkInTicket(code: string): Promise<{
   const ownEvent = await requireOwnEvent(eventSlug);
   if ("error" in ownEvent) {
     return { ok: false, error: ownEvent.error };
+  }
+
+  const rateLimit = await enforceCheckInRateLimit(ownEvent.session.email);
+  if (!rateLimit.ok) {
+    return { ok: false, error: rateLimit.error };
   }
 
   if (existing.status === "used") {
