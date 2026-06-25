@@ -2,9 +2,9 @@ import { FeaturedCarousel } from "@/components/events/FeaturedCarousel";
 import { EventCard } from "@/components/events/EventCard";
 import { EventRail } from "@/components/events/EventRail";
 import { RecentlyViewedRail } from "@/components/events/RecentlyViewedRail";
+import { ListYourEventCta } from "@/components/home/ListYourEventCta";
 import { CategoryGrid } from "@/components/events/CategoryGrid";
 import { CityGrid } from "@/components/events/CityGrid";
-import { Button } from "@/components/ui/Button";
 import { Reveal } from "@/components/ui/Reveal";
 import {
   getPublicEvents,
@@ -22,6 +22,8 @@ export default async function HomePage() {
   return (
     <>
       <FeaturedCarousel slides={slides} />
+
+      <ListYourEventCta />
 
       {recommended.length > 0 && (
         <EventRail
@@ -50,25 +52,6 @@ export default async function HomePage() {
       </section>
 
       <RecentlyViewedRail events={allEvents} />
-
-      <section className="mx-auto max-w-[1440px] px-4 py-12 sm:px-6 lg:px-8">
-        <Reveal className="overflow-hidden rounded-[28px] border border-white/10 bg-white/[0.03] p-8 sm:p-12">
-          <div className="max-w-xl">
-            <h2 className="text-2xl font-bold sm:text-3xl">
-              Promoting a show?
-            </h2>
-            <p className="mt-3 text-muted">
-              List your music event on Spotra. Set tiers, track sales, and scan
-              tickets at the door, built for SA promoters, venues, and artists.
-            </p>
-            <div className="mt-8">
-              <Button href="/for-organizers" size="lg">
-                Get started
-              </Button>
-            </div>
-          </div>
-        </Reveal>
-      </section>
 
       <section className="border-y border-white/10 bg-black">
         <div className="mx-auto max-w-[1440px] px-4 py-16 sm:px-6 lg:px-8">
