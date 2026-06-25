@@ -70,6 +70,18 @@ export const loginFormSchema = z.object({
   password: z.string().min(1, "Incorrect password.").max(200),
 });
 
+export const forgotPasswordSchema = z.object({
+  email: emailSchema,
+});
+
+export const newPasswordSchema = z.object({
+  password: z.string().min(8, "Password must be at least 8 characters.").max(200),
+  confirmPassword: z.string().min(8).max(200),
+}).refine((data) => data.password === data.confirmPassword, {
+  message: "Passwords do not match.",
+  path: ["confirmPassword"],
+});
+
 export const compTicketsFormSchema = z.object({
   eventSlug: eventSlugSchema,
   holderName: personNameSchema,

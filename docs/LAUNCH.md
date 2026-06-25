@@ -34,7 +34,7 @@ Skip **`0022_backfill_service_fee.sql`** on a fresh database unless you import l
 
 Run every file in [`supabase/migrations/`](../supabase/migrations/) **in numeric order** in the Supabase SQL editor:
 
-`0001` through `0026` (includes demo event cleanup `0016`–`0018`, orders/tickets RLS `0017`, homepage hero image `0019`, platform admins `0020`, organizer approval `0021`, service fee backfill `0022`, organizer payouts `0023`, per-event publication `0024`, homepage carousel `0025`, and security hardening `0026`).
+`0001` through `0027` (includes demo event cleanup `0016`–`0018`, orders/tickets RLS `0017`, homepage hero image `0019`, platform admins `0020`, organizer approval `0021`, service fee backfill `0022`, organizer payouts `0023`, per-event publication `0024`, homepage carousel `0025`, security hardening `0026`, and organizer password resets `0027`).
 
 After deploying, run **`0022_backfill_service_fee.sql`** once to fix legacy orders with `service_fee = 0`. Optionally run **`0023_organizer_payouts.sql`** to track manual EFT payouts in `/admin/payouts`.
 
@@ -144,7 +144,9 @@ Supabase → **Authentication → Providers:** enable Email (and Google if desir
 - **Site URL:** `https://tonti-hm5i.vercel.app`
 - **Redirect URLs:**
   - `https://tonti-hm5i.vercel.app/auth/callback`
+  - `https://tonti-hm5i.vercel.app/auth/confirm`
   - `http://localhost:3000/auth/callback` (local dev)
+  - `http://localhost:3000/auth/confirm` (local dev)
 
 Replace with your custom domain when you add one (see section 4).
 

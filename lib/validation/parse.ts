@@ -2,7 +2,9 @@ import { z } from "zod";
 import {
   checkoutFormSchema,
   compTicketsFormSchema,
+  forgotPasswordSchema,
   loginFormSchema,
+  newPasswordSchema,
   tierSelectionsSchema,
 } from "@/lib/validation/schemas";
 
@@ -94,6 +96,39 @@ export function parseCompTicketsForm(
       return { ok: false, error: "A valid guest email is required." };
     }
     return { ok: false, error: message };
+  }
+
+  return { ok: true, data: result.data };
+}
+
+export function parseForgotPasswordForm(
+  formData: FormData,
+): ParseResult<z.infer<typeof forgotPasswordSchema>> {
+  const result = forgotPasswordSchema.safeParse({
+    email: formData.get("email"),
+  });
+
+  if (!result.success) {
+    const message = formatZodError(result.error);
+    if (message === "A valid email address is required.") {
+      return { ok: false, error: "Enter a valid email address." };
+    }
+    return { ok: false, error: message };
+  }
+
+  return { ok: true, data: result.data };
+}
+
+export function parseNewPasswordForm(
+  formData: FormData,
+): ParseResult<z.infer<typeof newPasswordSchema>> {
+  const result = newPasswordSchema.safeParse({
+    password: formData.get("password"),
+    confirmPassword: formData.get("confirmPassword"),
+  });
+
+  if (!result.success) {
+    return { ok: false, error: formatZodError(result.error) };
   }
 
   return { ok: true, data: result.data };

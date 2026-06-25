@@ -43,8 +43,17 @@ import {
   verifyOrganizerPassword,
 } from "@/lib/auth/organizer-password";
 import { enforceLoginRateLimit, enforceCheckInRateLimit } from "@/lib/auth/rate-limit";
-import { parseCompTicketsForm, parseLoginForm } from "@/lib/validation/parse";
+import {
+  parseCompTicketsForm,
+  parseForgotPasswordForm,
+  parseLoginForm,
+  parseNewPasswordForm,
+} from "@/lib/validation/parse";
 import { eventSlugSchema, ticketCodeSchema } from "@/lib/validation/schemas";
+import {
+  requestOrganizerPasswordReset,
+  resetOrganizerPassword,
+} from "@/lib/organizer/password-reset";
 import {
   isMissingColumnError,
   ORGANIZER_BRANDING_MIGRATION_HINT,
@@ -57,7 +66,55 @@ export type ActionState = {
 
 export type LoginState = {
   error?: string;
+  message?: string;
 };
+
+export async function requestOrganizerPasswordResetAction(
+  _prev: LoginState,
+  formData: FormData,
+): Promise<LoginState> {
+  const parsed = parseForgotPasswordForm(formData);
+  if (!parsed.ok) {
+    return { error: parsed.error };
+  }
+
+  const rateLimit = await enforceLoginRateLimit(
+    `organizer-reset:${parsed.data.email}`,
+  );
+  if (!rateLimit.ok) {
+    return { error: rateLimit.error };
+  }
+
+  const result = await requestOrganizerPasswordReset(parsed.data.email);
+  if (!result.ok) {
+    return { error: result.error };
+  }
+
+  return { message: result.message };
+}
+
+export async function resetOrganizerPasswordAction(
+  _prev: ActionState,
+  formData: FormData,
+): Promise<ActionState> {
+  const token = String(formData.get("token") ?? "").trim();
+  const parsed = parseNewPasswordForm(formData);
+  if (!parsed.ok) {
+    return { error: parsed.error };
+  }
+
+  const passwordError = validateOrganizerPassword(parsed.data.password);
+  if (passwordError) {
+    return { error: passwordError };
+  }
+
+  const result = await resetOrganizerPassword(token, parsed.data.password);
+  if (!result.ok) {
+    return { error: result.error };
+  }
+
+  redirect("/organizer/login?reset=1");
+}
 
 export async function loginOrganizer(
   _prev: LoginState,

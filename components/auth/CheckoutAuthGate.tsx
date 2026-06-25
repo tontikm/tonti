@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useActionState, useState, type ReactNode } from "react";
 import {
   signInWithEmail,
@@ -134,12 +135,20 @@ export function CheckoutAuthGate({
               />
             </div>
             <div>
-              <label
-                htmlFor="login-password"
-                className="mb-1.5 block text-sm font-medium"
-              >
-                Password
-              </label>
+              <div className="mb-1.5 flex items-center justify-between gap-3">
+                <label
+                  htmlFor="login-password"
+                  className="block text-sm font-medium"
+                >
+                  Password
+                </label>
+                <Link
+                  href={`/forgot-password?next=${encodeURIComponent(returnTo)}`}
+                  className="text-xs text-muted hover:text-foreground"
+                >
+                  Forgot password?
+                </Link>
+              </div>
               <input
                 id="login-password"
                 name="password"

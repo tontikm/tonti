@@ -20,6 +20,7 @@ export default async function OrganizerLoginPage({
 
   const query = await searchParams;
   const idleLogout = query.reason === "idle";
+  const passwordReset = query.reset === "1";
 
-  return <OrganizerLoginForm idleLogout={idleLogout} />;
+  return <OrganizerLoginForm idleLogout={idleLogout} passwordReset={passwordReset} />;
 }

@@ -12,7 +12,13 @@ import { LEGAL_HUB_LINK } from "@/lib/site";
 const inputClass =
   "w-full rounded-xl border border-white/15 bg-white/5 px-4 py-3 text-sm text-foreground placeholder:text-muted focus:border-white/40 focus:outline-none";
 
-export function OrganizerLoginForm({ idleLogout = false }: { idleLogout?: boolean }) {
+export function OrganizerLoginForm({
+  idleLogout = false,
+  passwordReset = false,
+}: {
+  idleLogout?: boolean;
+  passwordReset?: boolean;
+}) {
   const [state, formAction, pending] = useActionState<LoginState, FormData>(
     loginOrganizer,
     {},
@@ -51,6 +57,11 @@ export function OrganizerLoginForm({ idleLogout = false }: { idleLogout?: boolea
           {idleLogout ? (
             <SessionIdleNotice message="You were signed out after 1 hour of inactivity." />
           ) : null}
+          {passwordReset ? (
+            <div className="rounded-xl border border-emerald-500/30 bg-emerald-500/10 px-4 py-3 text-sm text-emerald-100">
+              Your password was updated. Sign in with your new password.
+            </div>
+          ) : null}
           {state.error && (
             <div className="rounded-xl border border-white/20 bg-white/5 px-4 py-3 text-sm">
               {state.error}
@@ -73,9 +84,17 @@ export function OrganizerLoginForm({ idleLogout = false }: { idleLogout?: boolea
           </div>
 
           <div>
-            <label htmlFor="password" className="mb-1.5 block text-sm font-medium">
-              Password
-            </label>
+            <div className="mb-1.5 flex items-center justify-between gap-3">
+              <label htmlFor="password" className="block text-sm font-medium">
+                Password
+              </label>
+              <Link
+                href="/organizer/forgot-password"
+                className="text-xs text-muted hover:text-foreground"
+              >
+                Forgot password?
+              </Link>
+            </div>
             <input
               id="password"
               name="password"

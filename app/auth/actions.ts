@@ -94,3 +94,68 @@ export async function signOut(returnTo = "/"): Promise<void> {
   await clearFanLastActivity();
   redirect(sanitizeReturnTo(returnTo));
 }
+
+export async function requestFanPasswordReset(
+  _prev: AuthState,
+  formData: FormData,
+): Promise<AuthState> {
+  const supabase = await createAuthClient();
+  if (!supabase) return authNotConfigured();
+
+  const email = String(formData.get("email") ?? "")
+    .trim()
+    .toLowerCase();
+
+  if (!email) {
+    return { error: "Enter a valid email address." };
+  }
+
+  const origin = await getRequestOrigin();
+  const redirectTo = `${origin}/auth/confirm?next=${encodeURIComponent("/auth/update-password")}`;
+
+  const { error } = await supabase.auth.resetPasswordForEmail(email, {
+    redirectTo,
+  });
+
+  if (error) return { error: error.message };
+
+  return {
+    message:
+      "If an account exists for that email, we sent a password reset link.",
+  };
+}
+
+export async function updateFanPassword(
+  _prev: AuthState,
+  formData: FormData,
+): Promise<AuthState> {
+  const supabase = await createAuthClient();
+  if (!supabase) return authNotConfigured();
+
+  const password = String(formData.get("password") ?? "");
+  const confirm = String(formData.get("confirmPassword") ?? "");
+  const returnTo = sanitizeReturnTo(String(formData.get("returnTo") ?? "/account"));
+
+  if (password.length < 8) {
+    return { error: "Password must be at least 8 characters." };
+  }
+  if (password !== confirm) {
+    return { error: "Passwords do not match." };
+  }
+
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) {
+    return {
+      error: "Your reset link has expired. Request a new password reset email.",
+    };
+  }
+
+  const { error } = await supabase.auth.updateUser({ password });
+  if (error) return { error: error.message };
+
+  await setFanLastActivity();
+  redirect(returnTo);
+}
