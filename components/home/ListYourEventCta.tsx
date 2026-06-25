@@ -9,8 +9,8 @@ export function ListYourEventCta() {
           <div className="max-w-xl">
             <h2 className="text-xl font-bold sm:text-2xl">List your event</h2>
             <p className="mt-1.5 text-sm text-muted sm:text-base">
-              Sell tickets and scan guests at the door — built for SA promoters
-              and venues.
+              Reach fans across South Africa. Sell tickets, track sales, and scan
+              guests at the door with tools built for promoters and venues.
             </p>
           </div>
           <Button href="/for-organizers" size="lg" className="shrink-0">
