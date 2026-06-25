@@ -32,26 +32,22 @@ import {
   type PromoPreview,
 } from "@/lib/promo/codes";
 import { getPublicEventBySlug } from "@/lib/data/events";
+import {
+  parseCheckoutForm,
+  parseTierSelections,
+  formatZodError,
+} from "@/lib/validation/parse";
+import {
+  eventSlugSchema,
+  promoPreviewInputSchema,
+  ticketCodeSchema,
+} from "@/lib/validation/schemas";
 
 export type ClaimState = {
   error?: string;
 };
 
 type TierSelection = Record<string, number>;
-
-function parseSelections(raw: string): TierSelection | null {
-  try {
-    const parsed = JSON.parse(raw) as TierSelection;
-    if (!parsed || typeof parsed !== "object") return null;
-    return parsed;
-  } catch {
-    return null;
-  }
-}
-
-function isValidEmail(email: string): boolean {
-  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
-}
 
 function revalidateTicketPaths(eventSlug: string) {
   revalidatePath(`/events/${eventSlug}`);
@@ -224,21 +220,35 @@ export async function previewPromoCode(
     return { error: "Promo codes require Supabase." };
   }
 
-  const selections = parseSelections(selectionsRaw);
-  if (!selections) return { error: "Invalid ticket selection." };
+  const input = promoPreviewInputSchema.safeParse({
+    eventSlug,
+    rawCode,
+    selectionsRaw,
+  });
+  if (!input.success) {
+    return { error: formatZodError(input.error) };
+  }
 
-  const chosen = Object.entries(selections).filter(([, qty]) => qty > 0);
-  if (chosen.length === 0) return { error: "Select tickets first." };
+  const parsedSelections = parseTierSelections(input.data.selectionsRaw);
+  if (!parsedSelections.ok) {
+    return { error: parsedSelections.error };
+  }
 
-  const built = await buildLineItems(supabase, eventSlug, chosen);
+  const chosen = Object.entries(parsedSelections.data).filter(([, qty]) => qty > 0);
+
+  const built = await buildLineItems(supabase, input.data.eventSlug, chosen);
   if ("error" in built) return { error: built.error };
 
-  const promo = await getPromoByCode(supabase, eventSlug, rawCode);
+  const promo = await getPromoByCode(
+    supabase,
+    input.data.eventSlug,
+    input.data.rawCode,
+  );
   if (!promo) return { error: "Invalid promo code." };
 
   const validation = validatePromoForCheckout(
     promo,
-    eventSlug,
+    input.data.eventSlug,
     built.subtotalAmount,
   );
   if (!validation.ok) return { error: validation.error };
@@ -272,14 +282,26 @@ export async function claimTickets(
     };
   }
 
-  const eventSlug = String(formData.get("eventSlug") ?? "").trim();
-  const buyerName = String(formData.get("buyerName") ?? "").trim();
-  const buyerEmail = String(formData.get("buyerEmail") ?? "").trim().toLowerCase();
-  const buyerPhoneRaw = String(formData.get("buyerPhone") ?? "").trim();
-  const whatsappOptIn = formData.get("whatsappOptIn") === "on";
-  const acceptTerms = formData.get("acceptTerms") === "on";
-  const selections = parseSelections(String(formData.get("selections") ?? "{}"));
-  const rawPromoCode = String(formData.get("promoCode") ?? "").trim();
+  const parsedForm = parseCheckoutForm(formData);
+  if (!parsedForm.ok) {
+    return { error: parsedForm.error };
+  }
+
+  const {
+    eventSlug,
+    buyerName,
+    buyerEmail,
+    buyerPhone: buyerPhoneRaw,
+    whatsappOptIn,
+    promoCode: rawPromoCode,
+    selectionsRaw,
+  } = parsedForm.data;
+
+  const parsedSelections = parseTierSelections(selectionsRaw);
+  if (!parsedSelections.ok) {
+    return { error: parsedSelections.error };
+  }
+  const selections: TierSelection = parsedSelections.data;
 
   if (isFanAuthConfigured()) {
     const user = await getFanUser();
@@ -294,13 +316,6 @@ export async function claimTickets(
   const fanUser = await getFanUser();
   const userId = fanUser?.id ?? null;
 
-  if (!eventSlug) return { error: "Event not found." };
-  if (!acceptTerms) return { error: "Accept the terms to continue." };
-  if (!buyerName) return { error: "Your name is required." };
-  if (!buyerEmail || !isValidEmail(buyerEmail)) {
-    return { error: "A valid email address is required." };
-  }
-
   const buyerPhone = buyerPhoneRaw
     ? normalizeWhatsAppPhone(buyerPhoneRaw)
     : null;
@@ -312,20 +327,12 @@ export async function claimTickets(
     };
   }
 
-  if (!selections) return { error: "Invalid ticket selection." };
-
   const chosen = Object.entries(selections).filter(([, qty]) => qty > 0);
-  if (chosen.length === 0) {
-    return { error: "Select at least one ticket." };
-  }
-
-  const totalTickets = chosen.reduce((sum, [, qty]) => sum + qty, 0);
-  if (totalTickets > 10) {
-    return { error: "Maximum 10 tickets per order." };
-  }
 
   const publicEvent = await getPublicEventBySlug(eventSlug);
   if (!publicEvent) return { error: "Event not found." };
+
+  const totalTickets = chosen.reduce((sum, [, qty]) => sum + qty, 0);
 
   const built = await buildLineItems(supabase, eventSlug, chosen);
   if ("error" in built) return { error: built.error };
@@ -444,7 +451,12 @@ export async function checkInTicket(code: string): Promise<{
     return { ok: false, error: "Supabase is not configured." };
   }
 
-  const normalized = code.trim().toUpperCase();
+  const parsed = ticketCodeSchema.safeParse(code);
+  if (!parsed.success) {
+    return { ok: false, error: "Ticket not found." };
+  }
+  const normalized = parsed.data;
+
   const { data: existing } = await supabase
     .from("tickets")
     .select("status, event_slug")
@@ -510,8 +522,11 @@ export async function toggleEventFollow(eventSlug: string): Promise<{
     return { error: "Follows require Supabase." };
   }
 
-  const slug = eventSlug.trim();
-  if (!slug) return { error: "Event not found." };
+  const slugResult = eventSlugSchema.safeParse(eventSlug);
+  if (!slugResult.success) {
+    return { error: "Event not found." };
+  }
+  const slug = slugResult.data;
 
   const { data: existing } = await supabase
     .from("event_follows")

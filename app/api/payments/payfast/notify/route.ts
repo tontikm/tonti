@@ -7,6 +7,7 @@ import {
   type LineItem,
 } from "@/lib/tickets/fulfill-order";
 import { incrementPromoUses } from "@/lib/promo/codes";
+import { orderIdSchema, payfastItnSchema } from "@/lib/validation/schemas";
 
 export async function POST(request: Request) {
   const supabase = getSupabaseAdmin();
@@ -25,21 +26,22 @@ export async function POST(request: Request) {
     return new Response("Invalid signature", { status: 400 });
   }
 
+  const itn = payfastItnSchema.safeParse(payload);
+  if (!itn.success) {
+    return new Response("Invalid", { status: 400 });
+  }
+
   const configuredMerchantId = getPayfastMerchantId();
   if (
     configuredMerchantId &&
-    payload.merchant_id &&
-    payload.merchant_id !== configuredMerchantId
+    itn.data.merchant_id &&
+    itn.data.merchant_id !== configuredMerchantId
   ) {
     return new Response("Invalid merchant", { status: 400 });
   }
 
-  const paymentStatus = payload.payment_status;
-  const orderId = payload.m_payment_id;
-
-  if (!orderId) {
-    return new Response("Missing order", { status: 400 });
-  }
+  const paymentStatus = itn.data.payment_status;
+  const orderId = itn.data.m_payment_id;
 
   if (paymentStatus !== "COMPLETE") {
     if (paymentStatus === "FAILED" || paymentStatus === "CANCELLED") {
@@ -68,7 +70,7 @@ export async function POST(request: Request) {
     return new Response("OK");
   }
 
-  const amountGross = Number(payload.amount_gross);
+  const amountGross = Number(itn.data.amount_gross);
   const orderTotal = Number(order.total_amount ?? 0);
   if (
     !Number.isFinite(amountGross) ||
@@ -106,7 +108,7 @@ export async function POST(request: Request) {
     .from("orders")
     .update({
       status: "confirmed",
-      payment_reference: payload.pf_payment_id ?? null,
+      payment_reference: itn.data.pf_payment_id ?? null,
     })
     .eq("id", orderId);
 

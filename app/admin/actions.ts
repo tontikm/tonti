@@ -13,6 +13,7 @@ import {
   verifyOrganizerPassword,
 } from "@/lib/auth/organizer-password";
 import { enforceLoginRateLimit } from "@/lib/auth/rate-limit";
+import { parseLoginForm } from "@/lib/validation/parse";
 import type { CarouselImageSource } from "@/lib/carousel/slides";
 import { getNextCarouselSortOrder } from "@/lib/carousel/slides";
 import { uploadCarouselImage } from "@/lib/supabase/upload-carousel";
@@ -56,12 +57,12 @@ export async function loginAdmin(
   _prev: AdminLoginState,
   formData: FormData,
 ): Promise<AdminLoginState> {
-  const email = String(formData.get("email") ?? "").trim().toLowerCase();
-  const password = String(formData.get("password") ?? "");
-
-  if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-    return { error: "Enter a valid email address." };
+  const parsed = parseLoginForm(formData);
+  if (!parsed.ok) {
+    return { error: parsed.error };
   }
+
+  const { email, password } = parsed.data;
 
   const rateLimit = await enforceLoginRateLimit(`admin:${email}`);
   if (!rateLimit.ok) return { error: rateLimit.error };

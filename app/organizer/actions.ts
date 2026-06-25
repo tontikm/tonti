@@ -43,6 +43,8 @@ import {
   verifyOrganizerPassword,
 } from "@/lib/auth/organizer-password";
 import { enforceLoginRateLimit, enforceCheckInRateLimit } from "@/lib/auth/rate-limit";
+import { parseCompTicketsForm, parseLoginForm } from "@/lib/validation/parse";
+import { eventSlugSchema, ticketCodeSchema } from "@/lib/validation/schemas";
 import {
   isMissingColumnError,
   ORGANIZER_BRANDING_MIGRATION_HINT,
@@ -61,12 +63,12 @@ export async function loginOrganizer(
   _prev: LoginState,
   formData: FormData,
 ): Promise<LoginState> {
-  const email = String(formData.get("email") ?? "").trim().toLowerCase();
-  const password = String(formData.get("password") ?? "");
-
-  if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-    return { error: "Enter a valid email address." };
+  const parsed = parseLoginForm(formData);
+  if (!parsed.ok) {
+    return { error: parsed.error };
   }
+
+  const { email, password } = parsed.data;
 
   const rateLimit = await enforceLoginRateLimit(email);
   if (!rateLimit.ok) return { error: rateLimit.error };
@@ -1253,7 +1255,12 @@ export async function checkInEventTicket(
   code: string,
   eventSlug: string,
 ): Promise<CheckInResult> {
-  const ownEvent = await requireOwnEvent(eventSlug);
+  const slugResult = eventSlugSchema.safeParse(eventSlug);
+  if (!slugResult.success) {
+    return { ok: false, error: "Event not found." };
+  }
+
+  const ownEvent = await requireOwnEvent(slugResult.data);
   if ("error" in ownEvent) {
     return { ok: false, error: ownEvent.error };
   }
@@ -1268,7 +1275,12 @@ export async function checkInEventTicket(
     return { ok: false, error: "Supabase is not configured." };
   }
 
-  const normalized = code.trim().toUpperCase();
+  const parsedCode = ticketCodeSchema.safeParse(code);
+  if (!parsedCode.success) {
+    return { ok: false, error: "Ticket not found." };
+  }
+  const normalized = parsedCode.data;
+
   const { data: ticket } = await supabase
     .from("tickets")
     .select("*")
@@ -1288,7 +1300,7 @@ export async function checkInEventTicket(
   const buyerName = (order?.buyer_name as string) ?? "";
   const buyerEmail = (order?.buyer_email as string) ?? "";
 
-  if (ticket.event_slug !== eventSlug) {
+  if (ticket.event_slug !== slugResult.data) {
     return { ok: false, error: "This ticket is for a different event." };
   }
 
@@ -1323,8 +1335,8 @@ export async function checkInEventTicket(
   }
 
   revalidatePath(`/tickets/verify/${normalized}`);
-  revalidatePath(`/organizer/events/${eventSlug}/tickets`);
-  revalidatePath(`/organizer/events/${eventSlug}/scan`);
+  revalidatePath(`/organizer/events/${slugResult.data}/tickets`);
+  revalidatePath(`/organizer/events/${slugResult.data}/scan`);
 
   return {
     ok: true,
@@ -1631,27 +1643,16 @@ export async function issueCompTickets(
   _prev: ActionState,
   formData: FormData,
 ): Promise<ActionState> {
-  const eventSlug = String(formData.get("eventSlug") ?? "").trim();
-  const holderName = String(formData.get("holderName") ?? "").trim();
-  const holderEmail = String(formData.get("holderEmail") ?? "")
-    .trim()
-    .toLowerCase();
-  const tierId = String(formData.get("tierId") ?? "").trim();
-  const qty = Number(formData.get("qty") ?? 1);
+  const parsed = parseCompTicketsForm(formData);
+  if (!parsed.ok) {
+    return { error: parsed.error };
+  }
+
+  const { eventSlug, holderName, holderEmail, tierId, qty } = parsed.data;
 
   const ownEvent = await requireOwnEvent(eventSlug);
   if ("error" in ownEvent) {
     return { error: ownEvent.error };
-  }
-
-  if (!holderName) {
-    return { error: "Guest name is required." };
-  }
-  if (!holderEmail || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(holderEmail)) {
-    return { error: "A valid guest email is required." };
-  }
-  if (!Number.isInteger(qty) || qty < 1 || qty > 10) {
-    return { error: "Issue between 1 and 10 tickets at a time." };
   }
 
   const tier = ownEvent.event.tiers.find((t) => t.id === tierId);
