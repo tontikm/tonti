@@ -10,7 +10,6 @@ import { getCategoryColor, getCategoryLabel } from "@/lib/data/categories";
 import { getSafeEventImageUrl } from "@/lib/images";
 import {
   availabilityLabel,
-  formatAgeRange,
   formatDateRange,
   formatEventTime,
   formatPrice,
@@ -73,11 +72,6 @@ export function EventCard({ event, featured = false }: EventCardProps) {
                 </span>
                 Almost gone
               </span>
-            )}
-            {formatAgeRange(event.ageLimit, event.ageMax) && (
-              <Badge className="border border-white/30 bg-black/70 text-white">
-                {formatAgeRange(event.ageLimit, event.ageMax)}
-              </Badge>
             )}
           </div>
 

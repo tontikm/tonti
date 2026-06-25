@@ -18,8 +18,8 @@ export function Footer() {
               className="h-8 w-auto"
             />
             <p className="mt-4 max-w-sm text-sm leading-relaxed text-muted">
-              South Africa&apos;s home for live music. Discover gigs, festivals,
-              and club nights. Every moment matters.
+              South Africa&apos;s home for live events. Discover nightlife,
+              festivals, gigs, and lifestyle experiences.
             </p>
             <div className="mt-6">
               <SocialLinks />
@@ -111,7 +111,8 @@ export function Footer() {
 
         <div className="mt-10 flex flex-col items-center justify-between gap-4 border-t border-white/10 pt-8 sm:flex-row">
           <p className="text-xs text-muted">
-            © {new Date().getFullYear()} {BRAND_NAME}. Music events only.
+            © {new Date().getFullYear()} {BRAND_NAME}. Nightlife, festivals, live
+            music, and lifestyle across South Africa.
           </p>
           <Link
             href={LEGAL_HUB_LINK.href}

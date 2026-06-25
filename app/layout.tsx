@@ -32,7 +32,7 @@ export const metadata: Metadata = {
     template: `%s | ${BRAND_NAME}`,
   },
   description:
-    "Discover and book tickets to the best live music in South Africa. Concerts, festivals, and club nights. Music only.",
+    "Discover and book tickets to events across South Africa. Nightlife, festivals, live music, and lifestyle experiences.",
   keywords: [
     "tickets",
     "concerts",
