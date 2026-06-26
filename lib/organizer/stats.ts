@@ -37,20 +37,29 @@ export async function getOrganizerDashboardStats(): Promise<OrganizerDashboardSt
   let checkedIn = 0;
   let orderCount = 0;
 
+  const slugs = events.map((event) => event.slug);
   const supabase = getSupabaseServer();
-  if (supabase) {
-    const { count: ticketCount } = await supabase
-      .from("tickets")
-      .select("*", { count: "exact", head: true });
-
-    const { count: usedCount } = await supabase
-      .from("tickets")
-      .select("*", { count: "exact", head: true })
-      .eq("status", "used");
-
-    const { count: orders } = await supabase
-      .from("orders")
-      .select("*", { count: "exact", head: true });
+  if (supabase && slugs.length > 0) {
+    const [
+      { count: ticketCount },
+      { count: usedCount },
+      { count: orders },
+    ] = await Promise.all([
+      supabase
+        .from("tickets")
+        .select("*", { count: "exact", head: true })
+        .in("event_slug", slugs),
+      supabase
+        .from("tickets")
+        .select("*", { count: "exact", head: true })
+        .in("event_slug", slugs)
+        .eq("status", "used"),
+      supabase
+        .from("orders")
+        .select("*", { count: "exact", head: true })
+        .in("event_slug", slugs)
+        .eq("status", "confirmed"),
+    ]);
 
     totalTickets = ticketCount ?? 0;
     checkedIn = usedCount ?? 0;
