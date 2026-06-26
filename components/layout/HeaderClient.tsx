@@ -7,14 +7,11 @@ import { useEventBrand, type EventBrand } from "@/components/layout/EventBrandPr
 import type { SearchItem } from "@/lib/search";
 import { BRAND_LOGO_HEIGHT, BRAND_LOGO_SRC, BRAND_LOGO_WIDTH, BRAND_NAME } from "@/lib/site";
 import { HeaderSearch } from "./HeaderSearch";
-import { SiteNav } from "./SiteNav";
 import { BasketButton } from "@/components/basket/BasketButton";
 
 type HeaderClientProps = {
   organizerLink: React.ReactNode;
   fanLink: React.ReactNode;
-  fanNavLink: { href: string; label: string } | null;
-  fanSignedIn: boolean;
   searchItems: SearchItem[];
 };
 
@@ -68,8 +65,6 @@ function HeaderLogo({
 export function HeaderClient({
   organizerLink,
   fanLink,
-  fanNavLink,
-  fanSignedIn,
   searchItems,
 }: HeaderClientProps) {
   const pathname = usePathname();
@@ -91,7 +86,6 @@ export function HeaderClient({
             <BasketButton />
             {fanLink}
             {organizerLink}
-            <SiteNav fanNavLink={fanNavLink} fanSignedIn={fanSignedIn} />
           </div>
         </div>
       </header>
@@ -107,7 +101,6 @@ export function HeaderClient({
           <BasketButton />
           {fanLink}
           {organizerLink}
-          <SiteNav fanNavLink={fanNavLink} fanSignedIn={fanSignedIn} />
         </div>
       </div>
     </header>

@@ -8,7 +8,7 @@ export async function HeaderOrganizerLink() {
     return (
       <Link
         href="/organizer"
-        className="hidden rounded-full bg-white px-5 py-2 text-sm font-semibold text-black transition-opacity hover:opacity-90 sm:inline-flex"
+        className="inline-flex rounded-full bg-white px-3 py-1.5 text-xs font-semibold text-black transition-opacity hover:opacity-90 sm:px-5 sm:py-2 sm:text-sm"
       >
         Dashboard
       </Link>

@@ -1,5 +1,5 @@
 import { HeaderClient } from "./HeaderClient";
-import { FanAuthLink, getFanNavLink } from "./HeaderFanLink";
+import { FanAuthLink } from "./HeaderFanLink";
 import { HeaderOrganizerLink } from "./HeaderOrganizerLink";
 import { getFanUser } from "@/lib/auth/session";
 import { getOrganizerSession } from "@/lib/organizer/session";
@@ -19,8 +19,6 @@ export async function Header() {
       fanLink={
         <FanAuthLink user={fanUser} organizerSignedIn={organizerSignedIn} />
       }
-      fanNavLink={getFanNavLink(fanUser, organizerSignedIn)}
-      fanSignedIn={Boolean(fanUser)}
       searchItems={searchItems}
     />
   );
