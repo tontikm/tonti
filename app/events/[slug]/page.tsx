@@ -30,6 +30,12 @@ import {
 } from "@/lib/images";
 import { getFanUser } from "@/lib/auth/session";
 import { isFanAuthConfigured } from "@/lib/supabase/server-auth";
+import { getRequestOrigin } from "@/lib/site";
+import {
+  buildEventWhatsAppShareMessage,
+  toAbsoluteShareImageUrl,
+} from "@/lib/share/event-whatsapp";
+import type { Metadata } from "next";
 import {
   formatAgeRange,
   formatDateRange,
@@ -50,13 +56,42 @@ export async function generateStaticParams() {
   return (await getAllEvents()).map((event) => ({ slug: event.slug }));
 }
 
-export async function generateMetadata({ params }: Props) {
+export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params;
   const event = await getPublicEventBySlug(slug);
   if (!event) return { title: "Event not found" };
+
+  const origin = await getRequestOrigin();
+  const eventUrl = `${origin}/events/${slug}`;
+  const description = event.description.slice(0, 160);
+  const imageUrl = toAbsoluteShareImageUrl(
+    origin,
+    getSafeEventImageUrl(event.heroImage ?? event.image),
+  );
+
   return {
     title: event.title,
-    description: event.description.slice(0, 160),
+    description,
+    openGraph: {
+      title: event.title,
+      description,
+      url: eventUrl,
+      type: "website",
+      images: [
+        {
+          url: imageUrl,
+          width: 1200,
+          height: 630,
+          alt: event.title,
+        },
+      ],
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: event.title,
+      description,
+      images: [imageUrl],
+    },
   };
 }
 
@@ -66,6 +101,10 @@ export default async function EventDetailPage({ params, searchParams }: Props) {
   const followOnReturn = query.follow === "1";
   const event = await getEventBySlug(slug);
   if (!event) notFound();
+
+  const origin = await getRequestOrigin();
+  const eventUrl = `${origin}/events/${slug}`;
+  const whatsAppShareMessage = buildEventWhatsAppShareMessage(event, eventUrl);
 
   const organizerSession = await getOrganizerSession();
   const fanUser = await getFanUser();
@@ -318,7 +357,7 @@ export default async function EventDetailPage({ params, searchParams }: Props) {
                       organizerEmail={organizerEmailForFollow}
                     />
                   ) : null}
-                  <ShareButtons title={event.title} />
+                  <ShareButtons shareMessage={whatsAppShareMessage} />
                 </div>
               </div>
 

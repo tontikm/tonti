@@ -2,22 +2,17 @@
 
 import { useState } from "react";
 import { MessageCircle, Link2, Check } from "lucide-react";
+import { getWhatsAppSendUrl } from "@/lib/tickets/whatsapp";
 
 type ShareButtonsProps = {
-  title: string;
+  shareMessage: string;
 };
 
-export function ShareButtons({ title }: ShareButtonsProps) {
+export function ShareButtons({ shareMessage }: ShareButtonsProps) {
   const [copied, setCopied] = useState(false);
 
   function shareWhatsApp() {
-    const url = typeof window !== "undefined" ? window.location.href : "";
-    const text = `${title}. Book on Spotra`;
-    window.open(
-      `https://wa.me/?text=${encodeURIComponent(`${text} ${url}`)}`,
-      "_blank",
-      "noopener,noreferrer",
-    );
+    window.open(getWhatsAppSendUrl(null, shareMessage), "_blank", "noopener,noreferrer");
   }
 
   async function copyLink() {
