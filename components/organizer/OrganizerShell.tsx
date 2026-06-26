@@ -49,7 +49,11 @@ export function OrganizerShell({ session, children }: OrganizerShellProps) {
 
   const sidebar = (
     <div className="flex min-h-0 flex-1 flex-col">
-      <Link href="/" className="block shrink-0 px-5 py-6">
+      <Link
+        href="/organizer"
+        aria-label="Organizer dashboard"
+        className="block shrink-0 px-5 py-6"
+      >
         <Image
           src={BRAND_LOGO_SRC}
           alt={BRAND_NAME}
@@ -82,12 +86,6 @@ export function OrganizerShell({ session, children }: OrganizerShellProps) {
       </nav>
 
       <div className="shrink-0 border-t border-white/10 p-3">
-        <Link
-          href="/"
-          className="mb-2 flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm text-muted transition-colors hover:bg-white/5 hover:text-foreground"
-        >
-          View site
-        </Link>
         <form action={logoutOrganizer}>
           <button
             type="submit"
@@ -116,7 +114,11 @@ export function OrganizerShell({ session, children }: OrganizerShellProps) {
 
         <div className="flex min-w-0 flex-1 flex-col">
           <div className="flex items-center justify-between border-b border-white/10 bg-black/80 px-4 py-4 backdrop-blur-sm lg:hidden">
-            <Link href="/" className="flex flex-col">
+            <Link
+              href="/organizer"
+              aria-label="Organizer dashboard"
+              className="flex flex-col"
+            >
               <Image
                 src={BRAND_LOGO_SRC}
                 alt={BRAND_NAME}
