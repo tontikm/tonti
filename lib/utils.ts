@@ -170,16 +170,12 @@ export function formatAgeRange(
   max?: number | null,
 ): string | null {
   if (min == null && max == null) return null;
-  if (min != null && max != null) {
-    if (min === max) return `${min}+`;
-    return `${min}–${max}`;
-  }
   if (min != null) return `${min}+`;
   return `Up to ${max}`;
 }
 
 export function isAdultsOnlyAge(min?: number | null, max?: number | null): boolean {
-  return min != null && min >= 18 && max == null;
+  return min != null && min >= 18;
 }
 
 export function cn(...classes: (string | false | undefined | null)[]): string {
