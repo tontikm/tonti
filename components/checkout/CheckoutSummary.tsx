@@ -1,11 +1,11 @@
 import Image from "next/image";
 import Link from "next/link";
-import { Calendar, MapPin, ShieldAlert } from "lucide-react";
+import { Calendar, MapPin } from "lucide-react";
 import type { CheckoutCart } from "@/lib/checkout";
 import type { Event } from "@/lib/types";
 import type { PromoPreview } from "@/lib/promo/codes";
 import { getSafeEventImageUrl } from "@/lib/images";
-import { formatDateRange, formatEventTime, formatPrice, formatAgeRange, isAdultsOnlyAge } from "@/lib/utils";
+import { formatDateRange, formatEventTime, formatPrice } from "@/lib/utils";
 
 type CheckoutSummaryProps = {
   event: Event;
@@ -48,14 +48,6 @@ export function CheckoutSummary({
           <MapPin className="h-4 w-4 shrink-0" />
           {event.venue.name}, {event.venue.city}
         </p>
-        {formatAgeRange(event.ageLimit, event.ageMax) && (
-          <p className="flex items-center gap-2 text-amber-200/90">
-            <ShieldAlert className="h-4 w-4 shrink-0" />
-            {isAdultsOnlyAge(event.ageLimit, event.ageMax)
-              ? `${formatAgeRange(event.ageLimit, event.ageMax)} · Adults only. ID may be required`
-              : `${formatAgeRange(event.ageLimit, event.ageMax)} age limit`}
-          </p>
-        )}
       </div>
 
       <div className="mt-6 border-t border-white/10 pt-6">
