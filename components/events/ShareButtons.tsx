@@ -1,7 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import { MessageCircle, Link2, Check } from "lucide-react";
+import { Link2, Check } from "lucide-react";
+import { WhatsAppIcon } from "@/components/icons/WhatsAppIcon";
 import { getWhatsAppSendUrl } from "@/lib/tickets/whatsapp";
 
 type ShareButtonsProps = {
@@ -33,7 +34,7 @@ export function ShareButtons({ shareMessage }: ShareButtonsProps) {
         onClick={shareWhatsApp}
         className="inline-flex items-center gap-2 rounded-full border border-border bg-surface px-4 py-2 text-sm text-foreground transition-colors hover:border-foreground/40 hover:bg-surface-hover"
       >
-        <MessageCircle className="h-4 w-4" />
+        <WhatsAppIcon className="h-4 w-4 shrink-0" />
         Share on WhatsApp
       </button>
       <button
