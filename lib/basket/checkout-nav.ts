@@ -7,7 +7,7 @@ import {
 import type { BasketSnapshot } from "@/lib/basket/storage";
 
 export const BASKET_EXPIRED_MESSAGE =
-  "Your basket has expired. Select tickets again.";
+  "Your basket expired. Select tickets again.";
 
 export function getCheckoutUrlIfValid(
   basket: BasketSnapshot | null,

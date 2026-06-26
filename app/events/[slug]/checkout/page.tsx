@@ -3,7 +3,7 @@ import { CheckoutBasketGuard } from "@/components/basket/CheckoutBasketGuard";
 import { CheckoutExperience } from "@/components/checkout/CheckoutExperience";
 import { getFanUser } from "@/lib/auth/session";
 import { getOrganizerSession } from "@/lib/organizer/session";
-import { parseCartFromSearchParams } from "@/lib/checkout";
+import { parseCartFromSearchParams, cartToSelections } from "@/lib/checkout";
 import { getPublicEventBySlug } from "@/lib/data/events";
 import { isFanAuthConfigured } from "@/lib/supabase/server-auth";
 import { isPayfastConfigured } from "@/lib/payments/config";
@@ -49,7 +49,12 @@ export default async function EventCheckoutPage({ params, searchParams }: Props)
 
   return (
     <div className="mx-auto max-w-6xl px-4 py-10 pb-24 sm:px-6 lg:px-8">
-      <CheckoutBasketGuard eventSlug={slug}>
+      <CheckoutBasketGuard
+        eventSlug={slug}
+        eventTitle={event.title}
+        eventImage={event.image}
+        quantities={cartToSelections(cart)}
+      >
         <CheckoutExperience
           event={event}
           cart={cart}
