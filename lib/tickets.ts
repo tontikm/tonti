@@ -41,6 +41,8 @@ function mapOrderRow(row: Record<string, unknown>): TicketOrder {
     createdAt: row.created_at as string,
     userId: (row.user_id as string) ?? undefined,
     buyerPhone: (row.buyer_phone as string) ?? undefined,
+    paymentProvider: (row.payment_provider as string) ?? undefined,
+    paymentReference: (row.payment_reference as string) ?? undefined,
   };
 }
 

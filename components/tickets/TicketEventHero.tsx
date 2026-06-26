@@ -1,13 +1,11 @@
 import Image from "next/image";
-import { Calendar, Mail, MapPin, ShieldAlert } from "lucide-react";
+import { Calendar, Mail, MapPin } from "lucide-react";
 import type { Event, TicketOrder } from "@/lib/types";
 import { getSafeEventImageUrl } from "@/lib/images";
 import {
-  formatAgeRange,
   formatDateRange,
   formatEventTime,
   formatPrice,
-  isAdultsOnlyAge,
 } from "@/lib/utils";
 
 type TicketEventHeroProps = {
@@ -15,7 +13,25 @@ type TicketEventHeroProps = {
   order: TicketOrder;
 };
 
+function getPaymentNote(order: TicketOrder): string | null {
+  if (order.totalAmount === 0) return null;
+
+  if (
+    order.paymentProvider === "payfast" ||
+    Boolean(order.paymentReference?.trim())
+  ) {
+    return "Paid via Payfast";
+  }
+
+  return "Pay at the door. No online charge today";
+}
+
 export function TicketEventHero({ event, order }: TicketEventHeroProps) {
+  const paymentNote = getPaymentNote(order);
+  const paidOnline =
+    order.paymentProvider === "payfast" ||
+    Boolean(order.paymentReference?.trim());
+
   return (
     <div className="overflow-hidden rounded-2xl border border-white/10 bg-surface">
       <div className="relative aspect-[16/9] w-full">
@@ -41,14 +57,6 @@ export function TicketEventHero({ event, order }: TicketEventHeroProps) {
               <MapPin className="h-4 w-4 shrink-0" />
               {event.venue.name}, {event.venue.city}
             </p>
-            {formatAgeRange(event.ageLimit, event.ageMax) && (
-              <p className="flex items-center gap-2 text-amber-200/90">
-                <ShieldAlert className="h-4 w-4 shrink-0" />
-                {isAdultsOnlyAge(event.ageLimit, event.ageMax)
-                  ? `${formatAgeRange(event.ageLimit, event.ageMax)} · Adults only. ID may be required`
-                  : `${formatAgeRange(event.ageLimit, event.ageMax)} age limit`}
-              </p>
-            )}
           </div>
         </div>
       </div>
@@ -71,11 +79,15 @@ export function TicketEventHero({ event, order }: TicketEventHeroProps) {
             <p className="text-2xl font-bold">
               {order.totalAmount === 0 ? "Free" : formatPrice(order.totalAmount)}
             </p>
-            {order.totalAmount > 0 && (
-              <p className="mt-1 text-xs text-amber-200/90">
-                Pay at the door. No online charge today
+            {paymentNote ? (
+              <p
+                className={`mt-1 text-xs ${
+                  paidOnline ? "text-emerald-300/90" : "text-amber-200/90"
+                }`}
+              >
+                {paymentNote}
               </p>
-            )}
+            ) : null}
           </div>
         </div>
       </div>

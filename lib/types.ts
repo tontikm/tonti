@@ -34,6 +34,8 @@ export type TicketOrder = {
   createdAt: string;
   userId?: string;
   buyerPhone?: string;
+  paymentProvider?: string;
+  paymentReference?: string;
 };
 
 export type EventTicket = {
