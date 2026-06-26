@@ -14,6 +14,9 @@ export type OrganizerSession = {
   email: string;
   name?: string;
   slug?: string;
+  role?: "owner" | "scanner";
+  doorStaffId?: string;
+  scanEventSlugs?: string[];
   loggedInAt: string;
   lastActivityAt?: string;
 };

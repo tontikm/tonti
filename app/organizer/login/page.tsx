@@ -15,7 +15,7 @@ export default async function OrganizerLoginPage({
 }: OrganizerLoginPageProps) {
   const session = await getOrganizerSession();
   if (session) {
-    redirect("/organizer");
+    redirect(session.role === "scanner" ? "/organizer/scan" : "/organizer");
   }
 
   const query = await searchParams;

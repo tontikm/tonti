@@ -48,14 +48,13 @@ export default async function TicketVerifyPage({ params }: Props) {
   const organizerProfile = organizerSession
     ? await getOrganizerByEmail(organizerSession.email)
     : null;
-  const canCheckIn = isOwnOrganizerEvent(
-    event,
-    organizerSession,
-    {
-      id: organizerProfile?.id,
-      name: organizerProfile?.name,
-    },
-  );
+  const canCheckIn =
+    organizerSession?.role === "scanner"
+      ? organizerSession.scanEventSlugs?.includes(event.slug) ?? false
+      : isOwnOrganizerEvent(event, organizerSession, {
+          id: organizerProfile?.id,
+          name: organizerProfile?.name,
+        });
 
   const isValid = ticket.status === "valid";
   const isUsed = ticket.status === "used";

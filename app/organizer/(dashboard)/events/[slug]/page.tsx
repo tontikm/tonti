@@ -11,7 +11,9 @@ import {
   TrendingUp,
   Users,
 } from "lucide-react";
+import { DoorStaffManager } from "@/components/organizer/DoorStaffManager";
 import { OrganizerPageHeader } from "@/components/organizer/OrganizerShell";
+import { listEventDoorStaff } from "@/lib/organizer/door-staff";
 import { getEventSalesReport } from "@/lib/tickets";
 import { requireOwnEvent } from "@/lib/organizer/require-auth";
 import { isSupabaseAdminConfigured } from "@/lib/supabase/admin";
@@ -57,6 +59,7 @@ export default async function OrganizerEventHubPage({ params }: Props) {
   const ended = status === "ended";
   const supabaseReady = isSupabaseAdminConfigured();
   const report = await getEventSalesReport(slug, event.tiers);
+  const doorStaff = await listEventDoorStaff(slug);
 
   const totalCapacity = event.tiers.reduce(
     (sum, tier) => sum + tier.capacity,
@@ -212,6 +215,8 @@ export default async function OrganizerEventHubPage({ params }: Props) {
           </div>
         </section>
       </div>
+
+      <DoorStaffManager eventSlug={slug} members={doorStaff} />
     </>
   );
 }

@@ -15,8 +15,9 @@ import {
   validatePosterFile,
 } from "@/lib/supabase/upload-poster";
 import {
-  requireOrganizerSession,
+  requireOwnerSession,
   requireOwnEvent,
+  requireScanAccess,
 } from "@/lib/organizer/require-auth";
 import {
   clearOrganizerSession,
@@ -54,6 +55,16 @@ import {
   requestOrganizerPasswordReset,
   resetOrganizerPassword,
 } from "@/lib/organizer/password-reset";
+import {
+  acceptDoorStaffInvite,
+  inviteDoorStaffForEvent,
+  listEventDoorStaff,
+  loginDoorStaff,
+  revokeDoorStaffAssignment,
+  type EventDoorStaffMember,
+} from "@/lib/organizer/door-staff";
+import { getRequestOrigin } from "@/lib/site";
+
 import {
   isMissingColumnError,
   ORGANIZER_BRANDING_MIGRATION_HINT,
@@ -150,6 +161,11 @@ export async function loginOrganizer(
     }
 
     if (!organizer) {
+      const staffSession = await loginDoorStaff(email, password);
+      if (staffSession) {
+        await setOrganizerSession(staffSession);
+        redirect("/organizer/scan");
+      }
       return { error: "No account found. Register first or check your email." };
     }
 
@@ -865,7 +881,7 @@ export async function createEvent(
   _prev: ActionState,
   formData: FormData,
 ): Promise<ActionState> {
-  const auth = await requireOrganizerSession();
+  const auth = await requireOwnerSession();
   if ("error" in auth) return auth;
 
   const supabase = getSupabaseAdmin();
@@ -1317,7 +1333,7 @@ export async function checkInEventTicket(
     return { ok: false, error: "Event not found." };
   }
 
-  const ownEvent = await requireOwnEvent(slugResult.data);
+  const ownEvent = await requireScanAccess(slugResult.data);
   if ("error" in ownEvent) {
     return { ok: false, error: ownEvent.error };
   }
@@ -1414,7 +1430,7 @@ export async function createVenue(
   _prev: ActionState,
   formData: FormData,
 ): Promise<ActionState> {
-  const auth = await requireOrganizerSession();
+  const auth = await requireOwnerSession();
   if ("error" in auth) return auth;
 
   const supabase = getSupabaseAdmin();
@@ -1473,7 +1489,7 @@ export async function createArtist(
   _prev: ActionState,
   formData: FormData,
 ): Promise<ActionState> {
-  const auth = await requireOrganizerSession();
+  const auth = await requireOwnerSession();
   if ("error" in auth) return auth;
 
   const supabase = getSupabaseAdmin();
@@ -1529,7 +1545,7 @@ export type QuickCreateArtistResult =
 export async function quickCreateArtist(
   nameInput: string,
 ): Promise<QuickCreateArtistResult> {
-  const auth = await requireOrganizerSession();
+  const auth = await requireOwnerSession();
   if ("error" in auth) return auth;
 
   const supabase = getSupabaseAdmin();
@@ -1591,6 +1607,9 @@ export async function updateOrganizerProfile(
 
   const session = await getOrganizerSession();
   if (!session) return { error: "You must be signed in to update your profile." };
+  if (session.role === "scanner") {
+    return { error: "You do not have permission to manage events." };
+  }
 
   const profile = await getOrganizerByEmail(session.email);
   if (!profile) {
@@ -1863,4 +1882,102 @@ export async function togglePromoCodeActive(formData: FormData): Promise<void> {
     .eq("event_slug", eventSlug);
 
   revalidatePath(`/organizer/events/${eventSlug}/promos`);
+}
+
+export async function getEventDoorStaff(
+  eventSlug: string,
+): Promise<EventDoorStaffMember[] | { error: string }> {
+  const ownEvent = await requireOwnEvent(eventSlug);
+  if ("error" in ownEvent) {
+    return { error: ownEvent.error };
+  }
+
+  return listEventDoorStaff(eventSlug);
+}
+
+export type InviteDoorStaffState = {
+  error?: string;
+  success?: string;
+  inviteUrl?: string;
+};
+
+export async function inviteDoorStaff(
+  _prev: InviteDoorStaffState,
+  formData: FormData,
+): Promise<InviteDoorStaffState> {
+  const eventSlug = String(formData.get("eventSlug") ?? "").trim();
+  const email = String(formData.get("email") ?? "").trim();
+  const name = String(formData.get("name") ?? "").trim() || null;
+
+  const ownEvent = await requireOwnEvent(eventSlug);
+  if ("error" in ownEvent) {
+    return { error: ownEvent.error };
+  }
+
+  const profile = await getOrganizerByEmail(ownEvent.session.email);
+  if (!profile?.id) {
+    return { error: "Organizer profile not found." };
+  }
+
+  const origin = await getRequestOrigin();
+  const result = await inviteDoorStaffForEvent({
+    eventSlug,
+    email,
+    name,
+    invitedByOrganizerId: profile.id,
+    origin,
+  });
+
+  if (!result.ok) {
+    return { error: result.error };
+  }
+
+  revalidatePath(`/organizer/events/${eventSlug}`);
+  return {
+    success: `Invite created for ${email}. Share the link below.`,
+    inviteUrl: result.inviteUrl,
+  };
+}
+
+export async function revokeDoorStaff(formData: FormData): Promise<void> {
+  const eventSlug = String(formData.get("eventSlug") ?? "").trim();
+  const assignmentId = String(formData.get("assignmentId") ?? "").trim();
+
+  const ownEvent = await requireOwnEvent(eventSlug);
+  if ("error" in ownEvent) return;
+
+  const result = await revokeDoorStaffAssignment(assignmentId, eventSlug);
+  if (!result.ok) return;
+
+  revalidatePath(`/organizer/events/${eventSlug}`);
+}
+
+export type AcceptDoorStaffInviteState = {
+  error?: string;
+};
+
+export async function acceptDoorStaffInviteAction(
+  _prev: AcceptDoorStaffInviteState,
+  formData: FormData,
+): Promise<AcceptDoorStaffInviteState> {
+  const token = String(formData.get("token") ?? "").trim();
+  const password = String(formData.get("password") ?? "");
+  const confirm = String(formData.get("confirmPassword") ?? "");
+  const name = String(formData.get("name") ?? "").trim() || null;
+
+  if (!token) {
+    return { error: "Invite link is invalid." };
+  }
+
+  const passwordError = validateOrganizerPassword(password);
+  if (passwordError) return { error: passwordError };
+  if (password !== confirm) return { error: "Passwords do not match." };
+
+  const result = await acceptDoorStaffInvite(token, password, name);
+  if (!result.ok) {
+    return { error: result.error };
+  }
+
+  await setOrganizerSession(result.session);
+  redirect("/organizer/scan");
 }

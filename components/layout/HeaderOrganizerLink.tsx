@@ -7,10 +7,10 @@ export async function HeaderOrganizerLink() {
   if (session) {
     return (
       <Link
-        href="/organizer"
+        href={session.role === "scanner" ? "/organizer/scan" : "/organizer"}
         className="inline-flex rounded-full bg-white px-3 py-1.5 text-xs font-semibold text-black transition-opacity hover:opacity-90 sm:px-5 sm:py-2 sm:text-sm"
       >
-        Dashboard
+        {session.role === "scanner" ? "Scanner" : "Dashboard"}
       </Link>
     );
   }

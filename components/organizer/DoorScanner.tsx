@@ -23,7 +23,8 @@ type DoorScannerProps = {
   eventSlug: string;
   eventTitle: string;
   summary: Pick<EventTicketSummary, "totalTickets" | "checkedIn" | "valid">;
-  tickets: EventTicketWithBuyer[];
+  tickets?: EventTicketWithBuyer[];
+  accessMode?: "full" | "scanOnly";
 };
 
 type ScanFeedback = CheckInResult & { scannedCode: string };
@@ -32,11 +33,13 @@ export function DoorScanner({
   eventSlug,
   eventTitle,
   summary,
-  tickets,
+  tickets = [],
+  accessMode = "full",
 }: DoorScannerProps) {
+  const isScanOnly = accessMode === "scanOnly";
   const router = useRouter();
   const searchParams = useSearchParams();
-  const [mode, setMode] = useState<"camera" | "manual">("camera");
+  const [inputMode, setInputMode] = useState<"camera" | "manual">("camera");
   const [manualCode, setManualCode] = useState("");
   const [feedback, setFeedback] = useState<ScanFeedback | null>(null);
   const [cameraError, setCameraError] = useState<string | null>(null);
@@ -59,12 +62,13 @@ export function DoorScanner({
   }, [summary.checkedIn]);
 
   useEffect(() => {
+    if (isScanOnly) return;
     setRecentCheckIns(
       getRecentCheckInTickets(tickets).map((ticket) =>
         toOrganizerTicketDetail(ticket),
       ),
     );
-  }, [tickets]);
+  }, [isScanOnly, tickets]);
 
   const runCheckIn = useCallback(
     (rawCode: string) => {
@@ -85,7 +89,7 @@ export function DoorScanner({
 
         if (result.ok) {
           setCheckedInCount((count) => count + 1);
-          if (result.ticket) {
+          if (!isScanOnly && result.ticket) {
             setRecentCheckIns((current) => {
               const next = toOrganizerTicketDetail(result.ticket!);
               return [
@@ -99,7 +103,7 @@ export function DoorScanner({
         router.refresh();
       });
     },
-    [eventSlug, feedback, router],
+    [eventSlug, feedback, isScanOnly, router],
   );
 
   useEffect(() => {
@@ -110,7 +114,7 @@ export function DoorScanner({
   }, [prefilled, runCheckIn]);
 
   useEffect(() => {
-    if (mode !== "camera" || feedback !== null) {
+    if (inputMode !== "camera" || feedback !== null) {
       scannerRef.current?.stop().catch(() => undefined);
       scannerRef.current = null;
       return;
@@ -147,7 +151,7 @@ export function DoorScanner({
       } catch {
         if (!cancelled) {
           setCameraError("Camera access unavailable. Use manual entry instead.");
-          setMode("manual");
+          setInputMode("manual");
         }
       }
     }
@@ -159,7 +163,7 @@ export function DoorScanner({
       scannerRef.current?.stop().catch(() => undefined);
       scannerRef.current = null;
     };
-  }, [mode, feedback, runCheckIn]);
+  }, [inputMode, feedback, runCheckIn]);
 
   function onManualSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -172,7 +176,7 @@ export function DoorScanner({
     processingRef.current = false;
     lastScannedCodeRef.current = null;
 
-    if (mode === "manual") {
+    if (inputMode === "manual") {
       window.setTimeout(() => manualInputRef.current?.focus(), 0);
     }
   }
@@ -224,10 +228,10 @@ export function DoorScanner({
           onClick={() => {
             setFeedback(null);
             lastScannedCodeRef.current = null;
-            setMode("camera");
+            setInputMode("camera");
           }}
           className={`flex flex-1 items-center justify-center gap-2 rounded-full px-4 py-2 text-sm font-medium transition-colors ${
-            mode === "camera"
+            inputMode === "camera"
               ? "bg-violet-600 text-white shadow-md shadow-violet-900/30"
               : "text-muted hover:text-foreground"
           }`}
@@ -240,10 +244,10 @@ export function DoorScanner({
           onClick={() => {
             setFeedback(null);
             lastScannedCodeRef.current = null;
-            setMode("manual");
+            setInputMode("manual");
           }}
           className={`flex flex-1 items-center justify-center gap-2 rounded-full px-4 py-2 text-sm font-medium transition-colors ${
-            mode === "manual"
+            inputMode === "manual"
               ? "bg-violet-600 text-white shadow-md shadow-violet-900/30"
               : "text-muted hover:text-foreground"
           }`}
@@ -253,7 +257,7 @@ export function DoorScanner({
         </button>
       </div>
 
-      {!feedback && mode === "camera" && (
+      {!feedback && inputMode === "camera" && (
         <div className="-mx-4 overflow-hidden border-y border-border bg-black sm:mx-0 sm:rounded-2xl sm:border">
           <div
             id="door-scanner-viewport"
@@ -268,7 +272,7 @@ export function DoorScanner({
         </div>
       )}
 
-      {!feedback && mode === "manual" && (
+      {!feedback && inputMode === "manual" && (
         <form onSubmit={onManualSubmit} className="space-y-4">
           <div>
             <label htmlFor="ticketCode" className="mb-1.5 block text-sm font-medium">
@@ -352,20 +356,24 @@ export function DoorScanner({
         </div>
       )}
 
-      <div className="flex items-center justify-between gap-3 text-sm">
-        <Link
-          href={`/organizer/events/${eventSlug}/tickets`}
-          className="text-muted transition-colors hover:text-foreground"
-        >
-          Full guest list
-        </Link>
-      </div>
+      {!isScanOnly && (
+        <>
+          <div className="flex items-center justify-between gap-3 text-sm">
+            <Link
+              href={`/organizer/events/${eventSlug}/tickets`}
+              className="text-muted transition-colors hover:text-foreground"
+            >
+              Full guest list
+            </Link>
+          </div>
 
-      <ScannerGuestPanel
-        eventSlug={eventSlug}
-        tickets={tickets}
-        recentCheckIns={recentCheckIns}
-      />
+          <ScannerGuestPanel
+            eventSlug={eventSlug}
+            tickets={tickets}
+            recentCheckIns={recentCheckIns}
+          />
+        </>
+      )}
     </div>
   );
 }

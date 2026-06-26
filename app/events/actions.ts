@@ -23,7 +23,7 @@ import {
   FAN_ORDERS_MIGRATION_HINT,
   isMissingColumnError,
 } from "@/lib/supabase/errors";
-import { requireOwnEvent } from "@/lib/organizer/require-auth";
+import { requireScanAccess } from "@/lib/organizer/require-auth";
 import { normalizeWhatsAppPhone } from "@/lib/tickets/whatsapp";
 import {
   getPromoByCode,
@@ -466,12 +466,12 @@ export async function checkInTicket(code: string): Promise<{
   if (!existing) return { ok: false, error: "Ticket not found." };
 
   const eventSlug = existing.event_slug as string;
-  const ownEvent = await requireOwnEvent(eventSlug);
-  if ("error" in ownEvent) {
-    return { ok: false, error: ownEvent.error };
+  const scanAccess = await requireScanAccess(eventSlug);
+  if ("error" in scanAccess) {
+    return { ok: false, error: scanAccess.error };
   }
 
-  const rateLimit = await enforceCheckInRateLimit(ownEvent.session.email);
+  const rateLimit = await enforceCheckInRateLimit(scanAccess.session.email);
   if (!rateLimit.ok) {
     return { ok: false, error: rateLimit.error };
   }
