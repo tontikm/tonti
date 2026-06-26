@@ -104,8 +104,8 @@ export default async function OrganizerDashboardPage() {
         />
       </div>
 
-      <div className="mt-10 grid gap-8 lg:grid-cols-2">
-        <section className="rounded-2xl border border-white/10 bg-white/[0.02] p-6">
+      <div className="mt-10 grid gap-8 lg:grid-cols-5">
+        <section className="rounded-2xl border border-white/10 bg-white/[0.02] p-6 lg:col-span-3">
           <div className="flex items-center justify-between">
             <h2 className="text-lg font-semibold">Upcoming events</h2>
             <Link
@@ -130,51 +130,51 @@ export default async function OrganizerDashboardPage() {
                 const price = getLowestPrice(event.tiers);
                 return (
                   <li key={event.slug} className="py-4">
-                    <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-                      <div className="flex gap-3">
+                    <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
+                      <Link
+                        href={`/organizer/events/${event.slug}`}
+                        className="relative h-36 w-full overflow-hidden rounded-xl border border-white/10 bg-surface sm:h-24 sm:w-36 sm:shrink-0"
+                      >
+                        <Image
+                          src={getSafeEventImageUrl(event.image)}
+                          alt=""
+                          fill
+                          className="object-cover"
+                          sizes="(max-width: 640px) 112px, 144px"
+                        />
+                      </Link>
+                      <div className="min-w-0 flex-1">
                         <Link
                           href={`/organizer/events/${event.slug}`}
-                          className="relative h-16 w-24 shrink-0 overflow-hidden rounded-lg border border-white/10 bg-surface"
+                          className="line-clamp-2 font-medium hover:underline sm:line-clamp-1"
                         >
-                          <Image
-                            src={getSafeEventImageUrl(event.image)}
-                            alt=""
-                            fill
-                            className="object-cover"
-                            sizes="96px"
-                          />
+                          {event.title}
                         </Link>
-                        <div>
-                          <Link
-                            href={`/organizer/events/${event.slug}`}
-                            className="font-medium hover:underline"
-                          >
-                            {event.title}
-                          </Link>
-                          <p className="mt-1 flex items-center gap-1.5 text-sm text-muted">
-                            <Calendar className="h-3.5 w-3.5" />
+                        <p className="mt-1 flex items-center gap-1.5 text-sm text-muted">
+                          <Calendar className="h-3.5 w-3.5 shrink-0" />
+                          <span className="truncate">
                             {formatEventDate(event.date)} · {event.venue.city}
+                          </span>
+                        </p>
+                        {price !== null && (
+                          <p className="mt-1 text-sm font-mono text-muted">
+                            From {formatPrice(price)}
                           </p>
-                          {price !== null && (
-                            <p className="mt-1 text-sm font-mono text-muted">
-                              From {formatPrice(price)}
-                            </p>
-                          )}
-                        </div>
+                        )}
                       </div>
-                      <div className="flex flex-wrap gap-2">
+                      <div className="flex flex-wrap gap-2 sm:ml-auto sm:shrink-0">
                         <Link
                           href={`/organizer/events/${event.slug}/tickets`}
-                          className="inline-flex items-center gap-1 rounded-full border border-white/15 px-3 py-1 text-xs text-muted hover:text-foreground"
+                          className="inline-flex items-center justify-center gap-1.5 rounded-full border border-white/15 px-3 py-1.5 text-xs text-muted transition-colors hover:text-foreground"
                         >
-                          <Users className="h-3 w-3" />
+                          <Users className="h-3.5 w-3.5" />
                           Guests
                         </Link>
                         <Link
                           href={`/organizer/events/${event.slug}/scan`}
-                          className="inline-flex items-center gap-1 rounded-full border border-white/15 px-3 py-1 text-xs text-muted hover:text-foreground"
+                          className="inline-flex items-center justify-center gap-1.5 rounded-full border border-white/15 px-3 py-1.5 text-xs text-muted transition-colors hover:text-foreground"
                         >
-                          <ScanLine className="h-3 w-3" />
+                          <ScanLine className="h-3.5 w-3.5" />
                           Scan
                         </Link>
                       </div>
@@ -186,7 +186,7 @@ export default async function OrganizerDashboardPage() {
           )}
         </section>
 
-        <section className="rounded-2xl border border-white/10 bg-white/[0.02] p-6">
+        <section className="rounded-2xl border border-white/10 bg-white/[0.02] p-6 lg:col-span-2">
           <h2 className="text-lg font-semibold">Quick actions</h2>
           <div className="mt-4 grid gap-3">
             <ActionCard
@@ -249,43 +249,42 @@ export default async function OrganizerDashboardPage() {
           </div>
           <ul className="mt-4 divide-y divide-white/10">
             {stats.pastEvents.map((event) => (
-              <li
-                key={event.slug}
-                className="flex flex-col gap-2 py-4 sm:flex-row sm:items-center sm:justify-between"
-              >
-                <div className="flex gap-3">
+              <li key={event.slug} className="py-4">
+                <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
                   <Link
                     href={`/organizer/events/${event.slug}`}
-                    className="relative h-16 w-24 shrink-0 overflow-hidden rounded-lg border border-white/10 bg-surface"
+                    className="relative h-36 w-full overflow-hidden rounded-xl border border-white/10 bg-surface sm:h-24 sm:w-36 sm:shrink-0"
                   >
                     <Image
                       src={getSafeEventImageUrl(event.image)}
                       alt=""
                       fill
                       className="object-cover"
-                      sizes="96px"
+                      sizes="(max-width: 640px) 112px, 144px"
                     />
                   </Link>
-                  <div>
+                  <div className="min-w-0 flex-1">
                     <Link
                       href={`/organizer/events/${event.slug}`}
-                      className="font-medium hover:underline"
+                      className="line-clamp-2 font-medium hover:underline sm:line-clamp-1"
                     >
                       {event.title}
                     </Link>
                     <p className="mt-1 flex items-center gap-1.5 text-sm text-muted">
-                      <Calendar className="h-3.5 w-3.5" />
-                      {formatEventDate(event.date)} · {event.venue.city}
+                      <Calendar className="h-3.5 w-3.5 shrink-0" />
+                      <span className="truncate">
+                        {formatEventDate(event.date)} · {event.venue.city}
+                      </span>
                     </p>
                   </div>
+                  <Link
+                    href={`/organizer/events/${event.slug}/report`}
+                    className="inline-flex items-center justify-center gap-1.5 self-start rounded-full border border-white/15 px-3 py-1.5 text-xs text-muted transition-colors hover:text-foreground sm:ml-auto sm:shrink-0"
+                  >
+                    <CalendarClock className="h-3.5 w-3.5" />
+                    Report
+                  </Link>
                 </div>
-                <Link
-                  href={`/organizer/events/${event.slug}/report`}
-                  className="inline-flex items-center gap-1 self-start rounded-full border border-white/15 px-3 py-1 text-xs text-muted hover:text-foreground sm:self-auto"
-                >
-                  <CalendarClock className="h-3 w-3" />
-                  Report
-                </Link>
               </li>
             ))}
           </ul>
