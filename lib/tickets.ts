@@ -66,7 +66,7 @@ function mapTicketRow(row: Record<string, unknown>): EventTicket {
 export async function getOrderById(
   orderId: string,
 ): Promise<TicketOrder | null> {
-  const supabase = getSupabaseServer();
+  const supabase = getSupabaseAdmin() ?? getSupabaseServer();
   if (!supabase) return null;
 
   const { data } = await supabase
@@ -97,13 +97,19 @@ export async function getTicketsByOrderIdForOwner(
   const supabase = getSupabaseAdmin() ?? getSupabaseServer();
   if (!supabase) return [];
 
-  await ensureTicketTotpSecretsForOrder(supabase, orderId);
+  try {
+    await ensureTicketTotpSecretsForOrder(supabase, orderId);
+  } catch {
+    // totp_secret column may not exist until migration 0029 is applied.
+  }
 
-  const { data } = await supabase
+  const { data, error } = await supabase
     .from("tickets")
     .select("*")
     .eq("order_id", orderId)
     .order("created_at", { ascending: true });
+
+  if (error) return [];
 
   return (data ?? []).map(mapTicketRowWithSecret);
 }
@@ -384,15 +390,3 @@ export async function getEventSalesReport(
   };
 }
 
-export function parseTicketCodeFromScan(text: string): string {
-  const trimmed = text.trim();
-  if (!trimmed) return "";
-
-  try {
-    const url = new URL(trimmed);
-    const segment = url.pathname.split("/").filter(Boolean).pop();
-    return (segment ?? trimmed).toUpperCase();
-  } catch {
-    return trimmed.toUpperCase();
-  }
-}

@@ -9,19 +9,46 @@ import { TicketIssuingPoller } from "@/components/tickets/TicketIssuingPoller";
 import { ClearBasketOnOrder } from "@/components/basket/ClearBasketOnOrder";
 import { Button } from "@/components/ui/Button";
 import { getFanUser } from "@/lib/auth/session";
-import { canUserAccessOrder } from "@/lib/fan/orders";
-import { getEventBySlug } from "@/lib/data/events";
+import { getEventBySlugFromDb } from "@/lib/data/events";
+import { VENUES } from "@/lib/data/venues";
 import { isSupabaseConfigured } from "@/lib/supabase/server";
-import { getOrderById, getTicketsByOrderIdForOwner } from "@/lib/tickets";
+import { getSupabaseAdmin } from "@/lib/supabase/admin";
+import {
+  getOrderById,
+  getTicketsByOrderIdForOwner,
+} from "@/lib/tickets";
+import { getOrderForTicketPage } from "@/lib/tickets/order-access";
+import { issueTicketsIfMissing } from "@/lib/tickets/fulfill-order";
 import {
   buildTicketWhatsAppMessage,
   getTicketOrderUrl,
 } from "@/lib/tickets/whatsapp";
+import type { Event } from "@/lib/types";
 import { formatPrice } from "@/lib/utils";
 
 type Props = {
   params: Promise<{ orderId: string }>;
 };
+
+function buildFallbackEvent(order: { eventSlug: string; createdAt: string }): Event {
+  return {
+    slug: order.eventSlug,
+    title: order.eventSlug.replace(/-/g, " "),
+    description: "",
+    image: "",
+    date: order.createdAt,
+    doorsTime: order.createdAt,
+    showTime: order.createdAt,
+    category: "music",
+    featured: false,
+    publicationStatus: "approved",
+    artists: [],
+    venue: VENUES[0],
+    tiers: [],
+    tags: [],
+    prohibitedItems: [],
+  };
+}
 
 export async function generateMetadata({ params }: Props) {
   const { orderId } = await params;
@@ -33,27 +60,58 @@ export async function generateMetadata({ params }: Props) {
 
 export default async function TicketConfirmationPage({ params }: Props) {
   const { orderId } = await params;
-  const order = await getOrderById(orderId);
-  if (!order) notFound();
 
-  if (isSupabaseConfigured()) {
-    const user = await getFanUser();
-    if (!user) {
-      redirect(`/login?next=/tickets/${orderId}`);
-    }
-    if (!canUserAccessOrder(user, order)) {
-      notFound();
-    }
+  if (!isSupabaseConfigured()) {
+    notFound();
+  }
+
+  const user = await getFanUser();
+  if (!user) {
+    redirect(`/login?next=/tickets/${orderId}`);
+  }
+
+  const order = await getOrderForTicketPage(orderId, user);
+  if (!order) {
+    return (
+      <div className="mx-auto max-w-lg px-4 py-24 text-center">
+        <h1 className="text-2xl font-bold">Order not found</h1>
+        <p className="mt-3 text-sm text-muted">
+          We couldn&apos;t find this order on your account. Sign in with the
+          email you used at checkout, or check{" "}
+          <Link href="/account" className="text-foreground hover:underline">
+            My tickets
+          </Link>
+          .
+        </p>
+        <div className="mt-8 flex flex-wrap justify-center gap-3">
+          <Button href="/account">My tickets</Button>
+          <Button href="/help" variant="secondary">
+            Get help
+          </Button>
+        </div>
+      </div>
+    );
   }
 
   if (order.status === "pending_payment") {
     redirect(`/payments/payfast/complete?orderId=${orderId}`);
   }
 
-  const [event, tickets] = await Promise.all([
-    getEventBySlug(order.eventSlug),
+  const supabase = getSupabaseAdmin();
+  let issueError: string | null = null;
+  if (supabase) {
+    const issued = await issueTicketsIfMissing(supabase, orderId);
+    if (!issued.ok) {
+      issueError = issued.error;
+    }
+  }
+
+  const [eventFromDb, tickets] = await Promise.all([
+    getEventBySlugFromDb(order.eventSlug),
     getTicketsByOrderIdForOwner(orderId),
   ]);
+
+  const event = eventFromDb ?? buildFallbackEvent(order);
 
   if (tickets.length === 0) {
     return (
@@ -64,6 +122,13 @@ export default async function TicketConfirmationPage({ params }: Props) {
           Payment confirmed — your live entry QR tickets are being prepared.
           This usually takes a few seconds.
         </p>
+        {issueError ? (
+          <p className="mt-4 rounded-xl border border-amber-500/30 bg-amber-500/10 px-4 py-3 text-sm text-amber-100">
+            {issueError.includes("0029")
+              ? "Ticket setup is incomplete on the server. The organizer needs to run database migration 0029_rotating_ticket_qr.sql in Supabase."
+              : issueError}
+          </p>
+        ) : null}
         <div className="mt-8 flex flex-wrap justify-center gap-3">
           <Button href={`/tickets/${orderId}`}>Refresh</Button>
           <Button href="/account" variant="secondary">
@@ -73,8 +138,6 @@ export default async function TicketConfirmationPage({ params }: Props) {
       </div>
     );
   }
-
-  if (!event) notFound();
 
   const orderUrl = getTicketOrderUrl(orderId);
   const whatsAppMessage = buildTicketWhatsAppMessage({

@@ -16,7 +16,7 @@ import {
   getRecentCheckInTickets,
   toOrganizerTicketDetail,
 } from "@/lib/scanner/guest-search";
-import { parseTicketCodeFromScan } from "@/lib/tickets";
+import { parseTicketCodeFromScan } from "@/lib/tickets/rotating-qr";
 import type { EventTicketSummary, EventTicketWithBuyer } from "@/lib/types";
 
 type DoorScannerProps = {

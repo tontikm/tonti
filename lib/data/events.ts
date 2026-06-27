@@ -270,6 +270,33 @@ export async function getEventBySlug(slug: string): Promise<Event | undefined> {
   return events.find((e) => e.slug === slug);
 }
 
+/** Load one event by slug from Supabase (for ticket/order pages). */
+export async function getEventBySlugFromDb(
+  slug: string,
+): Promise<Event | undefined> {
+  const supabase = getSupabaseServer();
+  if (!supabase) {
+    return getEventBySlug(slug);
+  }
+
+  for (const select of EVENT_SELECT_ATTEMPTS) {
+    const { data, error } = await supabase
+      .from("events")
+      .select(select)
+      .eq("slug", slug)
+      .maybeSingle();
+
+    if (!error && data) {
+      return mapEventRow(data as unknown as EventRow);
+    }
+    if (error && !isMissingColumnError(error)) {
+      break;
+    }
+  }
+
+  return getEventBySlug(slug);
+}
+
 async function filterPubliclyVisibleEvents(events: Event[]): Promise<Event[]> {
   const approvedOrganizerIds = await getApprovedOrganizerIds();
   return events.filter(

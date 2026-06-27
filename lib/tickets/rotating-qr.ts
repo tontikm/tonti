@@ -118,3 +118,10 @@ export function maskTicketCode(code: string): string {
   if (code.length <= 8) return code;
   return `${code.slice(0, 5)}${"•".repeat(Math.min(8, code.length - 5))}`;
 }
+
+export function parseTicketCodeFromScan(text: string): string {
+  const payload = parseScannedTicketPayload(text);
+  const normalized = payload.code.trim().toUpperCase();
+  if (normalized.length < 8 || normalized.length > 48) return "";
+  return normalized;
+}

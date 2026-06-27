@@ -94,3 +94,45 @@ export async function fulfillTicketOrder(
 
   return { ok: true };
 }
+
+export async function issueTicketsIfMissing(
+  supabase: SupabaseClient,
+  orderId: string,
+): Promise<{ ok: true } | { ok: false; error: string }> {
+  const { count } = await supabase
+    .from("tickets")
+    .select("id", { count: "exact", head: true })
+    .eq("order_id", orderId);
+
+  if (count && count > 0) {
+    return { ok: true };
+  }
+
+  const { data: order } = await supabase
+    .from("orders")
+    .select("event_slug, buyer_name, status, selections")
+    .eq("id", orderId)
+    .maybeSingle();
+
+  if (!order) {
+    return { ok: false, error: "Order not found." };
+  }
+
+  if (order.status !== "confirmed") {
+    return { ok: false, error: "Payment is still processing." };
+  }
+
+  const lineItems = (order.selections ?? []) as LineItem[];
+  if (!lineItems.length) {
+    return { ok: false, error: "Order is missing ticket selections." };
+  }
+
+  return fulfillTicketOrder(
+    supabase,
+    orderId,
+    order.event_slug as string,
+    order.buyer_name as string,
+    lineItems,
+    { confirmOrder: false },
+  );
+}
