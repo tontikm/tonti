@@ -1,4 +1,5 @@
 import { randomBytes } from "crypto";
+import type { SupabaseClient } from "@supabase/supabase-js";
 import type {
   EventSalesReport,
   EventTicket,
@@ -93,8 +94,10 @@ function mapTicketRowWithSecret(
 export async function getTicketsByOrderIdForOwner(
   orderId: string,
 ): Promise<EventTicketWithSecret[]> {
-  const supabase = getSupabaseAdmin();
+  const supabase = getSupabaseAdmin() ?? getSupabaseServer();
   if (!supabase) return [];
+
+  await ensureTicketTotpSecretsForOrder(supabase, orderId);
 
   const { data } = await supabase
     .from("tickets")
@@ -102,9 +105,29 @@ export async function getTicketsByOrderIdForOwner(
     .eq("order_id", orderId)
     .order("created_at", { ascending: true });
 
-  return (data ?? [])
-    .map(mapTicketRowWithSecret)
-    .filter((ticket) => Boolean(ticket.totpSecret));
+  return (data ?? []).map(mapTicketRowWithSecret);
+}
+
+async function ensureTicketTotpSecretsForOrder(
+  supabase: SupabaseClient,
+  orderId: string,
+): Promise<void> {
+  const { data: tickets } = await supabase
+    .from("tickets")
+    .select("id, totp_secret")
+    .eq("order_id", orderId);
+
+  if (!tickets?.length) return;
+
+  for (const row of tickets) {
+    const secret = row.totp_secret as string | null;
+    if (secret?.trim()) continue;
+
+    await supabase
+      .from("tickets")
+      .update({ totp_secret: randomBytes(20).toString("base64") })
+      .eq("id", row.id as string);
+  }
 }
 
 export async function getTicketsByOrderId(

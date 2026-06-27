@@ -5,6 +5,7 @@ import { TicketEventHero } from "@/components/tickets/TicketEventHero";
 import { TicketPassCard } from "@/components/tickets/TicketPassCard";
 import { TicketWhatsAppActions } from "@/components/tickets/TicketWhatsAppActions";
 import { SuccessConfetti } from "@/components/tickets/SuccessConfetti";
+import { TicketIssuingPoller } from "@/components/tickets/TicketIssuingPoller";
 import { ClearBasketOnOrder } from "@/components/basket/ClearBasketOnOrder";
 import { Button } from "@/components/ui/Button";
 import { getFanUser } from "@/lib/auth/session";
@@ -45,12 +46,35 @@ export default async function TicketConfirmationPage({ params }: Props) {
     }
   }
 
+  if (order.status === "pending_payment") {
+    redirect(`/payments/payfast/complete?orderId=${orderId}`);
+  }
+
   const [event, tickets] = await Promise.all([
     getEventBySlug(order.eventSlug),
     getTicketsByOrderIdForOwner(orderId),
   ]);
 
-  if (!event || tickets.length === 0) notFound();
+  if (tickets.length === 0) {
+    return (
+      <div className="mx-auto max-w-lg px-4 py-24 text-center">
+        <TicketIssuingPoller orderId={orderId} />
+        <h1 className="text-2xl font-bold">Issuing your tickets</h1>
+        <p className="mt-3 text-sm text-muted">
+          Payment confirmed — your live entry QR tickets are being prepared.
+          This usually takes a few seconds.
+        </p>
+        <div className="mt-8 flex flex-wrap justify-center gap-3">
+          <Button href={`/tickets/${orderId}`}>Refresh</Button>
+          <Button href="/account" variant="secondary">
+            My tickets
+          </Button>
+        </div>
+      </div>
+    );
+  }
+
+  if (!event) notFound();
 
   const orderUrl = getTicketOrderUrl(orderId);
   const whatsAppMessage = buildTicketWhatsAppMessage({
