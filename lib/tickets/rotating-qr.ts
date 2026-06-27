@@ -4,9 +4,13 @@ export const ROTATING_QR_STEP_SECONDS = 30;
 export const ROTATING_QR_DIGITS = 6;
 export const ROTATING_QR_EPOCH_TOLERANCE = 30;
 
+export const TICKET_CODE_PATTERN = /^TNTI-[A-F0-9]{16}$/i;
+export const ROTATING_PAYLOAD_PATTERN = /^TNTI-[A-F0-9]{16}:(\d+)$/i;
+
 export type ScannedTicketPayload = {
   code: string;
   otp?: string;
+  parseError?: "unrecognized" | "unreadable_qr";
 };
 
 function secretBytes(secret: string): Uint8Array {
@@ -55,9 +59,21 @@ export function verifyRotatingOtp(secret: string, otp: string): boolean {
   }
 }
 
+function extractTicketCode(candidate: string): string | null {
+  const direct = candidate.trim().toUpperCase();
+  if (TICKET_CODE_PATTERN.test(direct)) return direct;
+
+  const embedded = direct.match(/TNTI-[A-F0-9]{16}/)?.[0];
+  if (embedded && TICKET_CODE_PATTERN.test(embedded)) return embedded;
+
+  return null;
+}
+
 export function parseScannedTicketPayload(text: string): ScannedTicketPayload {
   const trimmed = text.trim();
-  if (!trimmed) return { code: "" };
+  if (!trimmed) {
+    return { code: "", parseError: "unrecognized" };
+  }
 
   let candidate = trimmed;
 
@@ -66,26 +82,55 @@ export function parseScannedTicketPayload(text: string): ScannedTicketPayload {
     const otpParam = url.searchParams.get("otp");
     const segment = url.pathname.split("/").filter(Boolean).pop() ?? "";
     if (otpParam) {
-      return {
-        code: segment.toUpperCase(),
-        otp: otpParam.replace(/\D/g, ""),
-      };
+      const code = extractTicketCode(segment);
+      if (!code) return { code: "", parseError: "unrecognized" };
+      const otp = otpParam.replace(/\D/g, "");
+      if (otp.length === ROTATING_QR_DIGITS) {
+        return { code, otp };
+      }
+      return { code, parseError: "unreadable_qr" };
     }
     candidate = segment || trimmed;
   } catch {
     // Not a URL — use raw scan text.
   }
 
-  const colonIndex = candidate.lastIndexOf(":");
-  if (colonIndex > 0) {
-    const code = candidate.slice(0, colonIndex).trim().toUpperCase();
-    const otp = candidate.slice(colonIndex + 1).replace(/\D/g, "");
+  const rotatingMatch = candidate.match(ROTATING_PAYLOAD_PATTERN);
+  if (rotatingMatch) {
+    const code = extractTicketCode(candidate.slice(0, candidate.lastIndexOf(":")));
+    if (!code) return { code: "", parseError: "unrecognized" };
+    const otp = rotatingMatch[1].replace(/\D/g, "");
     if (otp.length === ROTATING_QR_DIGITS) {
       return { code, otp };
     }
+    return { code, parseError: "unreadable_qr" };
   }
 
-  return { code: candidate.toUpperCase() };
+  const code = extractTicketCode(candidate);
+  if (!code) {
+    return { code: "", parseError: "unrecognized" };
+  }
+
+  if (candidate.includes(":")) {
+    const otp = candidate.slice(candidate.lastIndexOf(":") + 1).replace(/\D/g, "");
+    if (otp.length === ROTATING_QR_DIGITS) {
+      return { code, otp };
+    }
+    return { code, parseError: "unreadable_qr" };
+  }
+
+  return { code };
+}
+
+export function getScanParseErrorMessage(text: string): string | null {
+  const payload = parseScannedTicketPayload(text);
+  if (payload.parseError === "unreadable_qr") {
+    return "QR unreadable — brighten screen and hold steady.";
+  }
+  if (payload.parseError === "unrecognized" || !payload.code) {
+    return "Unrecognized QR — ask the guest to open their live ticket screen.";
+  }
+  return null;
 }
 
 export function validateRotatingOtpForCheckIn(
@@ -121,7 +166,6 @@ export function maskTicketCode(code: string): string {
 
 export function parseTicketCodeFromScan(text: string): string {
   const payload = parseScannedTicketPayload(text);
-  const normalized = payload.code.trim().toUpperCase();
-  if (normalized.length < 8 || normalized.length > 48) return "";
-  return normalized;
+  if (!payload.code || !TICKET_CODE_PATTERN.test(payload.code)) return "";
+  return payload.code;
 }

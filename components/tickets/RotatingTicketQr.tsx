@@ -14,11 +14,27 @@ type RotatingTicketQrProps = {
   size?: number;
 };
 
+function useResponsiveQrSize(defaultSize: number): number {
+  const [size, setSize] = useState(defaultSize);
+
+  useEffect(() => {
+    const update = () => {
+      setSize(window.innerWidth < 640 ? 248 : defaultSize);
+    };
+    update();
+    window.addEventListener("resize", update);
+    return () => window.removeEventListener("resize", update);
+  }, [defaultSize]);
+
+  return size;
+}
+
 export function RotatingTicketQr({
   code,
   totpSecret,
-  size = 168,
+  size: sizeProp = 220,
 }: RotatingTicketQrProps) {
+  const size = useResponsiveQrSize(sizeProp);
   const [secondsLeft, setSecondsLeft] = useState(getSecondsUntilNextRotatingQr);
   const [qrMarkup, setQrMarkup] = useState("");
 
@@ -40,8 +56,9 @@ export function RotatingTicketQr({
     async function renderQr() {
       const svg = await QRCode.toString(payload, {
         type: "svg",
-        margin: 1,
+        margin: 2,
         width: size,
+        errorCorrectionLevel: "L",
         color: {
           dark: "#000000",
           light: "#FFFFFF",

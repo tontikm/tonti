@@ -16,8 +16,13 @@ import {
   getRecentCheckInTickets,
   toOrganizerTicketDetail,
 } from "@/lib/scanner/guest-search";
-import { parseTicketCodeFromScan } from "@/lib/tickets/rotating-qr";
+import {
+  getScanParseErrorMessage,
+  parseTicketCodeFromScan,
+} from "@/lib/tickets/rotating-qr";
 import type { EventTicketSummary, EventTicketWithBuyer } from "@/lib/types";
+
+const SCAN_THROTTLE_MS = 2000;
 
 type DoorScannerProps = {
   eventSlug: string;
@@ -42,6 +47,7 @@ export function DoorScanner({
   const [inputMode, setInputMode] = useState<"camera" | "manual">("camera");
   const [manualCode, setManualCode] = useState("");
   const [feedback, setFeedback] = useState<ScanFeedback | null>(null);
+  const [checking, setChecking] = useState(false);
   const [cameraError, setCameraError] = useState<string | null>(null);
   const [checkedInCount, setCheckedInCount] = useState(summary.checkedIn);
   const [recentCheckIns, setRecentCheckIns] = useState<OrganizerTicketDetail[]>(
@@ -53,9 +59,19 @@ export function DoorScanner({
   const [pending, startTransition] = useTransition();
   const scannerRef = useRef<{ stop: () => Promise<void> } | null>(null);
   const processingRef = useRef(false);
-  const lastScannedCodeRef = useRef<string | null>(null);
+  const lastScanRef = useRef<{ raw: string; at: number } | null>(null);
   const manualInputRef = useRef<HTMLInputElement>(null);
   const prefilled = searchParams.get("code");
+
+  function isThrottled(raw: string): boolean {
+    const last = lastScanRef.current;
+    if (!last || last.raw !== raw) return false;
+    return Date.now() - last.at < SCAN_THROTTLE_MS;
+  }
+
+  function markScanned(raw: string) {
+    lastScanRef.current = { raw, at: Date.now() };
+  }
 
   useEffect(() => {
     setCheckedInCount(summary.checkedIn);
@@ -72,19 +88,42 @@ export function DoorScanner({
 
   const runCheckIn = useCallback(
     (rawCode: string) => {
-      const code = parseTicketCodeFromScan(rawCode);
-      if (!code || processingRef.current) return;
+      const trimmed = rawCode.trim();
+      if (!trimmed) return;
 
-      if (feedback?.scannedCode === code) return;
-      if (lastScannedCodeRef.current === code && feedback) return;
+      const parseError = getScanParseErrorMessage(trimmed);
+      if (parseError) {
+        if (!isThrottled(trimmed)) {
+          markScanned(trimmed);
+          setFeedback({
+            ok: false,
+            error: parseError,
+            scannedCode:
+              parseTicketCodeFromScan(trimmed) || trimmed.slice(0, 48),
+          });
+        }
+        return;
+      }
 
+      const code = parseTicketCodeFromScan(trimmed);
+      if (!code) return;
+
+      if (isThrottled(trimmed)) return;
+
+      if (processingRef.current) {
+        setChecking(true);
+        return;
+      }
+
+      markScanned(trimmed);
       processingRef.current = true;
-      lastScannedCodeRef.current = code;
+      setChecking(true);
 
       startTransition(async () => {
-        const result = await checkInEventTicket(rawCode, eventSlug);
+        const result = await checkInEventTicket(trimmed, eventSlug);
         setFeedback({ ...result, scannedCode: code });
         processingRef.current = false;
+        setChecking(false);
         notifyCheckInResult(result.ok);
 
         if (result.ok) {
@@ -103,7 +142,7 @@ export function DoorScanner({
         router.refresh();
       });
     },
-    [eventSlug, feedback, isScanOnly, router],
+    [eventSlug, isScanOnly, router],
   );
 
   useEffect(() => {
@@ -125,10 +164,15 @@ export function DoorScanner({
     async function startScanner() {
       setCameraError(null);
       try {
-        const { Html5Qrcode } = await import("html5-qrcode");
+        const { Html5Qrcode, Html5QrcodeSupportedFormats } =
+          await import("html5-qrcode");
         if (cancelled) return;
 
-        const scanner = new Html5Qrcode("door-scanner-viewport");
+        const scanner = new Html5Qrcode("door-scanner-viewport", {
+          verbose: false,
+          formatsToSupport: [Html5QrcodeSupportedFormats.QR_CODE],
+          experimentalFeatures: { useBarCodeDetectorIfSupported: true },
+        });
         scannerRef.current = scanner;
 
         const qrSize =
@@ -138,12 +182,11 @@ export function DoorScanner({
 
         await scanner.start(
           { facingMode: "environment" },
-          { fps: 10, qrbox: { width: qrSize, height: qrSize } },
+          {
+            fps: 8,
+            qrbox: { width: qrSize, height: qrSize },
+          },
           (decoded) => {
-            if (processingRef.current) return;
-            const code = parseTicketCodeFromScan(decoded);
-            if (!code) return;
-            if (lastScannedCodeRef.current === code) return;
             runCheckIn(decoded);
           },
           () => undefined,
@@ -173,12 +216,20 @@ export function DoorScanner({
   function clearFeedback() {
     setFeedback(null);
     setManualCode("");
+    setChecking(false);
     processingRef.current = false;
-    lastScannedCodeRef.current = null;
+    lastScanRef.current = null;
 
     if (inputMode === "manual") {
       window.setTimeout(() => manualInputRef.current?.focus(), 0);
     }
+  }
+
+  function resetScannerState() {
+    setFeedback(null);
+    setChecking(false);
+    processingRef.current = false;
+    lastScanRef.current = null;
   }
 
   const progress =
@@ -226,8 +277,7 @@ export function DoorScanner({
         <button
           type="button"
           onClick={() => {
-            setFeedback(null);
-            lastScannedCodeRef.current = null;
+            resetScannerState();
             setInputMode("camera");
           }}
           className={`flex flex-1 items-center justify-center gap-2 rounded-full px-4 py-2 text-sm font-medium transition-colors ${
@@ -242,8 +292,7 @@ export function DoorScanner({
         <button
           type="button"
           onClick={() => {
-            setFeedback(null);
-            lastScannedCodeRef.current = null;
+            resetScannerState();
             setInputMode("manual");
           }}
           className={`flex flex-1 items-center justify-center gap-2 rounded-full px-4 py-2 text-sm font-medium transition-colors ${
@@ -266,6 +315,11 @@ export function DoorScanner({
           {cameraError && (
             <p className="px-4 py-3 text-sm text-amber-400">{cameraError}</p>
           )}
+          {checking && (
+            <p className="px-4 py-2 text-center text-sm text-emerald-300">
+              Checking ticket…
+            </p>
+          )}
           <p className="px-4 pb-4 text-center text-xs text-muted">
             Point at the guest&apos;s live QR (refreshes every 30s) for {eventTitle}
           </p>
@@ -283,7 +337,7 @@ export function DoorScanner({
               id="ticketCode"
               value={manualCode}
               onChange={(e) => setManualCode(e.target.value.toUpperCase())}
-              placeholder="TNTI-ABC123-DEF456"
+              placeholder="TNTI-ABC123DEF456"
               className="w-full rounded-xl border border-border bg-surface px-4 py-3 font-mono text-sm uppercase tracking-wide focus:border-foreground/40 focus:outline-none"
               autoComplete="off"
               autoFocus
