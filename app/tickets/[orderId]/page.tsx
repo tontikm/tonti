@@ -11,7 +11,7 @@ import { getFanUser } from "@/lib/auth/session";
 import { canUserAccessOrder } from "@/lib/fan/orders";
 import { getEventBySlug } from "@/lib/data/events";
 import { isSupabaseConfigured } from "@/lib/supabase/server";
-import { getOrderById, getTicketsByOrderId } from "@/lib/tickets";
+import { getOrderById, getTicketsByOrderIdForOwner } from "@/lib/tickets";
 import {
   buildTicketWhatsAppMessage,
   getTicketOrderUrl,
@@ -47,7 +47,7 @@ export default async function TicketConfirmationPage({ params }: Props) {
 
   const [event, tickets] = await Promise.all([
     getEventBySlug(order.eventSlug),
-    getTicketsByOrderId(orderId),
+    getTicketsByOrderIdForOwner(orderId),
   ]);
 
   if (!event || tickets.length === 0) notFound();
@@ -72,9 +72,9 @@ export default async function TicketConfirmationPage({ params }: Props) {
               You&apos;re on the list
             </h1>
             <p className="mt-3 text-muted">
-              Show your QR code at the door for{" "}
+              Show your live QR at the door for{" "}
               <span className="font-medium text-foreground">{event.title}</span>
-              .
+              . It refreshes every 30 seconds.
             </p>
             <p className="mt-4 text-lg font-semibold text-emerald-100">
               {order.ticketCount} ticket{order.ticketCount !== 1 ? "s" : ""} ·{" "}
@@ -106,6 +106,7 @@ export default async function TicketConfirmationPage({ params }: Props) {
             <TicketPassCard
               key={ticket.id}
               ticket={ticket}
+              totpSecret={ticket.totpSecret}
               index={index}
               total={tickets.length}
               eventImage={event.image}

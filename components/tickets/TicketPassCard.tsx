@@ -1,7 +1,11 @@
+"use client";
+
+import { useState } from "react";
 import Image from "next/image";
 import type { EventCategory, EventTicket } from "@/lib/types";
-import { TicketQr } from "@/components/tickets/TicketQr";
+import { RotatingTicketQr } from "@/components/tickets/RotatingTicketQr";
 import { getSafeEventImageUrl } from "@/lib/images";
+import { maskTicketCode } from "@/lib/tickets/rotating-qr";
 import { BRAND_LOGO_HEIGHT, BRAND_LOGO_SRC, BRAND_LOGO_WIDTH, BRAND_NAME } from "@/lib/site";
 
 const ACCENT_COLORS: Record<EventCategory, string> = {
@@ -13,6 +17,7 @@ const ACCENT_COLORS: Record<EventCategory, string> = {
 
 type TicketPassCardProps = {
   ticket: EventTicket;
+  totpSecret: string;
   index: number;
   total: number;
   eventImage: string;
@@ -29,6 +34,7 @@ function statusLabel(status: EventTicket["status"]): string | null {
 
 export function TicketPassCard({
   ticket,
+  totpSecret,
   index,
   total,
   eventImage,
@@ -38,6 +44,8 @@ export function TicketPassCard({
 }: TicketPassCardProps) {
   const accent = ACCENT_COLORS[category];
   const status = statusLabel(ticket.status);
+  const [showCode, setShowCode] = useState(false);
+  const canShowLiveQr = ticket.status === "valid" && Boolean(totpSecret);
 
   return (
     <div
@@ -92,8 +100,17 @@ export function TicketPassCard({
             </div>
 
             <p className="mt-3 font-mono text-lg font-semibold tracking-wide">
-              {ticket.code}
+              {showCode ? ticket.code : maskTicketCode(ticket.code)}
             </p>
+            {!showCode && canShowLiveQr ? (
+              <button
+                type="button"
+                onClick={() => setShowCode(true)}
+                className="mt-1 text-xs text-muted underline-offset-2 hover:text-foreground hover:underline"
+              >
+                Show code for manual entry
+              </button>
+            ) : null}
             <p className="mt-1 text-sm text-muted">{ticket.holderName}</p>
             <p className="mt-3 text-xs font-medium uppercase tracking-wider text-muted">
               Ticket {index + 1} of {total}
@@ -102,7 +119,19 @@ export function TicketPassCard({
         </div>
 
         <div className="shrink-0 self-center sm:self-auto">
-          <TicketQr code={ticket.code} size={168} />
+          {canShowLiveQr ? (
+            <RotatingTicketQr
+              code={ticket.code}
+              totpSecret={totpSecret}
+              size={168}
+            />
+          ) : (
+            <p className="max-w-[12rem] text-center text-sm text-muted">
+              {ticket.status === "used"
+                ? "This ticket has already been checked in."
+                : "Live entry QR unavailable."}
+            </p>
+          )}
         </div>
       </div>
     </div>

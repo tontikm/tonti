@@ -2,7 +2,6 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Calendar, MapPin, ShieldCheck, ShieldX } from "lucide-react";
 import { CheckInButton } from "@/components/tickets/CheckInButton";
-import { TicketQr } from "@/components/tickets/TicketQr";
 import { getEventBySlug } from "@/lib/data/events";
 import { getOrganizerByEmail } from "@/lib/organizer/profile";
 import { isOwnOrganizerEvent } from "@/lib/organizer/ownership";
@@ -85,8 +84,17 @@ export default async function TicketVerifyPage({ params }: Props) {
         </div>
       </div>
 
-      <div className="mt-8 flex justify-center">
-        <TicketQr code={ticket.code} size={200} />
+      <div className="mt-8 rounded-2xl border border-border bg-surface p-6 text-center">
+        <p className="text-sm text-muted">
+          Entry uses a live QR that refreshes every 30 seconds. Sign in to your
+          Spotra account to view your ticket QR on the confirmation page.
+        </p>
+        <Link
+          href="/login"
+          className="mt-4 inline-flex text-sm font-medium text-foreground hover:underline"
+        >
+          Sign in to view your ticket
+        </Link>
       </div>
 
       <div className="mt-8 rounded-2xl border border-border bg-surface p-6">

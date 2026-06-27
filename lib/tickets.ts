@@ -8,6 +8,7 @@ import type {
   TicketTier,
 } from "@/lib/types";
 import { getSupabaseServer } from "@/lib/supabase/server";
+import { getSupabaseAdmin } from "@/lib/supabase/admin";
 import { revenueFromDbRow } from "@/lib/payments/order-revenue";
 
 export function getSiteUrl(): string {
@@ -74,6 +75,36 @@ export async function getOrderById(
     .maybeSingle();
 
   return data ? mapOrderRow(data) : null;
+}
+
+export type EventTicketWithSecret = EventTicket & {
+  totpSecret: string;
+};
+
+function mapTicketRowWithSecret(
+  row: Record<string, unknown>,
+): EventTicketWithSecret {
+  return {
+    ...mapTicketRow(row),
+    totpSecret: (row.totp_secret as string) ?? "",
+  };
+}
+
+export async function getTicketsByOrderIdForOwner(
+  orderId: string,
+): Promise<EventTicketWithSecret[]> {
+  const supabase = getSupabaseAdmin();
+  if (!supabase) return [];
+
+  const { data } = await supabase
+    .from("tickets")
+    .select("*")
+    .eq("order_id", orderId)
+    .order("created_at", { ascending: true });
+
+  return (data ?? [])
+    .map(mapTicketRowWithSecret)
+    .filter((ticket) => Boolean(ticket.totpSecret));
 }
 
 export async function getTicketsByOrderId(

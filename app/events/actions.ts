@@ -40,8 +40,12 @@ import {
 import {
   eventSlugSchema,
   promoPreviewInputSchema,
-  ticketCodeSchema,
 } from "@/lib/validation/schemas";
+import {
+  loadTicketForCheckIn,
+  parseCheckInScan,
+  validateTicketOtpForCheckIn,
+} from "@/lib/tickets/check-in";
 
 export type ClaimState = {
   error?: string;
@@ -442,7 +446,7 @@ export async function claimTickets(
   redirect(`/tickets/${order.id}`);
 }
 
-export async function checkInTicket(code: string): Promise<{
+export async function checkInTicket(rawScan: string): Promise<{
   ok: boolean;
   error?: string;
 }> {
@@ -451,21 +455,20 @@ export async function checkInTicket(code: string): Promise<{
     return { ok: false, error: "Supabase is not configured." };
   }
 
-  const parsed = ticketCodeSchema.safeParse(code);
-  if (!parsed.success) {
+  const { code: normalized, otp } = parseCheckInScan(rawScan);
+  if (!normalized) {
     return { ok: false, error: "Ticket not found." };
   }
-  const normalized = parsed.data;
 
-  const { data: existing } = await supabase
-    .from("tickets")
-    .select("status, event_slug")
-    .eq("code", normalized)
-    .maybeSingle();
+  const ticket = await loadTicketForCheckIn(supabase, normalized);
+  if (!ticket) return { ok: false, error: "Ticket not found." };
 
-  if (!existing) return { ok: false, error: "Ticket not found." };
+  const otpValidation = validateTicketOtpForCheckIn(ticket, otp);
+  if (!otpValidation.ok) {
+    return { ok: false, error: otpValidation.error };
+  }
 
-  const eventSlug = existing.event_slug as string;
+  const eventSlug = ticket.event_slug;
   const scanAccess = await requireScanAccess(eventSlug);
   if ("error" in scanAccess) {
     return { ok: false, error: scanAccess.error };
@@ -476,10 +479,10 @@ export async function checkInTicket(code: string): Promise<{
     return { ok: false, error: rateLimit.error };
   }
 
-  if (existing.status === "used") {
+  if (ticket.status === "used") {
     return { ok: false, error: "Already checked in." };
   }
-  if (existing.status !== "valid") {
+  if (ticket.status !== "valid") {
     return { ok: false, error: "Ticket is not valid." };
   }
 

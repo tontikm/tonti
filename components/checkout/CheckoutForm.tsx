@@ -85,8 +85,8 @@ export function CheckoutForm({
       <section className="rounded-2xl border border-white/10 bg-white/[0.02] p-6">
         <h2 className="text-lg font-semibold">Your details</h2>
         <p className="mt-1 text-sm text-muted">
-          Signed in as {user.email}. QR tickets are issued to this name and
-          email after you confirm.
+          Signed in as {user.email}. Live entry QR tickets are issued to this
+          name and email after you confirm.
         </p>
 
         <div className="mt-6 space-y-4">
@@ -181,12 +181,12 @@ export function CheckoutForm({
         {isFree ? (
           <p className="mt-2 text-sm text-muted">
             This order is free. No payment step. Confirm below to receive your
-            QR tickets instantly.
+            live entry QR tickets instantly (refreshes every 30 seconds).
           </p>
         ) : payfastEnabled ? (
           <p className="mt-2 text-sm text-muted">
-            You&apos;ll be redirected to Payfast to pay securely. QR tickets are
-            issued once payment is confirmed.
+            You&apos;ll be redirected to Payfast to pay securely. Live entry QR
+            tickets are issued once payment is confirmed.
           </p>
         ) : (
           <div className="mt-2 space-y-2 text-sm text-muted">

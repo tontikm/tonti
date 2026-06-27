@@ -50,7 +50,12 @@ import {
   parseLoginForm,
   parseNewPasswordForm,
 } from "@/lib/validation/parse";
-import { eventSlugSchema, ticketCodeSchema } from "@/lib/validation/schemas";
+import {
+  loadTicketForCheckIn,
+  parseCheckInScan,
+  validateTicketOtpForCheckIn,
+} from "@/lib/tickets/check-in";
+import { eventSlugSchema } from "@/lib/validation/schemas";
 import {
   requestOrganizerPasswordReset,
   resetOrganizerPassword,
@@ -1325,7 +1330,7 @@ function mapCheckInTicket(
 }
 
 export async function checkInEventTicket(
-  code: string,
+  rawScan: string,
   eventSlug: string,
 ): Promise<CheckInResult> {
   const slugResult = eventSlugSchema.safeParse(eventSlug);
@@ -1348,20 +1353,19 @@ export async function checkInEventTicket(
     return { ok: false, error: "Supabase is not configured." };
   }
 
-  const parsedCode = ticketCodeSchema.safeParse(code);
-  if (!parsedCode.success) {
+  const { code: normalized, otp } = parseCheckInScan(rawScan);
+  if (!normalized) {
     return { ok: false, error: "Ticket not found." };
   }
-  const normalized = parsedCode.data;
 
-  const { data: ticket } = await supabase
-    .from("tickets")
-    .select("*")
-    .eq("code", normalized)
-    .maybeSingle();
-
+  const ticket = await loadTicketForCheckIn(supabase, normalized);
   if (!ticket) {
     return { ok: false, error: "Ticket not found." };
+  }
+
+  const otpValidation = validateTicketOtpForCheckIn(ticket, otp);
+  if (!otpValidation.ok) {
+    return { ok: false, error: otpValidation.error };
   }
 
   const { data: order } = await supabase
@@ -1385,7 +1389,7 @@ export async function checkInEventTicket(
         ticket,
         buyerName,
         buyerEmail,
-        (ticket.checked_in_at as string) ?? undefined,
+        ticket.checked_in_at ?? undefined,
       ),
     };
   }

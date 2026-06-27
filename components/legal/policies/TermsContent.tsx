@@ -33,8 +33,9 @@ export function TermsContent() {
             availability at the time of checkout.
           </li>
           <li>
-            QR tickets are personal. Do not share codes publicly. {BRAND_NAME} is not
-            responsible for loss arising from shared or duplicated codes.
+            Entry QR codes are live and refresh every 30 seconds. Do not share
+            codes or screenshots publicly. {BRAND_NAME} is not responsible for
+            loss arising from shared or duplicated codes.
           </li>
           <li>
             Door entry is subject to venue rules, age restrictions, and valid ID

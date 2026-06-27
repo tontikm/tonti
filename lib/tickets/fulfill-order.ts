@@ -1,7 +1,8 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
+import { randomBytes } from "crypto";
 import { generateTicketCode } from "@/lib/tickets";
 
-type LineItem = {
+export type LineItem = {
   tierId: string;
   tierName: string;
   qty: number;
@@ -24,6 +25,7 @@ function buildLineItemsPayload(
     }
 
     const codes: string[] = [];
+    const secrets: string[] = [];
     const usedCodes = new Set<string>();
 
     for (let i = 0; i < item.qty; i += 1) {
@@ -33,6 +35,7 @@ function buildLineItemsPayload(
       }
       usedCodes.add(code);
       codes.push(code);
+      secrets.push(randomBytes(20).toString("base64"));
     }
 
     payload.push({
@@ -40,6 +43,7 @@ function buildLineItemsPayload(
       tierName: item.tierName,
       qty: item.qty,
       codes,
+      secrets,
     });
   }
 
@@ -77,7 +81,7 @@ export async function fulfillTicketOrder(
       return {
         ok: false,
         error:
-          "Run migration 0026_security_hardening.sql in the Supabase SQL editor.",
+          "Run migrations 0026_security_hardening.sql and 0029_rotating_ticket_qr.sql in the Supabase SQL editor.",
       };
     }
     return { ok: false, error: error.message };
@@ -90,5 +94,3 @@ export async function fulfillTicketOrder(
 
   return { ok: true };
 }
-
-export type { LineItem };

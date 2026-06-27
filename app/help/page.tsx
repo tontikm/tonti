@@ -28,9 +28,10 @@ export default function HelpPage() {
         </p>
         <h3>Where is my QR ticket?</h3>
         <p>
-          After a successful RSVP you are redirected to your ticket page. Save the
-          link or screenshot your QR codes. You can also open your ticket from
-          the verification link encoded in each QR.
+          After a successful RSVP you are redirected to your ticket page. Sign in
+          to view your live entry QR — it refreshes every 30 seconds, so
+          screenshots won&apos;t work at the door. Keep your phone charged and
+          open the ticket page when you arrive.
         </p>
         <h3>Can I get a refund?</h3>
         <p>
@@ -55,8 +56,8 @@ export default function HelpPage() {
         <h3>How do I check in guests at the door?</h3>
         <p>
           From your event in the dashboard, open <strong>Tickets</strong> or{" "}
-          <strong>Door scanner</strong> to scan QR codes or enter ticket codes
-          manually.
+          <strong>Door scanner</strong> to scan each guest&apos;s live QR (it
+          refreshes every 30 seconds) or enter their ticket code manually.
         </p>
       </section>
 

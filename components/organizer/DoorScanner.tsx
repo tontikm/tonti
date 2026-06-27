@@ -82,7 +82,7 @@ export function DoorScanner({
       lastScannedCodeRef.current = code;
 
       startTransition(async () => {
-        const result = await checkInEventTicket(code, eventSlug);
+        const result = await checkInEventTicket(rawCode, eventSlug);
         setFeedback({ ...result, scannedCode: code });
         processingRef.current = false;
         notifyCheckInResult(result.ok);
@@ -267,7 +267,7 @@ export function DoorScanner({
             <p className="px-4 py-3 text-sm text-amber-400">{cameraError}</p>
           )}
           <p className="px-4 pb-4 text-center text-xs text-muted">
-            Point at a Spotra QR code for {eventTitle}
+            Point at the guest&apos;s live QR (refreshes every 30s) for {eventTitle}
           </p>
         </div>
       )}
