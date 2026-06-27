@@ -77,22 +77,26 @@ export function parseScannedTicketPayload(text: string): ScannedTicketPayload {
 
   let candidate = trimmed;
 
-  try {
-    const url = new URL(trimmed);
-    const otpParam = url.searchParams.get("otp");
-    const segment = url.pathname.split("/").filter(Boolean).pop() ?? "";
-    if (otpParam) {
-      const code = extractTicketCode(segment);
-      if (!code) return { code: "", parseError: "unrecognized" };
-      const otp = otpParam.replace(/\D/g, "");
-      if (otp.length === ROTATING_QR_DIGITS) {
-        return { code, otp };
+  // Only parse http(s) verify links — bare "TNTI-…:123456" is a valid URL-like
+  // string that would otherwise be misread as a custom scheme with OTP as path.
+  if (/^https?:\/\//i.test(trimmed)) {
+    try {
+      const url = new URL(trimmed);
+      const otpParam = url.searchParams.get("otp");
+      const segment = url.pathname.split("/").filter(Boolean).pop() ?? "";
+      if (otpParam) {
+        const code = extractTicketCode(segment);
+        if (!code) return { code: "", parseError: "unrecognized" };
+        const otp = otpParam.replace(/\D/g, "");
+        if (otp.length === ROTATING_QR_DIGITS) {
+          return { code, otp };
+        }
+        return { code, parseError: "unreadable_qr" };
       }
-      return { code, parseError: "unreadable_qr" };
+      candidate = segment || trimmed;
+    } catch {
+      // Fall through to raw payload parsing.
     }
-    candidate = segment || trimmed;
-  } catch {
-    // Not a URL — use raw scan text.
   }
 
   const rotatingMatch = candidate.match(ROTATING_PAYLOAD_PATTERN);
