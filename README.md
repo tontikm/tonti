@@ -100,7 +100,8 @@ Run migrations **in order** in the Supabase SQL editor:
 | [`0007_fan_orders.sql`](supabase/migrations/0007_fan_orders.sql) | Fan account order linking |
 | [`0008_organizer_profiles.sql`](supabase/migrations/0008_organizer_profiles.sql) | Organizer profiles |
 | [`0009_orders_buyer_phone.sql`](supabase/migrations/0009_orders_buyer_phone.sql) | WhatsApp opt-in phone |
-| [`0010_orders_service_fee.sql`](supabase/migrations/0010_orders_service_fee.sql) | 3% platform fee tracking |
+| [`0010_orders_service_fee.sql`](supabase/migrations/0010_orders_service_fee.sql) | Platform fee tracking |
+| [`0030_fee_structure.sql`](supabase/migrations/0030_fee_structure.sql) | Booking fee, processing fee, payout verification |
 | [`0011_event_follows.sql`](supabase/migrations/0011_event_follows.sql) | Fan event follows |
 | [`0012_promo_codes.sql`](supabase/migrations/0012_promo_codes.sql) | Promo codes + order discounts |
 | [`0013_event_show_organizer_profile.sql`](supabase/migrations/0013_event_show_organizer_profile.sql) | Opt-in organizer profile on event pages |
@@ -172,10 +173,12 @@ with no online charge.
 
 ## Platform fee
 
-Spotra charges a **3% platform fee on paid tickets** (free RSVPs are excluded). Fans
-pay the listed ticket price; the fee is absorbed by the organizer and stored on each
-order as `service_fee` (see migration `0010_orders_service_fee.sql`). Revenue
-breakdown appears on the organizer event tickets page.
+Spotra charges a **3.5% platform fee on paid tickets** (excl. VAT, free RSVPs excluded),
+deducted from the organizer payout. Fans pay a **R6 booking fee per ticket** at checkout
+on top of the ticket price (e.g. R500 ticket → R506.00). The platform fee is stored on
+each order as `service_fee`; the booking fee as `booking_fee` (see migrations
+`0010_orders_service_fee.sql` and `0030_fee_structure.sql`). Revenue breakdown appears
+on organizer and admin sales reports.
 
 ## Deploy to Vercel
 

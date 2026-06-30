@@ -221,6 +221,7 @@ export async function recordOrganizerPayout(
   const paidAtRaw = String(formData.get("paidAt") ?? "").trim();
   const reference = String(formData.get("reference") ?? "").trim() || null;
   const notes = String(formData.get("notes") ?? "").trim() || null;
+  const eventSlug = String(formData.get("eventSlug") ?? "").trim() || null;
 
   if (!organizerId) {
     return { error: "Missing organizer." };
@@ -244,6 +245,7 @@ export async function recordOrganizerPayout(
     paid_at: paidAt,
     reference,
     notes,
+    event_slug: eventSlug,
   });
 
   if (error) {
@@ -260,6 +262,65 @@ export async function recordOrganizerPayout(
   revalidatePath(`/admin/organizers/${organizerId}`);
 
   return { success: `Recorded payout of R${amount.toFixed(2)}.` };
+}
+
+export async function verifyOrganizerPayout(
+  _prev: AdminActionState,
+  formData: FormData,
+): Promise<AdminActionState> {
+  const session = await requireAdminSession();
+  if ("error" in session) return session;
+
+  const organizerId = String(formData.get("organizerId") ?? "").trim();
+  const verified = formData.get("verified") === "true";
+  const verificationMethod = String(
+    formData.get("verificationMethod") ?? "",
+  ).trim();
+  const verificationNotes =
+    String(formData.get("verificationNotes") ?? "").trim() || null;
+
+  if (!organizerId) {
+    return { error: "Missing organizer." };
+  }
+
+  if (
+    verified &&
+    verificationMethod !== "cipc" &&
+    verificationMethod !== "id_bank_letter"
+  ) {
+    return { error: "Select a verification method." };
+  }
+
+  const supabase = getSupabaseAdmin();
+  if (!supabase) return { error: "Supabase is not configured." };
+
+  const { error } = await supabase
+    .from("organizers")
+    .update({
+      payout_verified_at: verified ? new Date().toISOString() : null,
+      payout_verification_method: verified ? verificationMethod : null,
+      payout_verification_notes: verificationNotes,
+    })
+    .eq("id", organizerId);
+
+  if (error) {
+    if (error.message.includes("payout_verified_at")) {
+      return {
+        error:
+          "Run supabase/migrations/0030_fee_structure.sql in the Supabase SQL editor.",
+      };
+    }
+    return { error: error.message };
+  }
+
+  revalidateAdminPaths();
+  revalidatePath(`/admin/organizers/${organizerId}`);
+
+  return {
+    success: verified
+      ? "Organizer marked as verified for Stage 2 payouts."
+      : "Payout verification removed.",
+  };
 }
 
 async function requireCarouselAdmin() {

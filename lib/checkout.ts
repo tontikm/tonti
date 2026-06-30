@@ -1,4 +1,5 @@
 import type { TicketTier } from "@/lib/types";
+import { computeOrderAmounts } from "@/lib/payments/service-fee";
 import { getTicketsRemaining } from "@/lib/utils";
 
 export const MAX_CHECKOUT_TICKETS = 10;
@@ -15,7 +16,11 @@ export type CartLine = {
 export type CheckoutCart = {
   lines: CartLine[];
   totalTickets: number;
+  /** Face-value ticket subtotal (before booking fee). */
   totalAmount: number;
+  bookingFee: number;
+  /** Ticket subtotal + booking fee. */
+  checkoutTotal: number;
   isFree: boolean;
 };
 
@@ -56,12 +61,18 @@ export function buildCartFromQuantities(
   if (totalTickets > MAX_CHECKOUT_TICKETS) return null;
 
   const totalAmount = lines.reduce((sum, line) => sum + line.lineTotal, 0);
+  const amounts = computeOrderAmounts(
+    lines.map((line) => ({ price: line.price, quantity: line.quantity })),
+    totalTickets,
+  );
 
   return {
     lines,
     totalTickets,
     totalAmount,
-    isFree: totalAmount === 0,
+    bookingFee: amounts.bookingFee,
+    checkoutTotal: amounts.totalAmount,
+    isFree: amounts.totalAmount === 0,
   };
 }
 

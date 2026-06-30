@@ -1,6 +1,10 @@
 import { revalidatePath } from "next/cache";
 import { getSupabaseAdmin } from "@/lib/supabase/admin";
 import { getPayfastMerchantId } from "@/lib/payments/config";
+import {
+  computeProcessingFee,
+  mapPayfastPaymentMethod,
+} from "@/lib/payments/processing-fees";
 import { verifyPayfastItn } from "@/lib/payments/payfast";
 import {
   fulfillTicketOrder,
@@ -104,11 +108,16 @@ export async function POST(request: Request) {
     }
   }
 
+  const processingMethod = mapPayfastPaymentMethod(itn.data.payment_method);
+  const processingFee = computeProcessingFee(orderTotal, processingMethod);
+
   await supabase
     .from("orders")
     .update({
       status: "confirmed",
       payment_reference: itn.data.pf_payment_id ?? null,
+      payment_method: itn.data.payment_method ?? null,
+      processing_fee: processingFee,
     })
     .eq("id", orderId);
 

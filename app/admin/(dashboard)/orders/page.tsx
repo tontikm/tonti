@@ -68,6 +68,7 @@ export default async function AdminOrdersPage({ searchParams }: Props) {
                   subtotalAmount: order.subtotalAmount,
                   totalAmount: order.totalAmount,
                   serviceFee: order.serviceFee,
+                  bookingFee: order.bookingFee,
                 });
                 return (
                   <tr key={order.id} className="bg-surface/20">

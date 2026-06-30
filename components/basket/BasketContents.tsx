@@ -9,6 +9,7 @@ import { getSafeEventImageUrl } from "@/lib/images";
 import { Button } from "@/components/ui/Button";
 import { BasketTimer } from "@/components/basket/BasketTimer";
 import { useBasketCheckout } from "@/components/basket/useBasketCheckout";
+import { BOOKING_FEE_PER_TICKET } from "@/lib/payments/service-fee";
 import { formatPrice } from "@/lib/utils";
 
 type BasketContentsProps = {
@@ -35,7 +36,10 @@ export function BasketContents({
   onClear,
 }: BasketContentsProps) {
   const { goToCheckout } = useBasketCheckout(basket.eventSlug);
-  const totalLabel = cart.isFree ? "Free" : formatPrice(cart.totalAmount);
+  const ticketSubtotal = cart.totalAmount;
+  const bookingFee = cart.bookingFee;
+  const checkoutTotal = cart.checkoutTotal;
+  const totalLabel = cart.isFree ? "Free" : formatPrice(checkoutTotal);
 
   return (
     <div className={compact ? "space-y-4" : "space-y-6"}>
@@ -117,6 +121,21 @@ export function BasketContents({
       </ul>
 
       <BasketTimer className="w-full" />
+
+      {!cart.isFree && bookingFee > 0 ? (
+        <div className="space-y-2 border-t border-white/10 pt-4 text-sm">
+          <div className="flex items-center justify-between text-muted">
+            <span>Tickets</span>
+            <span>{formatPrice(ticketSubtotal)}</span>
+          </div>
+          <div className="flex items-center justify-between text-muted">
+            <span>
+              Booking Fee ({cart.totalTickets} × {formatPrice(BOOKING_FEE_PER_TICKET)})
+            </span>
+            <span>{formatPrice(bookingFee)}</span>
+          </div>
+        </div>
+      ) : null}
 
       <div className="flex items-center justify-between border-t border-white/10 pt-4">
         <span className="font-medium">Total</span>

@@ -5,6 +5,7 @@ export type AdminEventSalesSummary = {
   orderCount: number;
   ticketCount: number;
   grossRevenue: number;
+  ticketRevenue: number;
   platformFee: number;
   organizerNet: number;
 };
@@ -13,6 +14,7 @@ export const EMPTY_EVENT_SALES: AdminEventSalesSummary = {
   orderCount: 0,
   ticketCount: 0,
   grossRevenue: 0,
+  ticketRevenue: 0,
   platformFee: 0,
   organizerNet: 0,
 };
@@ -33,6 +35,9 @@ function accumulateSummary(
     grossRevenue: roundCurrency(
       current.grossRevenue + (patch.grossRevenue ?? 0),
     ),
+    ticketRevenue: roundCurrency(
+      current.ticketRevenue + (patch.ticketRevenue ?? 0),
+    ),
     platformFee: roundCurrency(current.platformFee + (patch.platformFee ?? 0)),
     organizerNet: roundCurrency(
       current.organizerNet + (patch.organizerNet ?? 0),
@@ -51,17 +56,21 @@ export async function getAdminEventSalesSummaries(): Promise<
   const [{ data: orderRows }, { data: ticketRows }] = await Promise.all([
     supabase
       .from("orders")
-      .select("event_slug, subtotal_amount, total_amount, service_fee")
+      .select(
+        "event_slug, subtotal_amount, total_amount, service_fee, booking_fee, discount_amount",
+      )
       .eq("status", "confirmed"),
     supabase.from("tickets").select("event_slug"),
   ]);
 
   for (const row of orderRows ?? []) {
     const slug = row.event_slug as string;
-    const { collected, serviceFee, organizerNet } = revenueFromDbRow(row);
+    const { collected, ticketAmount, serviceFee, organizerNet } =
+      revenueFromDbRow(row);
     accumulateSummary(map, slug, {
       orderCount: 1,
       grossRevenue: collected,
+      ticketRevenue: ticketAmount,
       platformFee: serviceFee,
       organizerNet,
     });

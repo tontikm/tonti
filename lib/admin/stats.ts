@@ -56,7 +56,7 @@ export async function getPlatformDashboardStats(): Promise<PlatformDashboardStat
     supabase.from("orders").select("*", { count: "exact", head: true }),
     supabase
       .from("orders")
-      .select("subtotal_amount, total_amount, service_fee")
+      .select("subtotal_amount, total_amount, service_fee, booking_fee, discount_amount")
       .eq("status", "confirmed"),
   ]);
 

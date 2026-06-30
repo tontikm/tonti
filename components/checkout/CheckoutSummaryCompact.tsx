@@ -15,7 +15,7 @@ export function CheckoutSummaryCompact({
   cart,
   promo,
 }: CheckoutSummaryCompactProps) {
-  const total = promo?.totalAmount ?? cart.totalAmount;
+  const total = promo?.totalAmount ?? cart.checkoutTotal;
   const isFree = total === 0;
   const ticketLabel =
     cart.totalTickets === 1 ? "1 ticket" : `${cart.totalTickets} tickets`;

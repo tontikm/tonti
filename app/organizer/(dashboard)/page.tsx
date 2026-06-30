@@ -14,6 +14,8 @@ import {
 import { OrganizerPageHeader } from "@/components/organizer/OrganizerShell";
 import { Button } from "@/components/ui/Button";
 import { getOrganizerDashboardStats } from "@/lib/organizer/stats";
+import { getOrganizerPayoutSummaries } from "@/lib/admin/payouts";
+import { getVerificationRequirementsCopy } from "@/lib/payments/payout-stages";
 import { getOrganizerByEmail, isProfileComplete } from "@/lib/organizer/profile";
 import { getOrganizerSession } from "@/lib/organizer/session";
 import { isSupabaseAdminConfigured } from "@/lib/supabase/admin";
@@ -44,6 +46,10 @@ export default async function OrganizerDashboardPage() {
     session?.email?.split("@")[0] ||
     "Organizer";
 
+  const payoutSummary = profile?.id
+    ? (await getOrganizerPayoutSummaries()).find((row) => row.id === profile.id)
+    : null;
+
   return (
     <>
       <OrganizerPageHeader
@@ -58,6 +64,21 @@ export default async function OrganizerDashboardPage() {
           </Button>
         }
       />
+
+      {payoutSummary && (
+        <div className="mb-8 rounded-xl border border-violet-500/25 bg-violet-500/10 px-4 py-3 text-sm text-violet-100/90">
+          <p className="font-medium">{payoutSummary.payoutStageLabel}</p>
+          <p className="mt-1 text-muted">
+            {payoutSummary.payoutStage === "stage1"
+              ? "Payouts for your first events are held until T+3 after each event ends, then released in full."
+              : "Up to 50% per event may be withdrawn from 10 days before show date; the balance settles T+3 post-event."}
+            {!payoutSummary.payoutVerified &&
+            payoutSummary.completedPaidEventCount >= 2
+              ? ` Verification is required for early withdrawals: ${getVerificationRequirementsCopy()}`
+              : null}
+          </p>
+        </div>
+      )}
 
       {profileIncomplete && (
         <div className="mb-8 rounded-xl border border-amber-500/30 bg-amber-500/10 px-4 py-3 text-sm text-amber-100/90">

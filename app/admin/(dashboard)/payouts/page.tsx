@@ -3,6 +3,7 @@ import { AdminPageHeader } from "@/components/admin/AdminShell";
 import { ExportPayoutsCsvButton } from "@/components/admin/ExportPayoutsCsvButton";
 import { OrganizerStatusBadge } from "@/components/admin/OrganizerStatusBadge";
 import { getOrganizerPayoutSummaries } from "@/lib/admin/payouts";
+import { formatOrganizerFeePercentLabel } from "@/lib/payments/service-fee";
 import { formatPrice } from "@/lib/utils";
 
 export const metadata = {
@@ -18,6 +19,12 @@ export default async function AdminPayoutsPage() {
     (sum, row) => sum + row.outstanding,
     0,
   );
+  const feeLabel = formatOrganizerFeePercentLabel();
+  const totalWithdrawable = withSales.reduce(
+    (sum, row) => sum + row.withdrawable,
+    0,
+  );
+  const totalHeld = withSales.reduce((sum, row) => sum + row.held, 0);
   const totalPaid = withSales.reduce((sum, row) => sum + row.paidOut, 0);
 
   return (
@@ -28,12 +35,26 @@ export default async function AdminPayoutsPage() {
         action={<ExportPayoutsCsvButton summaries={summaries} />}
       />
 
-      <div className="mb-8 grid gap-4 sm:grid-cols-3">
+      <div className="mb-8 grid gap-4 sm:grid-cols-2 xl:grid-cols-5">
         <div className="rounded-2xl border border-white/10 bg-surface/40 p-5">
           <p className="text-xs font-medium uppercase tracking-wider text-muted">
-            Total owed (gross)
+            Total owed
           </p>
           <p className="mt-2 text-2xl font-bold">{formatPrice(totalOwed)}</p>
+        </div>
+        <div className="rounded-2xl border border-white/10 bg-surface/40 p-5">
+          <p className="text-xs font-medium uppercase tracking-wider text-muted">
+            Withdrawable
+          </p>
+          <p className="mt-2 text-2xl font-bold text-emerald-200">
+            {formatPrice(totalWithdrawable)}
+          </p>
+        </div>
+        <div className="rounded-2xl border border-white/10 bg-surface/40 p-5">
+          <p className="text-xs font-medium uppercase tracking-wider text-muted">
+            Held
+          </p>
+          <p className="mt-2 text-2xl font-bold">{formatPrice(totalHeld)}</p>
         </div>
         <div className="rounded-2xl border border-white/10 bg-surface/40 p-5">
           <p className="text-xs font-medium uppercase tracking-wider text-muted">
@@ -61,8 +82,10 @@ export default async function AdminPayoutsPage() {
                 <th className="px-4 py-3 font-medium">Organizer</th>
                 <th className="px-4 py-3 font-medium">Events</th>
                 <th className="px-4 py-3 font-medium">Collected</th>
-                <th className="px-4 py-3 font-medium">Spotra (3%)</th>
+                <th className="px-4 py-3 font-medium">Spotra ({feeLabel})</th>
                 <th className="px-4 py-3 font-medium">Owed</th>
+                <th className="px-4 py-3 font-medium">Held</th>
+                <th className="px-4 py-3 font-medium">Withdrawable</th>
                 <th className="px-4 py-3 font-medium">Paid</th>
                 <th className="px-4 py-3 font-medium">Outstanding</th>
                 <th className="px-4 py-3 font-medium" />
@@ -85,6 +108,12 @@ export default async function AdminPayoutsPage() {
                   </td>
                   <td className="px-4 py-4 font-mono">
                     {formatPrice(row.organizerOwed)}
+                  </td>
+                  <td className="px-4 py-4 font-mono text-muted">
+                    {formatPrice(row.held)}
+                  </td>
+                  <td className="px-4 py-4 font-mono text-emerald-200/90">
+                    {formatPrice(row.withdrawable)}
                   </td>
                   <td className="px-4 py-4 font-mono text-muted">
                     {formatPrice(row.paidOut)}

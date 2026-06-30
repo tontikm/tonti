@@ -5,6 +5,7 @@ import { OrganizerPageHeader } from "@/components/organizer/OrganizerShell";
 import { ExportGuestListButton } from "@/components/organizer/ExportGuestListButton";
 import { PrintReportButton } from "@/components/organizer/PrintReportButton";
 import { getEventSalesReport, getEventTickets } from "@/lib/tickets";
+import { formatOrganizerFeePercentLabel } from "@/lib/payments/service-fee";
 import { requireOwnEvent } from "@/lib/organizer/require-auth";
 import { isSupabaseAdminConfigured } from "@/lib/supabase/admin";
 import {
@@ -40,6 +41,7 @@ export default async function OrganizerEventReportPage({ params }: Props) {
   ]);
   const status = getEventStatus(event);
   const checkInPct = Math.round(report.checkInRate * 100);
+  const feeLabel = formatOrganizerFeePercentLabel();
 
   return (
     <>
@@ -83,7 +85,7 @@ export default async function OrganizerEventReportPage({ params }: Props) {
 
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
         <ReportStat label="Gross revenue" value={formatPrice(report.grossRevenue)} />
-        <ReportStat label="Platform fee (3%)" value={formatPrice(report.serviceFee)} />
+        <ReportStat label={`Platform fee (${feeLabel})`} value={formatPrice(report.serviceFee)} />
         <ReportStat label="Organizer net" value={formatPrice(report.organizerNet)} />
         <ReportStat
           label="Tickets sold"

@@ -28,6 +28,7 @@ export type TicketOrder = {
   buyerEmail: string;
   subtotalAmount: number;
   serviceFee: number;
+  bookingFee: number;
   totalAmount: number;
   ticketCount: number;
   status: string;

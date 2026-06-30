@@ -6,7 +6,9 @@ import { AdminReportStat } from "@/components/admin/AdminReportStat";
 import { OrganizerStatusBadge } from "@/components/admin/OrganizerStatusBadge";
 import { PrintReportButton } from "@/components/organizer/PrintReportButton";
 import { RecordPayoutForm } from "@/components/admin/RecordPayoutForm";
+import { VerifyOrganizerPayoutForm } from "@/components/admin/VerifyOrganizerPayoutForm";
 import { getOrganizerPayoutDetail } from "@/lib/admin/payouts";
+import { formatOrganizerFeePercentLabel } from "@/lib/payments/service-fee";
 import { formatDateRange, formatPrice } from "@/lib/utils";
 
 type Props = {
@@ -42,6 +44,7 @@ export default async function AdminOrganizerDetailPage({ params }: Props) {
   if (!summary) notFound();
 
   const address = formatAddress(summary);
+  const feeLabel = formatOrganizerFeePercentLabel();
 
   return (
     <>
@@ -65,14 +68,14 @@ export default async function AdminOrganizerDetailPage({ params }: Props) {
         </p>
       </div>
 
-      <div className="mb-8 grid gap-4 sm:grid-cols-2 xl:grid-cols-4 print:grid-cols-4">
+      <div className="mb-8 grid gap-4 sm:grid-cols-2 xl:grid-cols-5 print:grid-cols-5">
         <AdminReportStat
           label="Collected"
           value={formatPrice(summary.collected)}
           sub="Confirmed orders"
         />
         <AdminReportStat
-          label="Spotra fee (3%)"
+          label={`Spotra fee (${feeLabel})`}
           value={formatPrice(summary.platformFee)}
         />
         <AdminReportStat
@@ -80,12 +83,17 @@ export default async function AdminOrganizerDetailPage({ params }: Props) {
           value={formatPrice(summary.organizerOwed)}
         />
         <AdminReportStat
+          label="Withdrawable now"
+          value={formatPrice(summary.withdrawable)}
+          sub={`${formatPrice(summary.held)} held`}
+        />
+        <AdminReportStat
           label="Outstanding"
           value={formatPrice(summary.outstanding)}
           sub={
             summary.paidOut > 0
               ? `${formatPrice(summary.paidOut)} paid out`
-              : undefined
+              : summary.payoutStageLabel
           }
         />
       </div>
@@ -118,8 +126,10 @@ export default async function AdminOrganizerDetailPage({ params }: Props) {
                 <th className="px-4 py-3 font-medium">Event</th>
                 <th className="px-4 py-3 font-medium">Tickets</th>
                 <th className="px-4 py-3 font-medium">Collected</th>
-                <th className="px-4 py-3 font-medium">Spotra (3%)</th>
+                <th className="px-4 py-3 font-medium">Spotra ({feeLabel})</th>
                 <th className="px-4 py-3 font-medium">Owed</th>
+                <th className="px-4 py-3 font-medium">Held</th>
+                <th className="px-4 py-3 font-medium">Withdrawable</th>
                 <th className="px-4 py-3 font-medium" />
               </tr>
             </thead>
@@ -143,6 +153,12 @@ export default async function AdminOrganizerDetailPage({ params }: Props) {
                   </td>
                   <td className="px-4 py-4 font-mono">
                     {formatPrice(event.organizerOwed)}
+                  </td>
+                  <td className="px-4 py-4 font-mono text-muted">
+                    {formatPrice(event.held)}
+                  </td>
+                  <td className="px-4 py-4 font-mono text-emerald-200/90">
+                    {formatPrice(event.withdrawable)}
                   </td>
                   <td className="px-4 py-4 print:hidden">
                     <Link
@@ -168,6 +184,12 @@ export default async function AdminOrganizerDetailPage({ params }: Props) {
                 <td className="px-4 py-3 font-mono">
                   {formatPrice(summary.organizerOwed)}
                 </td>
+                <td className="px-4 py-3 font-mono text-muted">
+                  {formatPrice(summary.held)}
+                </td>
+                <td className="px-4 py-3 font-mono text-emerald-200/90">
+                  {formatPrice(summary.withdrawable)}
+                </td>
                 <td className="px-4 py-3" />
               </tr>
             </tfoot>
@@ -176,10 +198,18 @@ export default async function AdminOrganizerDetailPage({ params }: Props) {
       )}
 
       <div className="mt-10 grid gap-8 lg:grid-cols-2 print:mt-8 print:block">
-        <div className="print:hidden">
+        <div className="space-y-8 print:hidden">
+          <VerifyOrganizerPayoutForm
+            organizerId={summary.id}
+            verified={summary.payoutVerified}
+            verificationMethod={summary.payoutVerificationMethod}
+            verificationNotes={summary.payoutVerificationNotes}
+            stageLabel={summary.payoutStageLabel}
+            completedPaidEventCount={summary.completedPaidEventCount}
+          />
           <RecordPayoutForm
             organizerId={summary.id}
-            outstanding={summary.outstanding}
+            outstanding={summary.withdrawable}
           />
         </div>
 

@@ -170,7 +170,7 @@ Run on phone and desktop against the live URL:
 - [ ] Organizer: login → create event → visible on `/events` **after admin approval**
 - [ ] Admin: sign in at `/admin/login` → approve organizer → event appears publicly
 - [ ] Admin: feature an event on homepage from `/admin/events`
-- [ ] Admin: open event **Sales** from `/admin/events` → verify gross, Spotra fee (3%), and organizer net
+- [ ] Admin: open event **Sales** from `/admin/events` → verify gross, Spotra fee (3.5%), booking fees, and organizer net
 - [ ] Organizer: door scanner → check in → detail card → Dismiss / Scan next
 - [ ] Organizer: tap **Checked in** stat → filtered guest list → **Details** on a row
 - [ ] Organizer: export guest list CSV

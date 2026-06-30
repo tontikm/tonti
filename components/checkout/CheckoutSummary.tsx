@@ -5,6 +5,7 @@ import type { CheckoutCart } from "@/lib/checkout";
 import type { Event } from "@/lib/types";
 import type { PromoPreview } from "@/lib/promo/codes";
 import { getSafeEventImageUrl } from "@/lib/images";
+import { BOOKING_FEE_PER_TICKET } from "@/lib/payments/service-fee";
 import { formatDateRange, formatEventTime, formatPrice } from "@/lib/utils";
 
 type CheckoutSummaryProps = {
@@ -14,15 +15,30 @@ type CheckoutSummaryProps = {
   payfastEnabled?: boolean;
 };
 
+function resolveCheckoutTotals(
+  cart: CheckoutCart,
+  promo?: PromoPreview | null,
+) {
+  const subtotal = promo?.subtotalAmount ?? cart.totalAmount;
+  const ticketAmount = promo?.ticketAmount ?? cart.totalAmount;
+  const bookingFee = promo?.bookingFee ?? cart.bookingFee;
+  const total = promo?.totalAmount ?? cart.checkoutTotal;
+  return { subtotal, ticketAmount, bookingFee, total };
+}
+
 export function CheckoutSummary({
   event,
   cart,
   promo,
   payfastEnabled = false,
 }: CheckoutSummaryProps) {
-  const subtotal = promo?.subtotalAmount ?? cart.totalAmount;
-  const total = promo?.totalAmount ?? cart.totalAmount;
+  const { subtotal, ticketAmount, bookingFee, total } = resolveCheckoutTotals(
+    cart,
+    promo,
+  );
   const isFree = total === 0;
+  const showPromoDiscount = promo && promo.discountAmount > 0;
+
   return (
     <div className="rounded-2xl border border-white/10 bg-white/[0.02] p-6">
       <div className="relative mb-4 aspect-[16/9] overflow-hidden rounded-xl border border-white/10">
@@ -73,12 +89,28 @@ export function CheckoutSummary({
           ))}
         </ul>
 
-        {promo && promo.discountAmount > 0 && (
+        {showPromoDiscount && (
           <div className="mt-4 flex items-center justify-between text-sm text-emerald-300">
             <span>
               Promo <span className="font-mono">{promo.code}</span>
             </span>
             <span>-{formatPrice(promo.discountAmount)}</span>
+          </div>
+        )}
+
+        {!isFree && bookingFee > 0 && (
+          <div className="mt-4 flex items-center justify-between text-sm">
+            <span className="text-muted">
+              Booking Fee ({cart.totalTickets} × {formatPrice(BOOKING_FEE_PER_TICKET)})
+            </span>
+            <span className="font-medium">{formatPrice(bookingFee)}</span>
+          </div>
+        )}
+
+        {showPromoDiscount && ticketAmount !== subtotal && (
+          <div className="mt-2 flex items-center justify-between text-sm text-muted">
+            <span>Tickets after discount</span>
+            <span>{formatPrice(ticketAmount)}</span>
           </div>
         )}
 

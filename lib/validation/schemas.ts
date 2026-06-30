@@ -98,4 +98,5 @@ export const payfastItnSchema = z.object({
   amount_gross: z.string().optional(),
   merchant_id: z.string().optional(),
   pf_payment_id: z.string().optional(),
+  payment_method: z.string().optional(),
 });

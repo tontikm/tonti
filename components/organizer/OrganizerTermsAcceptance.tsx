@@ -55,9 +55,10 @@ export function OrganizerTermsAcceptance({
             refund policy
           </Link>
           . I confirm I have authority to list this event and that the
-          information is accurate. I understand Spotra charges a 3% platform fee
+          information is accurate. I understand Spotra charges a 3.5% platform fee
           per paid ticket (free RSVPs excluded), deducted from my side, not
-          added to the fan&apos;s price.
+          added to the fan&apos;s ticket price. Fans pay a separate R6 booking
+          fee per ticket at checkout.
         </span>
       </label>
     </div>

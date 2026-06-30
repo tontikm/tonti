@@ -8,6 +8,7 @@ import { EventPublicationBadge } from "@/components/admin/EventPublicationBadge"
 import { listAdminEvents, listAdminOrders } from "@/lib/admin/data";
 import { getEventBySlug } from "@/lib/data/events";
 import { organizerNetFromOrder } from "@/lib/payments/order-revenue";
+import { formatOrganizerFeePercentLabel } from "@/lib/payments/service-fee";
 import { getEventSalesReport } from "@/lib/tickets";
 import {
   formatDateRange,
@@ -44,6 +45,7 @@ export default async function AdminEventSalesPage({ params }: Props) {
 
   const status = getEventStatus(event);
   const checkInPct = Math.round(report.checkInRate * 100);
+  const feeLabel = formatOrganizerFeePercentLabel();
 
   return (
     <>
@@ -96,9 +98,9 @@ export default async function AdminEventSalesPage({ params }: Props) {
           sub="Paid by fans (confirmed orders, after promos)"
         />
         <AdminReportStat
-          label="Spotra platform fee (3%)"
+          label={`Spotra platform fee (${feeLabel})`}
           value={formatPrice(report.serviceFee)}
-          sub="Your share"
+          sub="Deducted from organizer payout"
         />
         <AdminReportStat
           label="Organizer net"
@@ -202,6 +204,7 @@ export default async function AdminEventSalesPage({ params }: Props) {
                   subtotalAmount: order.subtotalAmount,
                   totalAmount: order.totalAmount,
                   serviceFee: order.serviceFee,
+                  bookingFee: order.bookingFee,
                 });
                 const feeMissing =
                   isConfirmed &&

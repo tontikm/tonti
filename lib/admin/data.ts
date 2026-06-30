@@ -35,6 +35,7 @@ export type AdminOrderRow = {
   totalAmount: number;
   subtotalAmount: number;
   serviceFee: number;
+  bookingFee: number;
   status: string;
   paymentProvider: string | null;
   paymentReference: string | null;
@@ -218,7 +219,7 @@ export async function listAdminOrders(
   let query = supabase
     .from("orders")
     .select(
-      "id, event_slug, buyer_name, buyer_email, total_amount, subtotal_amount, service_fee, status, payment_provider, payment_reference, ticket_count, created_at",
+      "id, event_slug, buyer_name, buyer_email, total_amount, subtotal_amount, service_fee, booking_fee, status, payment_provider, payment_reference, ticket_count, created_at",
     )
     .order("created_at", { ascending: false })
     .limit(limit);
@@ -239,6 +240,7 @@ export async function listAdminOrders(
     totalAmount: Number(row.total_amount ?? 0),
     subtotalAmount: Number(row.subtotal_amount ?? row.total_amount ?? 0),
     serviceFee: Number(row.service_fee ?? 0),
+    bookingFee: Number(row.booking_fee ?? 0),
     status: row.status as string,
     paymentProvider: (row.payment_provider as string) ?? null,
     paymentReference: (row.payment_reference as string) ?? null,

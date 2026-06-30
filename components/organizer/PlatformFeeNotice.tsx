@@ -1,7 +1,7 @@
 "use client";
 
 import { Percent } from "lucide-react";
-import { SERVICE_FEE_RATE } from "@/lib/payments/service-fee";
+import { ORGANIZER_FEE_RATE } from "@/lib/payments/service-fee";
 
 type PlatformFeeNoticeProps = {
   variant?: "banner" | "inline";
@@ -12,7 +12,7 @@ export function PlatformFeeNotice({
   variant = "inline",
   className = "",
 }: PlatformFeeNoticeProps) {
-  const feePercent = Math.round(SERVICE_FEE_RATE * 100);
+  const feePercent = (ORGANIZER_FEE_RATE * 100).toFixed(1).replace(/\.0$/, "");
 
   if (variant === "banner") {
     return (
@@ -28,9 +28,10 @@ export function PlatformFeeNotice({
               Spotra platform fee: {feePercent}% per paid ticket
             </p>
             <p className="mt-1 text-sm text-muted">
-              Fans pay your listed ticket price. The {feePercent}% fee applies
-              only to paid tiers. Free RSVPs are excluded, and the fee is deducted
-              from your side, not added to the fan&apos;s price.
+              Fans pay your listed ticket price plus a R6 booking fee per ticket.
+              The {feePercent}% platform fee applies only to paid tiers after
+              discounts. Free RSVPs are excluded, and the platform fee is deducted
+              from your payout, not added to the ticket price.
             </p>
           </div>
         </div>

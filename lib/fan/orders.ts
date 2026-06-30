@@ -19,6 +19,7 @@ function mapOrderRow(row: Record<string, unknown>): TicketOrder {
     buyerEmail: row.buyer_email as string,
     subtotalAmount,
     serviceFee: Number(row.service_fee ?? 0),
+    bookingFee: Number(row.booking_fee ?? 0),
     totalAmount,
     ticketCount: Number(row.ticket_count ?? 0),
     status: row.status as string,

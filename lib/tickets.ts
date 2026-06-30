@@ -37,6 +37,7 @@ function mapOrderRow(row: Record<string, unknown>): TicketOrder {
     buyerEmail: row.buyer_email as string,
     subtotalAmount,
     serviceFee: Number(row.service_fee ?? 0),
+    bookingFee: Number(row.booking_fee ?? 0),
     totalAmount,
     ticketCount: Number(row.ticket_count ?? 0),
     status: row.status as string,
@@ -315,21 +316,25 @@ export async function getEventSalesReport(
 
   let grossRevenue = 0;
   let serviceFee = 0;
+  let organizerNetTotal = 0;
   let orderCount = 0;
   const zeroTotalOrderIds = new Set<string>();
 
   if (supabase) {
     const { data: orderRows } = await supabase
       .from("orders")
-      .select("id, status, subtotal_amount, service_fee, total_amount")
+      .select(
+        "id, status, subtotal_amount, service_fee, total_amount, booking_fee, discount_amount",
+      )
       .eq("event_slug", eventSlug)
       .eq("status", "confirmed");
 
     for (const row of orderRows ?? []) {
       orderCount += 1;
-      const { collected, serviceFee: fee } = revenueFromDbRow(row);
+      const { collected, serviceFee: fee, organizerNet } = revenueFromDbRow(row);
       grossRevenue += collected;
       serviceFee += fee;
+      organizerNetTotal += organizerNet;
       if (Number(row.total_amount ?? collected) <= 0) {
         zeroTotalOrderIds.add(row.id as string);
       }
@@ -338,7 +343,7 @@ export async function getEventSalesReport(
 
   grossRevenue = Math.round(grossRevenue * 100) / 100;
   serviceFee = Math.round(serviceFee * 100) / 100;
-  const organizerNet = Math.round((grossRevenue - serviceFee) * 100) / 100;
+  const organizerNet = Math.round(organizerNetTotal * 100) / 100;
 
   const tierStats = new Map<
     string,

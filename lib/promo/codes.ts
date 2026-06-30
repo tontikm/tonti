@@ -35,6 +35,8 @@ export type PromoPreview = {
   promoCodeId: string;
   discountAmount: number;
   subtotalAmount: number;
+  ticketAmount: number;
+  bookingFee: number;
   totalAmount: number;
   serviceFee: number;
 };
@@ -110,6 +112,8 @@ export function buildPromoPreview(
     promoCodeId: promo.id,
     discountAmount: amounts.discountAmount,
     subtotalAmount: amounts.subtotalAmount,
+    ticketAmount: amounts.ticketAmount,
+    bookingFee: amounts.bookingFee,
     totalAmount: amounts.totalAmount,
     serviceFee: amounts.serviceFee,
   };

@@ -5,6 +5,7 @@ import { AdminPageHeader } from "@/components/admin/AdminShell";
 import { OrganizerStatusBadge } from "@/components/admin/OrganizerStatusBadge";
 import { listAdminEvents } from "@/lib/admin/data";
 import { isFeeIncomplete } from "@/lib/payments/order-revenue";
+import { formatOrganizerFeePercentLabel } from "@/lib/payments/service-fee";
 import { formatDateRange, formatPrice } from "@/lib/utils";
 
 export const metadata = {
@@ -14,6 +15,7 @@ export const metadata = {
 
 export default async function AdminEventsPage() {
   const events = await listAdminEvents();
+  const feeLabel = formatOrganizerFeePercentLabel();
 
   return (
     <>
@@ -35,7 +37,7 @@ export default async function AdminEventsPage() {
                   <th className="px-4 py-3 font-medium">Organizer</th>
                   <th className="px-4 py-3 font-medium">Tickets</th>
                   <th className="px-4 py-3 font-medium">Collected</th>
-                  <th className="px-4 py-3 font-medium">Spotra (3%)</th>
+                  <th className="px-4 py-3 font-medium">Spotra ({feeLabel})</th>
                   <th className="px-4 py-3 font-medium">Organizer net</th>
                   <th className="px-4 py-3 font-medium">Public</th>
                   <th className="px-4 py-3 font-medium">Date</th>
@@ -48,7 +50,7 @@ export default async function AdminEventsPage() {
                     <td className="px-4 py-4">
                       <p className="font-medium">{event.title}</p>
                       {isFeeIncomplete(
-                        event.sales.grossRevenue,
+                        event.sales.ticketRevenue,
                         event.sales.platformFee,
                       ) && (
                         <Link

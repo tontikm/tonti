@@ -39,7 +39,7 @@ export function CheckoutExperience({
     Object.fromEntries(cart.lines.map((line) => [line.tierId, line.quantity])),
   );
 
-  const displayTotal = promo?.totalAmount ?? cart.totalAmount;
+  const displayTotal = promo?.totalAmount ?? cart.checkoutTotal;
   const isFree = displayTotal === 0;
   const payfastActive = payfastEnabled && !isFree;
 

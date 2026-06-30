@@ -71,6 +71,7 @@ async function buildLineItems(
       lineItems: LineItem[];
       subtotalAmount: number;
       serviceFee: number;
+      bookingFee: number;
       totalAmount: number;
     }
   | { error: string }
@@ -112,12 +113,14 @@ async function buildLineItems(
 
   const amounts = computeOrderAmounts(
     lineItems.map((item) => ({ price: item.price, quantity: item.qty })),
+    lineItems.reduce((sum, item) => sum + item.qty, 0),
   );
 
   return {
     lineItems,
     subtotalAmount: amounts.subtotalAmount,
     serviceFee: amounts.serviceFee,
+    bookingFee: amounts.bookingFee,
     totalAmount: amounts.totalAmount,
   };
 }
@@ -130,6 +133,7 @@ type OrderInsertRow = {
   user_id?: string | null;
   subtotal_amount: number;
   service_fee: number;
+  booking_fee?: number;
   total_amount: number;
   discount_amount?: number;
   promo_code_id?: string | null;
@@ -187,6 +191,11 @@ async function insertOrderRow(
     }
     if (message.includes("service_fee") && "service_fee" in rowToInsert) {
       const { service_fee: _fee, ...rest } = rowToInsert;
+      rowToInsert = rest;
+      continue;
+    }
+    if (message.includes("booking_fee") && "booking_fee" in rowToInsert) {
+      const { booking_fee: _bookingFee, ...rest } = rowToInsert;
       rowToInsert = rest;
       continue;
     }
@@ -260,6 +269,7 @@ export async function previewPromoCode(
   const amounts = computeOrderAmountsWithDiscount(
     built.lineItems.map((item) => ({ price: item.price, quantity: item.qty })),
     promo,
+    built.lineItems.reduce((sum, item) => sum + item.qty, 0),
   );
 
   return {
@@ -268,6 +278,8 @@ export async function previewPromoCode(
       promoCodeId: promo.id,
       discountAmount: amounts.discountAmount,
       subtotalAmount: amounts.subtotalAmount,
+      ticketAmount: amounts.ticketAmount,
+      bookingFee: amounts.bookingFee,
       totalAmount: amounts.totalAmount,
       serviceFee: amounts.serviceFee,
     },
@@ -341,7 +353,7 @@ export async function claimTickets(
   const built = await buildLineItems(supabase, eventSlug, chosen);
   if ("error" in built) return { error: built.error };
 
-  let { lineItems, subtotalAmount, serviceFee, totalAmount } = built;
+  let { lineItems, subtotalAmount, serviceFee, bookingFee, totalAmount } = built;
   let discountAmount = 0;
   let promoCodeId: string | null = null;
 
@@ -359,10 +371,12 @@ export async function claimTickets(
     const amounts = computeOrderAmountsWithDiscount(
       lineItems.map((item) => ({ price: item.price, quantity: item.qty })),
       promo,
+      totalTickets,
     );
     subtotalAmount = amounts.subtotalAmount;
     discountAmount = amounts.discountAmount;
     serviceFee = amounts.serviceFee;
+    bookingFee = amounts.bookingFee;
     totalAmount = amounts.totalAmount;
     promoCodeId = promo.id;
   }
@@ -381,6 +395,7 @@ export async function claimTickets(
       user_id: userId,
       subtotal_amount: subtotalAmount,
       service_fee: serviceFee,
+      booking_fee: bookingFee,
       total_amount: totalAmount,
       ...orderDiscountFields,
       ticket_count: totalTickets,
@@ -404,6 +419,7 @@ export async function claimTickets(
     user_id: userId,
     subtotal_amount: subtotalAmount,
     service_fee: serviceFee,
+    booking_fee: bookingFee,
     total_amount: totalAmount,
     ...orderDiscountFields,
     ticket_count: totalTickets,

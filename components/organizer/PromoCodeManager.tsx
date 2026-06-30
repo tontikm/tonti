@@ -36,7 +36,7 @@ export function PromoCodeManager({ eventSlug, promos }: PromoCodeManagerProps) {
         </div>
         <p className="mt-2 text-sm text-muted">
           Fans enter codes at checkout. Discount applies to ticket subtotal before
-          the 3% platform fee.
+          the 3.5% platform fee.
         </p>
 
         <input type="hidden" name="eventSlug" value={eventSlug} />

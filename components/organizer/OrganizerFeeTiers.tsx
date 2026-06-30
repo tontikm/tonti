@@ -1,5 +1,5 @@
 import { Button } from "@/components/ui/Button";
-import { SERVICE_FEE_RATE } from "@/lib/payments/service-fee";
+import { ORGANIZER_FEE_RATE, BOOKING_FEE_PER_TICKET } from "@/lib/payments/service-fee";
 import { CONTACT_EMAIL, BRAND_NAME } from "@/lib/site";
 
 type TierCardProps = {
@@ -70,7 +70,7 @@ function TierCard({
 }
 
 export function OrganizerFeeTiers() {
-  const feePercent = Math.round(SERVICE_FEE_RATE * 100);
+  const feePercent = (ORGANIZER_FEE_RATE * 100).toFixed(1).replace(/\.0$/, "");
 
   return (
     <section className="relative border-b border-white/10 bg-zinc-950">
@@ -87,8 +87,8 @@ export function OrganizerFeeTiers() {
             attendeeRange="0 – 2,000 attendees"
             features={[
               `${feePercent}% platform fee on paid tickets`,
-              "R0 buyer booking fee",
-              "Fans pay your listed ticket price",
+              `R${BOOKING_FEE_PER_TICKET} buyer booking fee per ticket`,
+              "Fans pay ticket price plus booking fee",
               "Free RSVPs excluded from fees",
               "Payfast checkout when enabled",
               "QR door scan and guest list",
